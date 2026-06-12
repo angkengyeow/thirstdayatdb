@@ -1,0 +1,60 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# QuantexPro — Development Docker Compose overrides
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+#
+# Features:
+#   - Hot-reload for engine (via --reload flag)
+#   - Source mounts for live code editing
+#   - Exposed service ports for local debugging
+#   - Grafana with pre-provisioned dashboards
+# ─────────────────────────────────────────────────────────────────────────────
+
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  engine:
+    command: [
+      "python", "-m", "uvicorn", "python_engine.api.server:app",
+      "--host", "0.0.0.0", "--port", "8000",
+      "--reload", "--log-level", "debug"
+    ]
+    volumes:
+      - ./python_engine:/app/python_engine
+    ports:
+      - "8000:8000"
+
+  web:
+    build:
+      dockerfile: Dockerfile.web.dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./src:/app/src
+      - ./index.html:/app/index.html
+      - ./vite.config.js:/app/vite.config.js
+    environment:
+      - VITE_API_URL=http://localhost:8000
+
+  postgres:
+    ports:
+      - "5432:5432"
+
+  redis:
+    ports:
+      - "6379:6379"
+
+  prometheus:
+    ports:
+      - "9090:9090"
+
+  grafana:
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin

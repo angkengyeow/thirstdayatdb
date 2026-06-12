@@ -1,0 +1,102 @@
+{"timestamp": "2026-06-08T11:22:45.697112+00:00", "action": "TEST_ACTION", "details": {"key": "value"}}
+{"timestamp": "2026-06-08T11:22:45.698138+00:00", "action": "ACTION_1", "details": {}}
+{"timestamp": "2026-06-08T11:22:45.698191+00:00", "action": "ACTION_2", "details": {}}
+{"timestamp": "2026-06-08T11:22:45.698223+00:00", "action": "ACTION_3", "details": {}}
+{"timestamp": "2026-06-08T11:22:45.698996+00:00", "action": "ACTION_0", "details": {}}
+{"timestamp": "2026-06-08T11:22:45.699043+00:00", "action": "ACTION_1", "details": {}}
+{"timestamp": "2026-06-08T11:22:45.699073+00:00", "action": "ACTION_2", "details": {}}
+{"timestamp": "2026-06-08T11:22:45.699100+00:00", "action": "ACTION_3", "details": {}}
+{"timestamp": "2026-06-08T11:22:45.699126+00:00", "action": "ACTION_4", "details": {}}
+{"timestamp": "2026-06-08T11:22:45.699152+00:00", "action": "ACTION_5", "details": {}}
+{"timestamp": "2026-06-08T11:22:45.699177+00:00", "action": "ACTION_6", "details": {}}
+{"timestamp": "2026-06-08T11:22:45.699205+00:00", "action": "ACTION_7", "details": {}}
+{"timestamp": "2026-06-08T11:22:45.699230+00:00", "action": "ACTION_8", "details": {}}
+{"timestamp": "2026-06-08T11:22:45.699255+00:00", "action": "ACTION_9", "details": {}}
+{"timestamp": "2026-06-08T11:23:27.170468+00:00", "action": "TEST_ACTION", "details": {"key": "value"}}
+{"timestamp": "2026-06-08T11:23:27.171437+00:00", "action": "ACTION_1", "details": {}}
+{"timestamp": "2026-06-08T11:23:27.171499+00:00", "action": "ACTION_2", "details": {}}
+{"timestamp": "2026-06-08T11:23:27.171534+00:00", "action": "ACTION_3", "details": {}}
+{"timestamp": "2026-06-08T11:23:27.172383+00:00", "action": "ACTION_0", "details": {}}
+{"timestamp": "2026-06-08T11:23:27.172429+00:00", "action": "ACTION_1", "details": {}}
+{"timestamp": "2026-06-08T11:23:27.172474+00:00", "action": "ACTION_2", "details": {}}
+{"timestamp": "2026-06-08T11:23:27.172507+00:00", "action": "ACTION_3", "details": {}}
+{"timestamp": "2026-06-08T11:23:27.172534+00:00", "action": "ACTION_4", "details": {}}
+{"timestamp": "2026-06-08T11:23:27.172559+00:00", "action": "ACTION_5", "details": {}}
+{"timestamp": "2026-06-08T11:23:27.172584+00:00", "action": "ACTION_6", "details": {}}
+{"timestamp": "2026-06-08T11:23:27.172612+00:00", "action": "ACTION_7", "details": {}}
+{"timestamp": "2026-06-08T11:23:27.172642+00:00", "action": "ACTION_8", "details": {}}
+{"timestamp": "2026-06-08T11:23:27.172667+00:00", "action": "ACTION_9", "details": {}}
+{"timestamp": "2026-06-08T11:23:49.345733+00:00", "action": "TEST_ACTION", "details": {"key": "value"}}
+{"timestamp": "2026-06-08T11:23:49.346654+00:00", "action": "ACTION_1", "details": {}}
+{"timestamp": "2026-06-08T11:23:49.346713+00:00", "action": "ACTION_2", "details": {}}
+{"timestamp": "2026-06-08T11:23:49.346745+00:00", "action": "ACTION_3", "details": {}}
+{"timestamp": "2026-06-08T11:23:49.347530+00:00", "action": "ACTION_0", "details": {}}
+{"timestamp": "2026-06-08T11:23:49.347589+00:00", "action": "ACTION_1", "details": {}}
+{"timestamp": "2026-06-08T11:23:49.347628+00:00", "action": "ACTION_2", "details": {}}
+{"timestamp": "2026-06-08T11:23:49.347663+00:00", "action": "ACTION_3", "details": {}}
+{"timestamp": "2026-06-08T11:23:49.347704+00:00", "action": "ACTION_4", "details": {}}
+{"timestamp": "2026-06-08T11:23:49.347737+00:00", "action": "ACTION_5", "details": {}}
+{"timestamp": "2026-06-08T11:23:49.347763+00:00", "action": "ACTION_6", "details": {}}
+{"timestamp": "2026-06-08T11:23:49.347790+00:00", "action": "ACTION_7", "details": {}}
+{"timestamp": "2026-06-08T11:23:49.347815+00:00", "action": "ACTION_8", "details": {}}
+{"timestamp": "2026-06-08T11:23:49.347841+00:00", "action": "ACTION_9", "details": {}}
+{"timestamp": "2026-06-08T11:29:06.533980+00:00", "action": "TEST_ACTION", "details": {"key": "value"}}
+{"timestamp": "2026-06-08T11:29:06.534883+00:00", "action": "ACTION_1", "details": {}}
+{"timestamp": "2026-06-08T11:29:06.534944+00:00", "action": "ACTION_2", "details": {}}
+{"timestamp": "2026-06-08T11:29:06.534978+00:00", "action": "ACTION_3", "details": {}}
+{"timestamp": "2026-06-08T11:29:06.535890+00:00", "action": "ACTION_0", "details": {}}
+{"timestamp": "2026-06-08T11:29:06.535963+00:00", "action": "ACTION_1", "details": {}}
+{"timestamp": "2026-06-08T11:29:06.536006+00:00", "action": "ACTION_2", "details": {}}
+{"timestamp": "2026-06-08T11:29:06.536042+00:00", "action": "ACTION_3", "details": {}}
+{"timestamp": "2026-06-08T11:29:06.536076+00:00", "action": "ACTION_4", "details": {}}
+{"timestamp": "2026-06-08T11:29:06.536109+00:00", "action": "ACTION_5", "details": {}}
+{"timestamp": "2026-06-08T11:29:06.536142+00:00", "action": "ACTION_6", "details": {}}
+{"timestamp": "2026-06-08T11:29:06.536176+00:00", "action": "ACTION_7", "details": {}}
+{"timestamp": "2026-06-08T11:29:06.536208+00:00", "action": "ACTION_8", "details": {}}
+{"timestamp": "2026-06-08T11:29:06.536240+00:00", "action": "ACTION_9", "details": {}}
+{"timestamp": "2026-06-08T11:59:55.227170+00:00", "action": "TEST_ACTION", "details": {"key": "value"}}
+{"timestamp": "2026-06-08T11:59:55.227672+00:00", "action": "ACTION_1", "details": {}}
+{"timestamp": "2026-06-08T11:59:55.227719+00:00", "action": "ACTION_2", "details": {}}
+{"timestamp": "2026-06-08T11:59:55.227748+00:00", "action": "ACTION_3", "details": {}}
+{"timestamp": "2026-06-08T11:59:55.228138+00:00", "action": "ACTION_0", "details": {}}
+{"timestamp": "2026-06-08T11:59:55.228178+00:00", "action": "ACTION_1", "details": {}}
+{"timestamp": "2026-06-08T11:59:55.228205+00:00", "action": "ACTION_2", "details": {}}
+{"timestamp": "2026-06-08T11:59:55.228235+00:00", "action": "ACTION_3", "details": {}}
+{"timestamp": "2026-06-08T11:59:55.228261+00:00", "action": "ACTION_4", "details": {}}
+{"timestamp": "2026-06-08T11:59:55.228284+00:00", "action": "ACTION_5", "details": {}}
+{"timestamp": "2026-06-08T11:59:55.228306+00:00", "action": "ACTION_6", "details": {}}
+{"timestamp": "2026-06-08T11:59:55.228332+00:00", "action": "ACTION_7", "details": {}}
+{"timestamp": "2026-06-08T11:59:55.228355+00:00", "action": "ACTION_8", "details": {}}
+{"timestamp": "2026-06-08T11:59:55.228377+00:00", "action": "ACTION_9", "details": {}}
+{"timestamp": "2026-06-08T12:03:22.841240+00:00", "action": "BROKER_DISCONNECT", "details": {}}
+{"timestamp": "2026-06-08T12:03:22.852407+00:00", "action": "EMERGENCY_KILL", "details": {"orders_cancelled": 3, "positions_closed": 2, "status": "emergency_kill_executed"}}
+{"timestamp": "2026-06-08T12:03:22.962531+00:00", "action": "TEST_ACTION", "details": {"key": "value"}}
+{"timestamp": "2026-06-08T12:03:22.963004+00:00", "action": "ACTION_1", "details": {}}
+{"timestamp": "2026-06-08T12:03:22.963052+00:00", "action": "ACTION_2", "details": {}}
+{"timestamp": "2026-06-08T12:03:22.963081+00:00", "action": "ACTION_3", "details": {}}
+{"timestamp": "2026-06-08T12:03:22.963482+00:00", "action": "ACTION_0", "details": {}}
+{"timestamp": "2026-06-08T12:03:22.963527+00:00", "action": "ACTION_1", "details": {}}
+{"timestamp": "2026-06-08T12:03:22.963555+00:00", "action": "ACTION_2", "details": {}}
+{"timestamp": "2026-06-08T12:03:22.963580+00:00", "action": "ACTION_3", "details": {}}
+{"timestamp": "2026-06-08T12:03:22.963603+00:00", "action": "ACTION_4", "details": {}}
+{"timestamp": "2026-06-08T12:03:22.963625+00:00", "action": "ACTION_5", "details": {}}
+{"timestamp": "2026-06-08T12:03:22.963648+00:00", "action": "ACTION_6", "details": {}}
+{"timestamp": "2026-06-08T12:03:22.963674+00:00", "action": "ACTION_7", "details": {}}
+{"timestamp": "2026-06-08T12:03:22.963696+00:00", "action": "ACTION_8", "details": {}}
+{"timestamp": "2026-06-08T12:03:22.963718+00:00", "action": "ACTION_9", "details": {}}
+{"timestamp": "2026-06-08T12:04:27.289764+00:00", "action": "BROKER_DISCONNECT", "details": {}}
+{"timestamp": "2026-06-08T12:04:27.301988+00:00", "action": "EMERGENCY_KILL", "details": {"orders_cancelled": 3, "positions_closed": 2, "status": "emergency_kill_executed"}}
+{"timestamp": "2026-06-08T12:04:27.426758+00:00", "action": "TEST_ACTION", "details": {"key": "value"}}
+{"timestamp": "2026-06-08T12:04:27.427224+00:00", "action": "ACTION_1", "details": {}}
+{"timestamp": "2026-06-08T12:04:27.427271+00:00", "action": "ACTION_2", "details": {}}
+{"timestamp": "2026-06-08T12:04:27.427311+00:00", "action": "ACTION_3", "details": {}}
+{"timestamp": "2026-06-08T12:04:27.427720+00:00", "action": "ACTION_0", "details": {}}
+{"timestamp": "2026-06-08T12:04:27.427769+00:00", "action": "ACTION_1", "details": {}}
+{"timestamp": "2026-06-08T12:04:27.427798+00:00", "action": "ACTION_2", "details": {}}
+{"timestamp": "2026-06-08T12:04:27.427826+00:00", "action": "ACTION_3", "details": {}}
+{"timestamp": "2026-06-08T12:04:27.427849+00:00", "action": "ACTION_4", "details": {}}
+{"timestamp": "2026-06-08T12:04:27.427870+00:00", "action": "ACTION_5", "details": {}}
+{"timestamp": "2026-06-08T12:04:27.427892+00:00", "action": "ACTION_6", "details": {}}
+{"timestamp": "2026-06-08T12:04:27.427917+00:00", "action": "ACTION_7", "details": {}}
+{"timestamp": "2026-06-08T12:04:27.427938+00:00", "action": "ACTION_8", "details": {}}
+{"timestamp": "2026-06-08T12:04:27.427959+00:00", "action": "ACTION_9", "details": {}}

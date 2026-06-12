@@ -1,0 +1,16 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Grafana — Dashboard provisioning
+# ─────────────────────────────────────────────────────────────────────────────
+
+apiVersion: 1
+
+providers:
+  - name: "QuantexPro"
+    orgId: 1
+    folder: "QuantexPro"
+    type: file
+    disableDeletion: false
+    editable: true
+    updateIntervalSeconds: 30
+    options:
+      path: /etc/grafana/provisioning/dashboards

@@ -1,0 +1,54 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# QuantexPro — Nightly Scheduled Jobs
+#   - Full regression test suite
+#   - Backtest performance benchmark
+#   - Dependency vulnerability audit
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: Nightly
+
+on:
+  schedule:
+    - cron: "0 6 * * 1-5"  # 06:00 UTC, Mon–Fri
+  workflow_dispatch:
+
+jobs:
+  regression:
+    name: Regression Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: python_engine
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - run: pip install -r requirements.txt pytest-cov pytest-benchmark
+      - run: python -m pytest tests/ -v --cov=. --cov-report=term --benchmark-only
+      - run: python -m pytest tests/ -v --cov=. --cov-report=term --benchmark-skip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: .benchmarks/
+
+  dependency-audit:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Python audit
+        uses: pypa/gh-action-pip-audit@v1.0.0
+        with:
+          inputs: python_engine/requirements.txt
+      - name: npm audit
+        run: |
+          npm audit --audit-level=high || true
+      - name: Trivy full scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "fs"
+          scan-ref: "."
+          format: "table"
+          severity: "HIGH,CRITICAL"

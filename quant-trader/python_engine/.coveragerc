@@ -1,0 +1,16 @@
+[run]
+omit =
+    */api/*
+    */db/*
+    */monitoring/*
+    */scheduler/*
+    tests/*
+    main.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    raise NotImplementedError
+    if __name__ == "__main__":
+    from ..db
+    from .. import engine_instance

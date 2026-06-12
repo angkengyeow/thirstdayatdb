@@ -1,0 +1,10 @@
+docker/
+├── initdb/               # DB init scripts
+│   └── 001_init.sql
+├── prometheus/
+│   └── prometheus.yml
+└── grafana/
+    ├── datasources/
+    │   └── datasource.yml
+    └── dashboards/
+        └── dashboard.yml

@@ -1,0 +1,64 @@
+{
+  "__inputs": [],
+  "__requires": [],
+  "title": "QuantexPro — Engine Overview",
+  "uid": "quantex-engine",
+  "version": 1,
+  "schemaVersion": 39,
+  "panels": [
+    {
+      "title": "Portfolio Equity Curve",
+      "type": "timeseries",
+      "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8},
+      "targets": [{"expr": "quantex_equity", "legendFormat": "Equity"}],
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {"lineWidth": 2, "fillOpacity": 15}
+        }
+      }
+    },
+    {
+      "title": "Drawdown %",
+      "type": "timeseries",
+      "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8},
+      "targets": [{"expr": "quantex_max_drawdown_pct * 100", "legendFormat": "Drawdown"}],
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {"lineWidth": 2, "fillOpacity": 20}
+        }
+      }
+    },
+    {
+      "title": "Realised P&L (Cumulative)",
+      "type": "timeseries",
+      "gridPos": {"x": 0, "y": 8, "w": 8, "h": 6},
+      "targets": [{"expr": "quantex_realised_pnl", "legendFormat": "PnL"}]
+    },
+    {
+      "title": "Open Positions",
+      "type": "stat",
+      "gridPos": {"x": 8, "y": 8, "w": 4, "h": 6},
+      "targets": [{"expr": "quantex_open_positions", "legendFormat": "Open"}],
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "green"}, {"value": 1, "color": "orange"}, {"value": 4, "color": "red"}]}
+        }
+      }
+    },
+    {
+      "title": "Orders / Minute",
+      "type": "stat",
+      "gridPos": {"x": 12, "y": 8, "w": 4, "h": 6},
+      "targets": [{"expr": "rate(quantex_orders_submitted_total[1m])", "legendFormat": "Orders/min"}]
+    },
+    {
+      "title": "Last Signal",
+      "type": "stat",
+      "gridPos": {"x": 16, "y": 8, "w": 8, "h": 6},
+      "targets": [{"expr": "quantex_last_signal_type", "legendFormat": "Signal"}]
+    }
+  ]
+}

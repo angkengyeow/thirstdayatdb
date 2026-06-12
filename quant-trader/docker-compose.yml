@@ -1,0 +1,123 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# QuantexPro — Production Docker Compose
+#
+# Usage:
+#   docker compose up -d
+#   docker compose logs -f engine
+# ─────────────────────────────────────────────────────────────────────────────
+
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  # ── Trading Engine (Python FastAPI) ──────────────────────────────────────────
+  engine:
+    build:
+      context: .
+      dockerfile: Dockerfile.engine
+    image: ghcr.io/${GITHUB_REPOSITORY:-quantex}/engine:latest
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      redis:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    volumes:
+      - engine-data:/app/data
+      - ./python_engine:/app/python_engine:ro
+    restart: unless-stopped
+    logging: *default-logging
+
+  # ── Web UI (React + Nginx) ─────────────────────────────────────────────────
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    image: ghcr.io/${GITHUB_REPOSITORY:-quantex}/web:latest
+    ports:
+      - "80:80"
+    depends_on:
+      - engine
+    restart: unless-stopped
+    logging: *default-logging
+
+  # ── Redis (Order cache + Pub/Sub message bus) ───────────────────────────────
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes --save 60 1000
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    logging: *default-logging
+
+  # ── PostgreSQL + TimescaleDB (Portfolio, trades, OHLCV) ─────────────────────
+  postgres:
+    image: timescale/timescaledb:latest-pg16
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: quantexpro
+      POSTGRES_USER: ${DB_USER:-quantex}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./docker/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-quantex} -d quantexpro"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    logging: *default-logging
+
+  # ── Prometheus (Metric collection) ──────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v2.55
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
+    restart: unless-stopped
+    logging: *default-logging
+
+  # ── Grafana (Dashboards) ────────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:11.4
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_INSTALL_PLUGINS: "grafana-piechart-panel"
+    volumes:
+      - ./docker/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./docker/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    logging: *default-logging
+
+volumes:
+  engine-data:
+  redis-data:
+  postgres-data:
+  prometheus-data:
+  grafana-data:
