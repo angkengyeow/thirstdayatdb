@@ -1,6 +1,5 @@
-import { useState } from 'react';
-import { getPlayers } from '../store';
-import { getPlayerDashboardStats } from '../store';
+import { useState, useEffect } from 'react';
+import { getPlayers, getPlayerDashboardStats, getPlayerAwardDisplayCounts } from '../store';
 
 interface AwardPin {
   name: string;
@@ -66,10 +65,26 @@ function estimateBracketIndex(liveRating: number): number {
 
 const BRACKET_COLORS = ['bg-gray-100', 'bg-indigo-100', 'bg-indigo-200', 'bg-indigo-300'];
 
+/** Compute how many of a player's awards are clocked (actual >= bracket threshold) */
+function clockedCount(awards: Record<string, number>, bracketIdx: number): number {
+  let clocked = 0;
+  for (const pin of AWARD_PINS) {
+    const actual = awards[pin.name] || 0;
+    const threshold = pin.thresholds[bracketIdx];
+    if (actual >= threshold) clocked++;
+  }
+  return clocked;
+}
+
 export default function AwardsPage() {
   const [players] = useState(() => getPlayerDashboardStats());
   const allPlayers = getPlayers();
   const hasData = allPlayers.length > 0;
+  const [awardData, setAwardData] = useState<{ playerName: string; awards: Record<string, number> }[]>([]);
+
+  useEffect(() => {
+    setAwardData(getPlayerAwardDisplayCounts());
+  }, []);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
@@ -81,7 +96,7 @@ export default function AwardsPage() {
         <p>
           Award pins are earned based on your final DARTSLIVE Rating at the end of the season.
           Each bracket requires a certain number of achievements to earn the pin.
-          Check your DARTSLIVE card for your exact rating.
+          The table below shows actual achievements tracked per match from DartsLive.
         </p>
       </div>
 
@@ -108,12 +123,12 @@ export default function AwardsPage() {
         ))}
       </div>
 
-      {/* Player award eligibility */}
+      {/* Player awards — real achievement data */}
       {hasData && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8 overflow-x-auto">
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">Award Eligibility by Player</h2>
+          <h2 className="text-lg font-semibold text-gray-700 mb-4">Awards Achieved by Player</h2>
           <p className="text-xs text-gray-500 mb-4">
-            Which award pins each player can pursue at their current rating bracket. The number shown is how many achievements are needed to earn that pin.
+            Real achievement counts tracked from each match. ✓ = met the bracket threshold.
           </p>
           <table className="w-full text-sm">
             <thead>
@@ -124,7 +139,7 @@ export default function AwardsPage() {
                 {AWARD_PINS.map(pin => (
                   <th key={pin.name} className="pb-3 font-medium text-center" title={`${pin.name}: ${pin.description}`}>{pin.icon}</th>
                 ))}
-                <th className="pb-3 font-medium text-center">Available</th>
+                <th className="pb-3 font-medium text-center">Clocked</th>
               </tr>
             </thead>
             <tbody>
@@ -133,6 +148,7 @@ export default function AwardsPage() {
                 .sort((a, b) => b.liveRating - a.liveRating)
                 .map(p => {
                   const bracketIdx = estimateBracketIndex(p.liveRating);
+                  const playerAwards = awardData.find(a => a.playerName === p.player.name)?.awards || {};
                   return (
                     <tr key={p.player.id} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="py-2.5 font-medium text-gray-800">{p.player.name}</td>
@@ -143,22 +159,26 @@ export default function AwardsPage() {
                         </span>
                       </td>
                       {AWARD_PINS.map(pin => {
+                        const actual = playerAwards[pin.name] || 0;
                         const threshold = pin.thresholds[bracketIdx];
+                        const achieved = actual >= threshold;
                         return (
                           <td key={pin.name} className="py-2.5 text-center">
-                            <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded ${
-                              threshold > 0
+                            <span className={`text-xs font-mono font-bold px-1.5 py-0.5 rounded ${
+                              achieved
                                 ? 'text-emerald-600 bg-emerald-50'
-                                : 'text-gray-300'
+                                : actual > 0
+                                  ? 'text-amber-600 bg-amber-50'
+                                  : 'text-gray-300'
                             }`}>
-                              {threshold > 0 ? `Need ${threshold}` : '—'}
+                              {achieved ? `✓${actual}` : actual > 0 ? `${actual}/${threshold}` : '0'}
                             </span>
                           </td>
                         );
                       })}
                       <td className="py-2.5 text-center">
                         <span className="text-sm font-bold text-indigo-600">
-                          {AWARD_PINS.filter(pin => pin.thresholds[bracketIdx] > 0).length}/{AWARD_PINS.length}
+                          {clockedCount(playerAwards, bracketIdx)}/{AWARD_PINS.length}
                         </span>
                       </td>
                     </tr>
@@ -167,14 +187,14 @@ export default function AwardsPage() {
             </tbody>
           </table>
           <p className="text-xs text-gray-400 mt-3">
-            We don't have actual award-earned data from the API — these are the targets each player needs to hit at their bracket.
+            ✓ = achieved (met bracket threshold). x/y = earned vs threshold. 0 = none recorded.
           </p>
         </div>
       )}
 
       {!hasData && (
         <div className="text-center py-12 text-gray-400">
-          <p className="text-lg">Load data from DartsLive to see player brackets</p>
+          <p className="text-lg">Load data from DartsLive to see player awards</p>
         </div>
       )}
     </div>
