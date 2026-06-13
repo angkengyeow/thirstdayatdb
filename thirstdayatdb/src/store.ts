@@ -1,4 +1,4 @@
-import type { Player, Session, AttendanceRecord, AttendanceStatus, MatchPerformance, PlayerWithStats, LineupSlot, MatchGame, GameAssignment, FullLineup, PlayerResponse, GamePerformance, PlayerGameStats, PartnerStats, GameFormat, GameFormatCategory, SkippedGame, UnavailablePlayer, OpponentPlayerRecord, OpponentTeamProfile, OpponentGameSlotProfile, LineupStrategy } from './types';
+import type { Player, Session, AttendanceRecord, AttendanceStatus, MatchPerformance, PlayerWithStats, LineupSlot, MatchGame, GameAssignment, FullLineup, PlayerResponse, GamePerformance, PlayerGameStats, PartnerStats, GameFormat, GameFormatCategory, SkippedGame, UnavailablePlayer, OpponentPlayerRecord, OpponentTeamProfile, OpponentGameSlotProfile, LineupStrategy, OpponentLastMatchLineup } from './types';
 import { loadAllFromServer, saveAllToServer } from './api';
 
 const STORAGE_KEYS = {
@@ -1096,6 +1096,56 @@ export function getOpponentTeamProfile(matchDate: string): OpponentTeamProfile |
   const lastPlayed = recentMatches[0]?.matchDate || '';
 
   return { teamName: opponentTeam, lastPlayed, gameSlots };
+}
+
+/**
+ * Reconstructs the opponent's past lineups by grouping OpponentPlayerRecord entries
+ * by matchDate. Each lineup shows which opponent players were fielded in each game slot.
+ */
+export function getOpponentLastLineups(matchDate: string): OpponentLastMatchLineup[] {
+  const opponents = getOpponentPlayers();
+  const sessions = getSessions();
+  const matchSession = sessions.find(s => s.date === matchDate && s.type === 'match');
+  if (!matchSession) return [];
+
+  const noteMatch = matchSession.notes?.match(/(?:vs|@)\s+(.+?)\s+\(/);
+  if (!noteMatch) return [];
+  const opponentTeam = noteMatch[1].trim();
+
+  // Get all records for this opponent, limited to last 5 matches
+  const teamRecords = opponents
+    .filter(o => o.opponentTeam === opponentTeam)
+    .sort((a, b) => b.matchDate.localeCompare(a.matchDate));
+
+  // Group by matchDate
+  const matchDateGroups = new Map<string, OpponentPlayerRecord[]>();
+  const seenDates = new Set<string>();
+  for (const rec of teamRecords) {
+    if (!matchDateGroups.has(rec.matchDate)) {
+      if (seenDates.size >= 5) continue;
+      seenDates.add(rec.matchDate);
+      matchDateGroups.set(rec.matchDate, []);
+    }
+    matchDateGroups.get(rec.matchDate)!.push(rec);
+  }
+
+  // For each match, reconstruct lineup: group players by gameId
+  const lineups: OpponentLastMatchLineup[] = [];
+  for (const [matchDt, records] of matchDateGroups) {
+    const slotMap = new Map<number, Set<string>>();
+    for (const rec of records) {
+      for (const gameId of rec.gameIds) {
+        if (!slotMap.has(gameId)) slotMap.set(gameId, new Set());
+        slotMap.get(gameId)!.add(rec.playerName);
+      }
+    }
+    const slots = Array.from(slotMap.entries())
+      .map(([gameId, players]) => ({ gameId, players: Array.from(players) }))
+      .sort((a, b) => a.gameId - b.gameId);
+    lineups.push({ matchDate: matchDt, slots });
+  }
+
+  return lineups;
 }
 
 /**

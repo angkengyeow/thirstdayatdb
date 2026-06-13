@@ -175,6 +175,16 @@ export interface OpponentTeamProfile {
   gameSlots: OpponentGameSlotProfile[];
 }
 
+export interface OpponentMatchSlot {
+  gameId: number;
+  players: string[];
+}
+
+export interface OpponentLastMatchLineup {
+  matchDate: string;
+  slots: OpponentMatchSlot[];
+}
+
 export type LineupStrategy = 'optimal' | 'aggressive' | 'balanced';
 
 export interface LineupSuggestion {

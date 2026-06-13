@@ -3,11 +3,11 @@ import {
   generateFullLineup, getSessions, updateFromLiveData,
   getMatchSessionForDate, getGameResultsForSession, getMatchScore,
   saveLiveLineup, loadLiveLineup, getAllPlayersWithStats,
-  getOpponentTeamProfile, matchupBonus, formatScore,
+  getOpponentTeamProfile, getOpponentLastLineups, matchupBonus, formatScore,
   computeLineupWinProbability,
 } from '../store';
 import { fetchLiveData } from '../scraper';
-import type { MatchGame, FullLineup, OpponentTeamProfile, GameAssignment, LineupStrategy } from '../types';
+import type { MatchGame, FullLineup, OpponentTeamProfile, OpponentLastMatchLineup, GameAssignment, LineupStrategy } from '../types';
 
 const SUPER_LEAGUE_FORMAT: MatchGame[] = [
   { id: 1, type: 'singles', label: 'Singles 701 x3', legs: '701·701·701', playerCount: 1 },
@@ -37,6 +37,9 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
   const [result, setResult] = useState<FullLineup | null>(null);
   const [refreshStatus, setRefreshStatus] = useState<'idle' | 'loading' | 'done' | 'uptodate' | 'error'>('idle');
 
+  // Opponent profile for scouting / share
+  const [profile, setProfile] = useState<OpponentTeamProfile | null>(null);
+
   // Live match-day state
   const [isMatchDay, setIsMatchDay] = useState(false);
   const [matchSessionId, setMatchSessionId] = useState<string | null>(null);
@@ -63,6 +66,11 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
       setMatchDate(nextMatch.date);
     }
   }, [preselectDate]);
+
+  useEffect(() => {
+    const prof = getOpponentTeamProfile(matchDate);
+    setProfile(prof);
+  }, [matchDate]);
 
   useEffect(() => {
     const session = getMatchSessionForDate(matchDate);
@@ -509,6 +517,55 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
             })()}
           </div>
 
+          {/* Share Planned Lineup */}
+          {result && profile && (
+            <div className="mb-6">
+              <div className="flex items-center justify-between rounded-xl p-4" style={{ background: 'rgba(212,175,55,0.06)', border: '1px solid rgba(212,175,55,0.2)' }}>
+                <div className="flex items-center gap-3">
+                  <span className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs" style={{ background: 'linear-gradient(135deg, #D4AF37, #E8C872)' }}>
+                    {(() => {
+                      const wp = computeLineupWinProbability(result, profile);
+                      return `${wp}%`;
+                    })()}
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold text-[#1E293B] font-body">Best Match — {profile.teamName}</p>
+                    <p className="text-xs text-[#94A3B8] font-body">Optimal lineup win probability</p>
+                  </div>
+                </div>
+                <a
+                  href={`https://wa.me/?text=${(() => {
+                    const wp = computeLineupWinProbability(result, profile);
+                    const lines: string[] = [];
+                    lines.push(`*🏆 Thirstday@DB Lineup*`);
+                    lines.push(`*Match:* ${matchDate} vs ${profile.teamName}`);
+                    lines.push(`*Win Probability:* ${wp}%`);
+                    lines.push('');
+                    const sorted = [...result.assignments].sort((a, b) => a.game.id - b.game.id);
+                    for (const a of sorted) {
+                      const names = a.players.map(p => p.player.name).join(' & ');
+                      lines.push(`• G${a.game.id}: ${a.game.label} — ${names}`);
+                    }
+                    if (result.skippedGames.length > 0) {
+                      lines.push('');
+                      lines.push('*Forfeited:*');
+                      for (const s of result.skippedGames) {
+                        lines.push(`✗ G${s.game.id} ${s.game.label} — ${s.reason}`);
+                      }
+                    }
+                    return encodeURIComponent(lines.join('\n'));
+                  })()}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-2 rounded-lg text-sm font-medium transition-colors inline-flex items-center gap-1.5 font-body"
+                  style={{ background: '#25D366', color: '#FFFFFF' }}
+                >
+                  Share via WhatsApp
+                </a>
+              </div>
+            </div>
+          )}
+
           {/* Unavailable Players */}
           {result.unavailablePlayers.length > 0 && (
             <div className="mb-6">
@@ -618,9 +675,10 @@ interface SuggestionLineup {
   expanded: boolean;
 }
 
-function OpponentScouting({ matchDate, result }: { matchDate: string; result: FullLineup | null }) {
+function OpponentScouting({ matchDate }: { matchDate: string; result?: FullLineup | null }) {
   const [profile, setProfile] = useState<OpponentTeamProfile | null>(null);
   const [bestMatchups, setBestMatchups] = useState<Map<number, { name: string; score: number }[]>>(new Map());
+  const [lastLineups, setLastLineups] = useState<OpponentLastMatchLineup[]>([]);
   const [suggestions, setSuggestions] = useState<SuggestionLineup[]>([]);
 
   useEffect(() => {
@@ -641,7 +699,11 @@ function OpponentScouting({ matchDate, result }: { matchDate: string; result: Fu
     });
     setSuggestions(generated);
 
-    // Best matchups per slot (existing scouting data)
+    // Opponent's last 5 lineups
+    const lineups = getOpponentLastLineups(matchDate);
+    setLastLineups(lineups);
+
+    // Best matchups per slot
     if (prof) {
       const players = getAllPlayersWithStats();
       const matchups = new Map<number, { name: string; score: number }[]>();
@@ -659,42 +721,17 @@ function OpponentScouting({ matchDate, result }: { matchDate: string; result: Fu
       }
       setBestMatchups(matchups);
     }
-  }, [matchDate, result]);
+  }, [matchDate]);
 
   function toggleExpand(id: string) {
     setSuggestions(prev => prev.map(s => s.id === id ? { ...s, expanded: !s.expanded } : s));
-  }
-
-  function formatLineupForWhatsApp(suggestion: SuggestionLineup) {
-    const lines: string[] = [];
-    lines.push(`*🏆 Thirstday@DB Lineup — ${suggestion.label}*`);
-    lines.push(`*Match:* ${matchDate} vs ${profile?.teamName || 'Opponent'}`);
-    lines.push(`*Win Probability:* ${suggestion.winProbability}%`);
-    lines.push('');
-
-    const sorted = [...suggestion.lineup.assignments].sort((a, b) => a.game.id - b.game.id);
-    for (const a of sorted) {
-      const names = a.players.map(p => p.player.name).join(' & ');
-      const label = `G${a.game.id}: ${a.game.label}`;
-      lines.push(`• ${label} — ${names}`);
-    }
-
-    if (suggestion.lineup.skippedGames.length > 0) {
-      lines.push('');
-      lines.push('*Forfeited:*');
-      for (const s of suggestion.lineup.skippedGames) {
-        lines.push(`✗ G${s.game.id} ${s.game.label} — ${s.reason}`);
-      }
-    }
-
-    return encodeURIComponent(lines.join('\n'));
   }
 
   if (!profile || profile.gameSlots.length === 0) return null;
 
   return (
     <div className="mb-8 space-y-6">
-      {/* Opponent Profile */}
+      {/* Opponent Profile Table */}
       <div className="glass-card rounded-xl p-5">
         <div className="flex items-center gap-3 mb-4">
           <span className="text-sm font-semibold font-body" style={{ color: '#B8942E' }}>📋 Opponent Scouting</span>
@@ -744,10 +781,47 @@ function OpponentScouting({ matchDate, result }: { matchDate: string; result: Fu
             </tbody>
           </table>
         </div>
-        <p className="text-xs text-[#94A3B8] mt-3 font-body">
-          Opponent data is collected from past matches. Lineup optimizer uses matchup scores to pair our strongest players against opponent weaknesses per game slot.
-        </p>
       </div>
+
+      {/* Opponent's Last 5 Lineups */}
+      {lastLineups.length > 0 && (
+        <div className="glass-card rounded-xl p-5">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-sm font-semibold font-body" style={{ color: '#B8942E' }}>🔄 Opponent's Last 5 Lineups</span>
+            <span className="text-[10px] text-[#94A3B8] font-body">how they structure their games</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs font-body">
+              <thead>
+                <tr className="text-[10px] text-[#94A3B8] uppercase tracking-[0.08em]" style={{ borderBottom: '1px solid #E2E8F0' }}>
+                  <th className="pb-2 font-semibold text-left font-body">Date</th>
+                  {SUPER_LEAGUE_FORMAT.filter(g => g.id <= 9).map(g => (
+                    <th key={g.id} className="pb-2 font-semibold text-center font-body">G{g.id}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {lastLineups.map(lineup => (
+                  <tr key={lineup.matchDate} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                    <td className="py-1.5 font-medium text-[#64748B] font-body whitespace-nowrap text-[10px]">{lineup.matchDate}</td>
+                    {SUPER_LEAGUE_FORMAT.filter(g => g.id <= 9).map(g => {
+                      const slot = lineup.slots.find(s => s.gameId === g.id);
+                      return (
+                        <td key={g.id} className="py-1.5 text-center text-[#1E293B] font-body max-w-[80px] truncate text-[10px]" title={slot?.players.join(', ') || ''}>
+                          {slot?.players.join(', ') || '-'}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-xs text-[#94A3B8] mt-3 font-body">
+            Shows which opponent players were fielded in each game slot over their last 5 matches. Patterns reveal preferred pairings and player strengths.
+          </p>
+        </div>
+      )}
 
       {/* Lineup Suggestions */}
       <div className="glass-card rounded-xl p-5">
@@ -755,22 +829,19 @@ function OpponentScouting({ matchDate, result }: { matchDate: string; result: Fu
           <span className="text-sm font-semibold font-body" style={{ color: '#B8942E' }}>💡 Lineup Suggestions</span>
           <span className="text-[10px] text-[#94A3B8] font-body">3 strategies vs {profile.teamName}</span>
         </div>
-        <div className="space-y-4">
+        <div className="space-y-3">
           {suggestions.map(s => (
             <div
               key={s.id}
-              className="rounded-xl overflow-hidden transition-all font-body"
+              className="rounded-xl overflow-hidden transition-all cursor-pointer font-body"
               style={{ background: '#FFFFFF', border: `1px solid ${s.winProbability >= 60 ? 'rgba(5,150,105,0.2)' : 'rgba(212,175,55,0.2)'}` }}
+              onClick={() => toggleExpand(s.id)}
             >
               {/* Header */}
-              <div
-                className="flex items-center justify-between p-4 cursor-pointer select-none"
-                onClick={() => toggleExpand(s.id)}
-                style={{ background: s.winProbability >= 60 ? 'rgba(5,150,105,0.04)' : 'rgba(212,175,55,0.04)' }}
-              >
+              <div className="flex items-center justify-between p-3" style={{ background: s.winProbability >= 60 ? 'rgba(5,150,105,0.04)' : 'rgba(212,175,55,0.04)' }}>
                 <div className="flex items-center gap-3">
                   <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm"
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0"
                     style={{
                       background: s.winProbability >= 60
                         ? 'linear-gradient(135deg, #059669, #10B981)'
@@ -782,40 +853,23 @@ function OpponentScouting({ matchDate, result }: { matchDate: string; result: Fu
                   <div>
                     <p className="text-sm font-semibold text-[#1E293B]">{s.label}</p>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-[10px] px-1.5 py-0.5 rounded font-body" style={{ background: 'rgba(5,150,105,0.08)', color: '#059669' }}>
-                        {s.winProbability}% win rate
-                      </span>
-                      <span className="text-[10px] text-[#94A3B8] font-body">
+                      <span className="text-[10px] text-[#64748B] font-body">
                         {s.lineup.assignments.length} games · {s.lineup.playerGameCount.length} players
                       </span>
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <a
-                    href={`https://wa.me/?text=${formatLineupForWhatsApp(s)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={e => e.stopPropagation()}
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors inline-flex items-center gap-1"
-                    style={{ background: 'rgba(5,150,105,0.10)', color: '#059669', border: '1px solid rgba(5,150,105,0.2)' }}
-                  >
-                    Share via WhatsApp
-                  </a>
-                  <span className="text-sm text-[#94A3B8] transition-transform" style={{ transform: s.expanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
-                    ▼
-                  </span>
-                </div>
+                <span className="text-sm text-[#94A3B8] transition-transform" style={{ transform: s.expanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>▼</span>
               </div>
 
               {/* Expanded game-by-game details */}
               {s.expanded && (
-                <div className="p-4" style={{ borderTop: '1px solid #F1F5F9' }}>
+                <div className="p-3" style={{ borderTop: '1px solid #F1F5F9' }}>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                     {[...s.lineup.assignments]
                       .sort((a, b) => a.game.id - b.game.id)
                       .map(a => (
-                        <div key={a.game.id} className="rounded-lg p-2.5 text-xs" style={{ background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+                        <div key={a.game.id} className="rounded-lg p-2 text-xs" style={{ background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
                           <div className="flex items-center gap-1.5 mb-1">
                             <span className="font-semibold text-[#1E293B]">G{a.game.id}</span>
                             <span className="text-[#94A3B8]">·</span>
@@ -829,20 +883,11 @@ function OpponentScouting({ matchDate, result }: { matchDate: string; result: Fu
                   </div>
 
                   {s.lineup.skippedGames.length > 0 && (
-                    <div className="mt-3 rounded-lg p-2.5 text-xs" style={{ background: '#FEF2F2', border: '1px solid rgba(220,38,38,0.15)' }}>
-                      <p className="font-medium text-[#DC2626] mb-1">Forfeited games:</p>
+                    <div className="mt-2 rounded-lg p-2 text-xs" style={{ background: '#FEF2F2', border: '1px solid rgba(220,38,38,0.15)' }}>
+                      <p className="font-medium text-[#DC2626] mb-0.5">Forfeited:</p>
                       {s.lineup.skippedGames.map(sg => (
                         <p key={sg.game.id} className="text-[rgba(220,38,38,0.8)]">G{sg.game.id} {sg.game.label} — {sg.reason}</p>
                       ))}
-                    </div>
-                  )}
-
-                  {s.lineup.unavailablePlayers.length > 0 && (
-                    <div className="mt-2 rounded-lg p-2.5 text-xs" style={{ background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
-                      <p className="font-medium text-[#64748B] mb-1">Unavailable:</p>
-                      <p className="text-[#94A3B8]">
-                        {s.lineup.unavailablePlayers.map(u => `${u.name} (${u.reason})`).join(', ')}
-                      </p>
                     </div>
                   )}
                 </div>
