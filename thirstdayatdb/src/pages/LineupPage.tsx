@@ -4,9 +4,10 @@ import {
   getMatchSessionForDate, getGameResultsForSession, getMatchScore,
   saveLiveLineup, loadLiveLineup, getAllPlayersWithStats,
   getOpponentTeamProfile, matchupBonus, formatScore,
+  computeLineupWinProbability,
 } from '../store';
 import { fetchLiveData } from '../scraper';
-import type { MatchGame, FullLineup, OpponentTeamProfile, GameAssignment } from '../types';
+import type { MatchGame, FullLineup, OpponentTeamProfile, GameAssignment, LineupStrategy } from '../types';
 
 const SUPER_LEAGUE_FORMAT: MatchGame[] = [
   { id: 1, type: 'singles', label: 'Singles 701 x3', legs: '701·701·701', playerCount: 1 },
@@ -608,14 +609,40 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
   );
 }
 
+interface SuggestionLineup {
+  id: string;
+  label: string;
+  strategy: LineupStrategy;
+  lineup: FullLineup;
+  winProbability: number;
+  expanded: boolean;
+}
+
 function OpponentScouting({ matchDate, result }: { matchDate: string; result: FullLineup | null }) {
   const [profile, setProfile] = useState<OpponentTeamProfile | null>(null);
   const [bestMatchups, setBestMatchups] = useState<Map<number, { name: string; score: number }[]>>(new Map());
+  const [suggestions, setSuggestions] = useState<SuggestionLineup[]>([]);
 
   useEffect(() => {
     const prof = getOpponentTeamProfile(matchDate);
     setProfile(prof);
-    if (prof && result) {
+
+    // Generate 3 lineup suggestions with different strategies
+    const strategies: { id: string; label: string; strategy: LineupStrategy }[] = [
+      { id: 'optimal', label: 'Optimal — max win rate', strategy: 'optimal' },
+      { id: 'aggressive', label: 'Aggressive — exploit opponent weaknesses', strategy: 'aggressive' },
+      { id: 'balanced', label: 'Balanced — spread play time', strategy: 'balanced' },
+    ];
+
+    const generated = strategies.map(s => {
+      const lineup = generateFullLineup(matchDate, SUPER_LEAGUE_FORMAT, s.strategy);
+      const wp = computeLineupWinProbability(lineup, prof);
+      return { ...s, lineup, winProbability: wp, expanded: false };
+    });
+    setSuggestions(generated);
+
+    // Best matchups per slot (existing scouting data)
+    if (prof) {
       const players = getAllPlayersWithStats();
       const matchups = new Map<number, { name: string; score: number }[]>();
       for (const slot of prof.gameSlots) {
@@ -634,10 +661,40 @@ function OpponentScouting({ matchDate, result }: { matchDate: string; result: Fu
     }
   }, [matchDate, result]);
 
+  function toggleExpand(id: string) {
+    setSuggestions(prev => prev.map(s => s.id === id ? { ...s, expanded: !s.expanded } : s));
+  }
+
+  function formatLineupForWhatsApp(suggestion: SuggestionLineup) {
+    const lines: string[] = [];
+    lines.push(`*🏆 Thirstday@DB Lineup — ${suggestion.label}*`);
+    lines.push(`*Match:* ${matchDate} vs ${profile?.teamName || 'Opponent'}`);
+    lines.push(`*Win Probability:* ${suggestion.winProbability}%`);
+    lines.push('');
+
+    const sorted = [...suggestion.lineup.assignments].sort((a, b) => a.game.id - b.game.id);
+    for (const a of sorted) {
+      const names = a.players.map(p => p.player.name).join(' & ');
+      const label = `G${a.game.id}: ${a.game.label}`;
+      lines.push(`• ${label} — ${names}`);
+    }
+
+    if (suggestion.lineup.skippedGames.length > 0) {
+      lines.push('');
+      lines.push('*Forfeited:*');
+      for (const s of suggestion.lineup.skippedGames) {
+        lines.push(`✗ G${s.game.id} ${s.game.label} — ${s.reason}`);
+      }
+    }
+
+    return encodeURIComponent(lines.join('\n'));
+  }
+
   if (!profile || profile.gameSlots.length === 0) return null;
 
   return (
-    <div className="mb-8">
+    <div className="mb-8 space-y-6">
+      {/* Opponent Profile */}
       <div className="glass-card rounded-xl p-5">
         <div className="flex items-center gap-3 mb-4">
           <span className="text-sm font-semibold font-body" style={{ color: '#B8942E' }}>📋 Opponent Scouting</span>
@@ -690,6 +747,109 @@ function OpponentScouting({ matchDate, result }: { matchDate: string; result: Fu
         <p className="text-xs text-[#94A3B8] mt-3 font-body">
           Opponent data is collected from past matches. Lineup optimizer uses matchup scores to pair our strongest players against opponent weaknesses per game slot.
         </p>
+      </div>
+
+      {/* Lineup Suggestions */}
+      <div className="glass-card rounded-xl p-5">
+        <div className="flex items-center gap-3 mb-4">
+          <span className="text-sm font-semibold font-body" style={{ color: '#B8942E' }}>💡 Lineup Suggestions</span>
+          <span className="text-[10px] text-[#94A3B8] font-body">3 strategies vs {profile.teamName}</span>
+        </div>
+        <div className="space-y-4">
+          {suggestions.map(s => (
+            <div
+              key={s.id}
+              className="rounded-xl overflow-hidden transition-all font-body"
+              style={{ background: '#FFFFFF', border: `1px solid ${s.winProbability >= 60 ? 'rgba(5,150,105,0.2)' : 'rgba(212,175,55,0.2)'}` }}
+            >
+              {/* Header */}
+              <div
+                className="flex items-center justify-between p-4 cursor-pointer select-none"
+                onClick={() => toggleExpand(s.id)}
+                style={{ background: s.winProbability >= 60 ? 'rgba(5,150,105,0.04)' : 'rgba(212,175,55,0.04)' }}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm"
+                    style={{
+                      background: s.winProbability >= 60
+                        ? 'linear-gradient(135deg, #059669, #10B981)'
+                        : 'linear-gradient(135deg, #D4AF37, #E8C872)',
+                    }}
+                  >
+                    {s.winProbability}%
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-[#1E293B]">{s.label}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded font-body" style={{ background: 'rgba(5,150,105,0.08)', color: '#059669' }}>
+                        {s.winProbability}% win rate
+                      </span>
+                      <span className="text-[10px] text-[#94A3B8] font-body">
+                        {s.lineup.assignments.length} games · {s.lineup.playerGameCount.length} players
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <a
+                    href={`https://wa.me/?text=${formatLineupForWhatsApp(s)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={e => e.stopPropagation()}
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors inline-flex items-center gap-1"
+                    style={{ background: 'rgba(5,150,105,0.10)', color: '#059669', border: '1px solid rgba(5,150,105,0.2)' }}
+                  >
+                    Share via WhatsApp
+                  </a>
+                  <span className="text-sm text-[#94A3B8] transition-transform" style={{ transform: s.expanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                    ▼
+                  </span>
+                </div>
+              </div>
+
+              {/* Expanded game-by-game details */}
+              {s.expanded && (
+                <div className="p-4" style={{ borderTop: '1px solid #F1F5F9' }}>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                    {[...s.lineup.assignments]
+                      .sort((a, b) => a.game.id - b.game.id)
+                      .map(a => (
+                        <div key={a.game.id} className="rounded-lg p-2.5 text-xs" style={{ background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <span className="font-semibold text-[#1E293B]">G{a.game.id}</span>
+                            <span className="text-[#94A3B8]">·</span>
+                            <span className="text-[#94A3B8]">{a.game.label}</span>
+                          </div>
+                          <p className="font-medium" style={{ color: '#B8942E' }}>
+                            {a.players.map(p => p.player.name).join(' & ')}
+                          </p>
+                        </div>
+                      ))}
+                  </div>
+
+                  {s.lineup.skippedGames.length > 0 && (
+                    <div className="mt-3 rounded-lg p-2.5 text-xs" style={{ background: '#FEF2F2', border: '1px solid rgba(220,38,38,0.15)' }}>
+                      <p className="font-medium text-[#DC2626] mb-1">Forfeited games:</p>
+                      {s.lineup.skippedGames.map(sg => (
+                        <p key={sg.game.id} className="text-[rgba(220,38,38,0.8)]">G{sg.game.id} {sg.game.label} — {sg.reason}</p>
+                      ))}
+                    </div>
+                  )}
+
+                  {s.lineup.unavailablePlayers.length > 0 && (
+                    <div className="mt-2 rounded-lg p-2.5 text-xs" style={{ background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+                      <p className="font-medium text-[#64748B] mb-1">Unavailable:</p>
+                      <p className="text-[#94A3B8]">
+                        {s.lineup.unavailablePlayers.map(u => `${u.name} (${u.reason})`).join(', ')}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

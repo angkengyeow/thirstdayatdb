@@ -174,3 +174,14 @@ export interface OpponentTeamProfile {
   lastPlayed: string;
   gameSlots: OpponentGameSlotProfile[];
 }
+
+export type LineupStrategy = 'optimal' | 'aggressive' | 'balanced';
+
+export interface LineupSuggestion {
+  id: string;
+  label: string;
+  strategy: LineupStrategy;
+  lineup: FullLineup;
+  winProbability: number;
+  totalMatchupScore: number;
+}

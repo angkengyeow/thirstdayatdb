@@ -1,4 +1,4 @@
-import type { Player, Session, AttendanceRecord, AttendanceStatus, MatchPerformance, PlayerWithStats, LineupSlot, MatchGame, GameAssignment, FullLineup, PlayerResponse, GamePerformance, PlayerGameStats, PartnerStats, GameFormat, GameFormatCategory, SkippedGame, UnavailablePlayer, OpponentPlayerRecord, OpponentTeamProfile, OpponentGameSlotProfile } from './types';
+import type { Player, Session, AttendanceRecord, AttendanceStatus, MatchPerformance, PlayerWithStats, LineupSlot, MatchGame, GameAssignment, FullLineup, PlayerResponse, GamePerformance, PlayerGameStats, PartnerStats, GameFormat, GameFormatCategory, SkippedGame, UnavailablePlayer, OpponentPlayerRecord, OpponentTeamProfile, OpponentGameSlotProfile, LineupStrategy } from './types';
 import { loadAllFromServer, saveAllToServer } from './api';
 
 const STORAGE_KEYS = {
@@ -609,7 +609,8 @@ export function loadLiveLineup(sessionId: string): FullLineup | null {
  */
 export function generateFullLineup(
   matchDate: string,
-  games: MatchGame[]
+  games: MatchGame[],
+  strategy: LineupStrategy = 'optimal'
 ): FullLineup {
   const allPlayers = getAllPlayersWithStats();
   const matchSessions = getSessions().filter(s => s.date === matchDate && s.type === 'match');
@@ -667,7 +668,7 @@ export function generateFullLineup(
   const part3Games = games.filter(g => g.id >= 8 && g.id <= 9);
 
   // --- Part 1 (G1-G3): no repeats (each player at most once across G1-G3) ---
-  const firstThreeResult = optimizeFirstThreeBlock(part1Games, availablePlayers, opponentProfile);
+  const firstThreeResult = optimizeFirstThreeBlock(part1Games, availablePlayers, opponentProfile, strategy);
 
   for (const a of firstThreeResult.assignments) {
     assignments.push(a);
@@ -686,10 +687,10 @@ export function generateFullLineup(
   }
 
   // --- Part 2 (G4-G7): repeat once (max 2 appearances per player in this block) ---
-  assignRepeatOnceBlock(part2Games, availablePlayers, gameCount, 'G4-G7', assignments, skippedGames, opponentProfile);
+  assignRepeatOnceBlock(part2Games, availablePlayers, gameCount, 'G4-G7', assignments, skippedGames, opponentProfile, strategy);
 
   // --- Part 3 (G8-G9): repeat once (max 2 appearances per player in this block) ---
-  assignRepeatOnceBlock(part3Games, availablePlayers, gameCount, 'G8-G9', assignments, skippedGames, opponentProfile);
+  assignRepeatOnceBlock(part3Games, availablePlayers, gameCount, 'G8-G9', assignments, skippedGames, opponentProfile, strategy);
 
   const playerGameCount = Array.from(gameCount.entries())
     .map(([id, count]) => ({
@@ -709,9 +710,16 @@ export function generateFullLineup(
 function optimizeFirstThreeBlock(
   games: MatchGame[],
   availablePlayers: PlayerWithStats[],
-  opponentProfile: OpponentTeamProfile | null = null
+  opponentProfile: OpponentTeamProfile | null = null,
+  strategy: LineupStrategy = 'optimal'
 ): { assignments: GameAssignment[]; skipped: SkippedGame[] } {
   const totalPlayers = availablePlayers.length;
+
+  // Apply strategy multiplier to matchup bonus
+  const matchupMult = strategy === 'aggressive' ? 2.0 : strategy === 'balanced' ? 0.3 : 1.0;
+  // Balanced mode adds a spread bonus to underused players
+  const gameCounts = new Map<string, number>();
+  availablePlayers.forEach(p => gameCounts.set(p.player.id, 0));
 
   // Ranker that includes matchup bonus + G1 rotation penalty
   // Players who recently played G1 get a penalty so the same person
@@ -724,7 +732,8 @@ function optimizeFirstThreeBlock(
   });
   const rankForGame = (player: PlayerWithStats, game: MatchGame) => {
     const penalty = (game.id === 1) ? (g1Penalty.get(player.player.id) || 0) : 0;
-    return formatScore(player, game.legs) + matchupBonus(player, game.id, opponentProfile) + penalty;
+    const spreadBonus = strategy === 'balanced' ? -(gameCounts.get(player.player.id) || 0) * 8 : 0;
+    return formatScore(player, game.legs) + matchupBonus(player, game.id, opponentProfile) * matchupMult + penalty + spreadBonus;
   };
 
   const subsets: number[][] = [];
@@ -799,9 +808,11 @@ function assignRepeatOnceBlock(
   blockLabel: string,
   assignments: GameAssignment[],
   skippedGames: SkippedGame[],
-  opponentProfile: OpponentTeamProfile | null = null
+  opponentProfile: OpponentTeamProfile | null = null,
+  strategy: LineupStrategy = 'optimal'
 ): void {
   const blockCounts = new Map<string, number>();
+  const matchupMult = strategy === 'aggressive' ? 2.0 : strategy === 'balanced' ? 0.3 : 1.0;
 
   for (const game of games) {
     const needed = game.playerCount;
@@ -827,8 +838,9 @@ function assignRepeatOnceBlock(
     const assigned: PlayerWithStats[] = [];
 
     const ranked = [...pool].sort((a, b) => {
-      const aScore = formatScore(a, game.legs) + matchupBonus(a, game.id, opponentProfile) - (gameCount.get(a.player.id) || 0) * 10;
-      const bScore = formatScore(b, game.legs) + matchupBonus(b, game.id, opponentProfile) - (gameCount.get(b.player.id) || 0) * 10;
+      const spreadBonus = strategy === 'balanced' ? -(gameCount.get(a.player.id) || 0) * 5 : 0;
+      const aScore = formatScore(a, game.legs) + matchupBonus(a, game.id, opponentProfile) * matchupMult - (gameCount.get(a.player.id) || 0) * 10 + spreadBonus;
+      const bScore = formatScore(b, game.legs) + matchupBonus(b, game.id, opponentProfile) * matchupMult - (gameCount.get(b.player.id) || 0) * 10;
       return bScore - aScore;
     });
 
@@ -1684,4 +1696,47 @@ export function updateFromLiveData(liveData: LiveDataInput): number {
 
   computeAwardTotals(liveData.matches);
   return addedCount;
+}
+
+/**
+ * Computes a win probability (0-100%) for a lineup against the opponent profile.
+ * Uses per-game format scores vs opponent slot averages.
+ */
+export function computeLineupWinProbability(lineup: FullLineup, opponentProfile: OpponentTeamProfile | null): number {
+  if (!opponentProfile || opponentProfile.gameSlots.length === 0) return 50;
+
+  const totalMatchupScore: number[] = [];
+  for (const assignment of lineup.assignments) {
+    const slot = opponentProfile.gameSlots.find(s => s.slotGameId === assignment.game.id);
+    if (!slot || slot.sampleSize === 0) {
+      totalMatchupScore.push(50); // no data — neutral
+      continue;
+    }
+
+    let ourBestScore = 0;
+    for (const p of assignment.players) {
+      const ourScore = formatScore(p, assignment.game.legs);
+      ourBestScore = Math.max(ourBestScore, ourScore);
+    }
+
+    let oppScore = 0;
+    const is01 = !assignment.game.legs.includes('Cricket') && !assignment.game.legs.includes('Choice') && !assignment.game.legs.includes('Half-It');
+    const isCricket = !assignment.game.legs.includes('701') && !assignment.game.legs.includes('901') && !assignment.game.legs.includes('1101') && !assignment.game.legs.includes('Choice') && !assignment.game.legs.includes('Half-It');
+    if (is01 && slot.avg01 > 0) {
+      oppScore = Math.min(100, Math.max(0, slot.avg01));
+    } else if (isCricket && slot.avgCricket > 0) {
+      oppScore = Math.min(100, Math.max(0, (slot.avgCricket - 1) * 14));
+    } else if (slot.avg01 > 0) {
+      // Mixed — use 01 as baseline
+      oppScore = Math.min(100, Math.max(0, slot.avg01));
+    }
+
+    // Advantage scaled to probability via sigmoid
+    const advantage = ourBestScore - oppScore;
+    const gameProb = 100 / (1 + Math.exp(-advantage * 0.05));
+    totalMatchupScore.push(Math.round(Math.max(5, Math.min(95, gameProb))));
+  }
+
+  if (totalMatchupScore.length === 0) return 50;
+  return Math.round(totalMatchupScore.reduce((a, b) => a + b, 0) / totalMatchupScore.length);
 }
