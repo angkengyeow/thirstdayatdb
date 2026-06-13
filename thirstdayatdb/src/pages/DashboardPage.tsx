@@ -2,8 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   getPlayerDashboardStats, getSessions, hasData, clearAllData,
   populateFromLiveData, updateFromLiveData, getTeamStanding,
-  getUpcomingSessions, buildResponseLink,
+  getUpcomingSessions, buildResponseLink, getGamePerformancesForSession,
 } from '../store';
+import type { GameFormat } from '../types';
 import { seedDemoData } from '../seed';
 import { fetchLiveData } from '../scraper';
 
@@ -110,21 +111,54 @@ export default function DashboardPage() {
     const noteParts = s.notes?.match(/(vs|@)\s+(.+?)\s+\((W|L)\s+(\d+)-(\d+)\)/);
     const opponent = noteParts?.[2] || s.notes || '';
     const score = noteParts ? `${noteParts[4]}-${noteParts[5]}` : '';
+
+    // Per-game breakdown from store
+    const sessionGames = getGamePerformancesForSession(s.id);
+    const gameMap = new Map<number, { won: boolean; format: string }>();
+    for (const g of sessionGames) {
+      const existing = gameMap.get(g.gameId);
+      if (!existing) gameMap.set(g.gameId, { won: g.won, format: g.format });
+    }
+    const gameIds = Array.from(gameMap.keys()).sort((a, b) => a - b);
+
     return (
-      <div className={`flex items-center justify-between p-3 rounded-lg border ${isWin ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
-        <div className="flex items-center gap-3 min-w-0">
-          <span className={`text-sm font-bold px-2 py-0.5 rounded shrink-0 ${isWin ? 'text-green-700 bg-green-100' : 'text-red-700 bg-red-100'}`}>
-            {isWin ? 'W' : 'L'}
-          </span>
-          <div className="min-w-0">
-            <span className="text-sm font-medium text-gray-800 truncate block">{opponent}</span>
-            <p className="text-xs text-gray-500">{s.date}</p>
+      <div className={`p-3 rounded-lg border ${isWin ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-3 min-w-0">
+            <span className={`text-sm font-bold px-2 py-0.5 rounded shrink-0 ${isWin ? 'text-green-700 bg-green-100' : 'text-red-700 bg-red-100'}`}>
+              {isWin ? 'W' : 'L'}
+            </span>
+            <div className="min-w-0">
+              <span className="text-sm font-medium text-gray-800 truncate block">{opponent}</span>
+              <p className="text-xs text-gray-500">{s.date}</p>
+            </div>
           </div>
+          {score && (
+            <span className={`text-sm font-bold font-mono shrink-0 ${isWin ? 'text-green-700' : 'text-red-700'}`}>
+              {score}
+            </span>
+          )}
         </div>
-        {score && (
-          <span className={`text-sm font-bold font-mono shrink-0 ${isWin ? 'text-green-700' : 'text-red-700'}`}>
-            {score}
-          </span>
+        {gameIds.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-1.5 pt-1.5 border-t border-gray-200/60">
+            {gameIds.map(gid => {
+              const g = gameMap.get(gid)!;
+              const isHalfIt = g.format === 'half-it';
+              return (
+                <span
+                  key={gid}
+                  className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                    g.won
+                      ? 'text-green-600 bg-green-100/80'
+                      : 'text-red-500 bg-red-100/80'
+                  }`}
+                  title={g.format}
+                >
+                  G{gid}{isHalfIt ? '½' : ''}{g.won ? 'W' : 'L'}
+                </span>
+              );
+            })}
+          </div>
         )}
       </div>
     );
@@ -351,6 +385,9 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* Per-Format Game Counts */}
+      {players.length > 0 && <GameFormatTotals players={players} matchSessions={matchSessions} refresh={refreshKey} />}
+
       </div>
   );
 }
@@ -379,4 +416,100 @@ function TrendArrow({ dir }: { dir: 'up' | 'down' | 'same' }) {
   if (dir === 'up') return <span className="text-green-500 font-bold">↑</span>;
   if (dir === 'down') return <span className="text-red-500 font-bold">↓</span>;
   return null;
+}
+
+/** Per-player game counts by format (singles, doubles, trios, team, half-it) */
+function GameFormatTotals({ players, matchSessions }: { players: any[]; matchSessions: any[]; refresh: number }) {
+  const formatLabels: Record<string, string> = {
+    singles: 'S',
+    doubles: 'D',
+    trios: 'T',
+    team: 'Tm',
+    'half-it': '½It',
+  };
+  const formatOrder = ['singles', 'doubles', 'trios', 'team', 'half-it'] as const;
+
+  const playerFormatCounts = new Map<string, Record<string, number>>();
+  const formatTotals: Record<string, number> = {};
+  for (const fmt of formatOrder) formatTotals[fmt] = 0;
+
+  for (const s of matchSessions) {
+    const games = getGamePerformancesForSession(s.id);
+    for (const g of games) {
+      const pName = players.find(p => p.player.id === g.playerId)?.player.name;
+      if (!pName) continue;
+      if (!playerFormatCounts.has(pName)) {
+        playerFormatCounts.set(pName, Object.fromEntries(formatOrder.map(f => [f, 0])));
+      }
+      playerFormatCounts.get(pName)![g.gameType] = (playerFormatCounts.get(pName)![g.gameType] || 0) + 1;
+      formatTotals[g.gameType] = (formatTotals[g.gameType] || 0) + 1;
+      // Also count half-it format separately
+      if (g.format === 'half-it') {
+        playerFormatCounts.get(pName)!['half-it'] = (playerFormatCounts.get(pName)!['half-it'] || 0) + 1;
+        formatTotals['half-it'] = (formatTotals['half-it'] || 0) + 1;
+      }
+    }
+  }
+
+  const sortedPlayers = [...playerFormatCounts.entries()]
+    .map(([name, counts]) => ({ name, counts }))
+    .sort((a, b) => {
+      const totalA = formatOrder.reduce((s, f) => s + (a.counts[f] || 0), 0);
+      const totalB = formatOrder.reduce((s, f) => s + (b.counts[f] || 0), 0);
+      return totalB - totalA;
+    });
+
+  if (sortedPlayers.length === 0) return null;
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold text-gray-700">Game Counts by Format</h2>
+        <span className="text-xs text-gray-400">singles · doubles · trios · team · half-it</span>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-xs">
+          <thead>
+            <tr className="border-b border-gray-200 text-gray-500">
+              <th className="pb-2 font-medium">Player</th>
+              {formatOrder.map(f => (
+                <th key={f} className="pb-2 font-medium text-center" title={f}>
+                  {formatLabels[f]}
+                </th>
+              ))}
+              <th className="pb-2 font-medium text-center">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sortedPlayers.map(({ name, counts }) => {
+              const total = formatOrder.reduce((s, f) => s + (counts[f] || 0), 0);
+              return (
+                <tr key={name} className="border-b border-gray-100 hover:bg-gray-50">
+                  <td className="py-1.5 font-medium text-gray-800">{name}</td>
+                  {formatOrder.map(f => (
+                    <td key={f} className={`py-1.5 text-center font-mono ${f === 'half-it' ? 'text-amber-600 font-semibold' : 'text-gray-700'}`}>
+                      {counts[f] || 0}
+                    </td>
+                  ))}
+                  <td className="py-1.5 text-center font-mono font-bold text-gray-800">{total}</td>
+                </tr>
+              );
+            })}
+            {/* Totals row */}
+            <tr className="border-t-2 border-gray-300 bg-gray-50 font-semibold">
+              <td className="py-1.5 text-gray-700">Total</td>
+              {formatOrder.map(f => (
+                <td key={f} className={`py-1.5 text-center font-mono ${f === 'half-it' ? 'text-amber-700 font-bold' : 'text-gray-700'}`}>
+                  {formatTotals[f] || 0}
+                </td>
+              ))}
+              <td className="py-1.5 text-center font-mono font-bold text-gray-800">
+                {formatOrder.reduce((s, f) => s + (formatTotals[f] || 0), 0)}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 }
