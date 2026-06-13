@@ -12,6 +12,7 @@ const STORAGE_KEYS = {
   opponentPlayers: 'darts_opponent_players',
   lineups: 'darts_lineups',
   lastUpdated: 'darts_last_updated',
+  g1Rotation: 'darts_g1_rotation',
 } as const;
 
 // Debounced server sync — batches writes and syncs every 2 seconds
@@ -667,6 +668,12 @@ export function generateFullLineup(
       gameCount.set(p.player.id, (gameCount.get(p.player.id) || 0) + 1);
     }
   }
+
+  // Record G1 player for rotation tracking
+  const g1Assignment = firstThreeResult.assignments.find(a => a.game.id === 1);
+  if (g1Assignment && g1Assignment.players.length > 0) {
+    recordG1Assignment(g1Assignment.players[0].player.id);
+  }
   for (const s of firstThreeResult.skipped) {
     skippedGames.push(s);
   }
@@ -699,16 +706,19 @@ function optimizeFirstThreeBlock(
 ): { assignments: GameAssignment[]; skipped: SkippedGame[] } {
   const totalPlayers = availablePlayers.length;
 
-  // Ranker that includes matchup bonus + rotation jitter
-  // Per-player jitter (±8 points) ensures the same player doesn't always get G1,
-  // creating natural rotation among similarly-skilled players.
-  // Range is wide enough to rotate even when one player has a clear skill advantage.
-  const jitter = new Map<string, number>();
-  for (const p of availablePlayers) {
-    jitter.set(p.player.id, Math.random() * 16 - 8);
-  }
-  const rankForGame = (player: PlayerWithStats, game: MatchGame) =>
-    formatScore(player, game.legs) + matchupBonus(player, game.id, opponentProfile) + (jitter.get(player.player.id) || 0);
+  // Ranker that includes matchup bonus + G1 rotation penalty
+  // Players who recently played G1 get a penalty so the same person
+  // doesn't always get the singles 01 slot. This creates natural rotation.
+  // Penalty: -15 for most recent, -10 for 2nd most recent, -5 for 3rd.
+  const recentG1 = getRecentG1Assignments();
+  const g1Penalty = new Map<string, number>();
+  recentG1.forEach((playerId, i) => {
+    g1Penalty.set(playerId, -15 + i * 5);
+  });
+  const rankForGame = (player: PlayerWithStats, game: MatchGame) => {
+    const penalty = (game.id === 1) ? (g1Penalty.get(player.player.id) || 0) : 0;
+    return formatScore(player, game.legs) + matchupBonus(player, game.id, opponentProfile) + penalty;
+  };
 
   const subsets: number[][] = [];
   for (let mask = 1; mask < (1 << 3); mask++) {
@@ -980,6 +990,24 @@ export function hasData(): boolean {
 
 export function generateId(): string {
   return crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
+}
+
+// --- G1 rotation tracking ---
+/** Load the last N G1 player IDs (most recent first). */
+function getRecentG1Assignments(): string[] {
+  return load<string[]>(STORAGE_KEYS.g1Rotation, []);
+}
+
+function saveRecentG1Assignments(ids: string[]): void {
+  save(STORAGE_KEYS.g1Rotation, ids);
+}
+
+/** Record a G1 player assignment for rotation tracking (keeps last 5). */
+export function recordG1Assignment(playerId: string): void {
+  const recent = getRecentG1Assignments();
+  const filtered = recent.filter(id => id !== playerId); // dedupe
+  filtered.unshift(playerId);
+  saveRecentG1Assignments(filtered.slice(0, 5));
 }
 
 // --- Opponent Data (for lineup strategy) ---
