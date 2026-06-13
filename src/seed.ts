@@ -80,8 +80,8 @@ function getGameLineup(): number[] {
     [0, 2],      // G3: Clarence + Tan Li Ting
     [1, 3],      // G4: Melvin + Ang Keng Yeow
     [0, 4],      // G5: Clarence + Wang GuanFei
-    [2, 5],      // G6: Tan Li Ting + Jack Li
-    [3, 6],      // G7: Ang Keng Yeow + Marcus Tan
+    [2, 6],      // G6: Tan Li Ting + Jack Li (half-it)
+    [3, 5],      // G7: Ang Keng Yeow + Marcus Tan (mixed)
     [1, 2, 4],   // G8: Melvin + Tan Li Ting + Wang GuanFei
     [2, 3, 5, 6], // G9: Tan Li Ting + Ang Keng Yeow + Jack Li + Marcus Tan
   ];
