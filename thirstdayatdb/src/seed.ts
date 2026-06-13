@@ -216,4 +216,27 @@ export function seedDemoData(): void {
   localStorage.setItem('darts_players', JSON.stringify(players));
   localStorage.setItem('darts_sessions', JSON.stringify(sessions));
   localStorage.setItem('darts_game_performances', JSON.stringify(allGamePerformances));
+
+  seedAwards();
+}
+
+/**
+ * Real award achievement counts scraped from DartsLive API across all 13 matches.
+ * Only includes the 6 tracked award pin types.
+ */
+function seedAwards(): void {
+  const AWARD_TYPES = ['HAT_TRICK', 'HIGH_TON', 'TON_80', 'THREE_IN_A_BED', 'WHITE_HORSE', 'THREE_IN_THE_BLACK'];
+  const awardMap: Record<string, Record<string, number>> = {
+    'Clarence Yeo WG': { HAT_TRICK: 29, THREE_IN_A_BED: 2, THREE_IN_THE_BLACK: 1 },
+    'Melvin Lee XC':    { HAT_TRICK: 41, HIGH_TON: 1, THREE_IN_A_BED: 1, TON_80: 1 },
+    'Tan Li Ting':      { HAT_TRICK: 15, THREE_IN_A_BED: 1 },
+    'Ang Keng Yeow':    { HAT_TRICK: 12, WHITE_HORSE: 1 },
+    'Wang GuanFei':     { HAT_TRICK: 7, THREE_IN_A_BED: 3, TON_80: 1 },
+    'Marcus Tan':       { HAT_TRICK: 1 },
+    'Jack Li':          { HAT_TRICK: 9, WHITE_HORSE: 1 },
+  };
+  localStorage.setItem('darts_awards', JSON.stringify({
+    awardMap,
+    awardTypes: AWARD_TYPES,
+  }));
 }
