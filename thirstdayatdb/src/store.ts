@@ -265,9 +265,8 @@ export function getResponseCounts(sessionId: string) {
   const confirmedOnTime = overview.filter(p => p.actualStatus === 'on-time').length;
   const confirmedLate = overview.filter(p => p.actualStatus === 'late').length;
   const confirmedAbsent = overview.filter(p => p.actualStatus === 'absent').length;
-  const confirmedExcused = overview.filter(p => p.actualStatus === 'excused').length;
   const confirmedPresent = confirmedOnTime + confirmedLate;
-  return { total, responded, confirmedOnTime, confirmedLate, confirmedAbsent, confirmedExcused, confirmedPresent };
+  return { total, responded, confirmedOnTime, confirmedLate, confirmedAbsent, confirmedPresent };
 }
 
 // --- Match Performances ---
@@ -595,7 +594,7 @@ export function loadLiveLineup(sessionId: string): FullLineup | null {
  * Players can play multiple games — optimized by composite score.
  * Singles get priority for top players, rotation balances game count.
  * When not enough available players for a game, that game is skipped
- * and listed in skippedGames. Unavailable players (absent/excused/no response)
+ * and listed in skippedGames. Unavailable players (absent/no response)
  * are reported in unavailablePlayers.
  */
 export function generateFullLineup(
@@ -625,11 +624,6 @@ export function generateFullLineup(
         .filter(a => a.status === 'absent')
         .map(a => a.playerId)
     );
-    const excusedIds = new Set(
-      attendanceRecords
-        .filter(a => a.status === 'excused')
-        .map(a => a.playerId)
-    );
     const respondedIds = new Set(attendanceRecords.map(a => a.playerId));
     // Players with no response record = no response yet
     const noResponseIds = new Set(
@@ -640,8 +634,6 @@ export function generateFullLineup(
       if (presentIds.has(p.player.id)) continue;
       if (absentIds.has(p.player.id)) {
         unavailablePlayers.push({ name: p.player.name, reason: 'Absent' });
-      } else if (excusedIds.has(p.player.id)) {
-        unavailablePlayers.push({ name: p.player.name, reason: 'Excused' });
       } else if (!respondedIds.has(p.player.id) && !noResponseIds.has(p.player.id)) {
         unavailablePlayers.push({ name: p.player.name, reason: 'No response' });
       } else {

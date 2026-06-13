@@ -9,10 +9,9 @@ function getSessionIdFromUrl(): string | null {
 }
 
 const STATUS_OPTIONS: { status: AttendanceStatus; label: string; emoji: string; color: string }[] = [
-  { status: 'on-time', label: 'On Time', emoji: '✅', color: 'bg-dart-green hover:bg-[#059669]' },
+  { status: 'on-time', label: 'Yes', emoji: '✅', color: 'bg-dart-green hover:bg-[#059669]' },
   { status: 'late', label: 'Late', emoji: '⏰', color: 'bg-gold-400 hover:bg-gold-300' },
-  { status: 'absent', label: 'Absent', emoji: '❌', color: 'bg-dart-red hover:bg-[#dc2626]' },
-  { status: 'excused', label: 'Excused', emoji: '🙏', color: 'bg-[#6b6b8a] hover:bg-[#5a5a7a]' },
+  { status: 'absent', label: 'No', emoji: '❌', color: 'bg-dart-red hover:bg-[#dc2626]' },
 ];
 
 export default function RespondPage({ onBackToApp }: { onBackToApp?: () => void }) {
@@ -167,7 +166,7 @@ export default function RespondPage({ onBackToApp }: { onBackToApp?: () => void 
                   key={opt.status}
                   onClick={() => handleSubmit(opt.status)}
                   className="w-full p-4 rounded-xl text-white font-semibold text-lg transition-all active:scale-95 shadow-sm"
-                  style={{ backgroundColor: opt.status === 'late' ? '#f59e0b' : opt.status === 'on-time' ? '#10b981' : opt.status === 'absent' ? '#ef4444' : '#6b6b8a' }}
+                  style={{ backgroundColor: opt.status === 'late' ? '#f59e0b' : opt.status === 'on-time' ? '#10b981' : '#ef4444' }}
                 >
                   {opt.emoji} {opt.label}
                 </button>

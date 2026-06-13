@@ -1,4 +1,4 @@
-export type AttendanceStatus = 'on-time' | 'late' | 'absent' | 'excused';
+export type AttendanceStatus = 'on-time' | 'late' | 'absent';
 export type SessionType = 'practice' | 'match';
 
 export interface Player {
@@ -27,6 +27,7 @@ export interface AttendanceRecord {
   playerId: string;
   sessionId: string;
   status: AttendanceStatus;
+  lateMinutes?: number;
 }
 
 export interface MatchPerformance {

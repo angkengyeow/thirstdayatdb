@@ -12,10 +12,9 @@ import {
 import type { Session, AttendanceStatus } from '../types';
 
 const STATUS_CONFIG: Record<AttendanceStatus, { label: string; bg: string; text: string; border: string }> = {
-  'on-time': { label: 'On Time', bg: 'bg-dart-green/20', text: 'text-dart-green', border: 'border-dart-green/30' },
+  'on-time': { label: 'Yes', bg: 'bg-dart-green/20', text: 'text-dart-green', border: 'border-dart-green/30' },
   late: { label: 'Late', bg: 'bg-cyan-400/15', text: 'text-cyan-400', border: 'border-cyan-400/30' },
-  absent: { label: 'Absent', bg: 'bg-dart-red/15', text: 'text-dart-red', border: 'border-dart-red/30' },
-  excused: { label: 'Excused', bg: 'bg-[#5a4a8a]/15', text: 'text-[#5a4a8a]', border: 'border-[#5a4a8a]/30' },
+  absent: { label: 'No', bg: 'bg-dart-red/15', text: 'text-dart-red', border: 'border-dart-red/30' },
 };
 
 interface AttendancePageProps {
@@ -64,6 +63,8 @@ export default function AttendancePage({ onNavigateToLineup }: AttendancePagePro
     window.open(`https://wa.me/?text=${msg}`, '_blank');
   }
 
+  const [lateMinutes, setLateMinutes] = useState<Record<string, number>>({});
+
   function handleManualAttendance(playerId: string, status: AttendanceStatus) {
     if (!selectedSessionId) return;
 
@@ -72,6 +73,7 @@ export default function AttendancePage({ onNavigateToLineup }: AttendancePagePro
       playerId,
       sessionId: selectedSessionId,
       status,
+      lateMinutes: status === 'late' ? (lateMinutes[playerId] || 0) : undefined,
     });
 
     const player = getPlayers().find(p => p.id === playerId);
@@ -214,11 +216,7 @@ export default function AttendancePage({ onNavigateToLineup }: AttendancePagePro
                           <span className="text-dart-red">✗ Absent</span>
                           <span className="font-medium text-[#b8aad8]">{counts.confirmedAbsent}</span>
                         </div>
-                        <div className="flex justify-between text-xs">
-                          <span className="text-[#5a4a8a]">🙏 Excused</span>
-                          <span className="font-medium text-[#b8aad8]">{counts.confirmedExcused}</span>
                         </div>
-                      </div>
                       <div className="border-t border-[#150d40] pt-2 mt-2">
                         <div className="flex justify-between text-sm font-medium">
                           <span className="text-cyan-400">Available to play</span>
@@ -285,24 +283,38 @@ export default function AttendancePage({ onNavigateToLineup }: AttendancePagePro
                               </div>
 
                               <div className="flex items-center gap-2">
-                                {(['on-time', 'late', 'absent', 'excused'] as AttendanceStatus[]).map(s => {
+                                {(['on-time', 'late', 'absent'] as AttendanceStatus[]).map(s => {
                                   const isActive = entry.actualStatus === s;
                                   const colors = STATUS_CONFIG[s];
                                   return (
                                     <button
                                       key={s}
                                       onClick={() => handleManualAttendance(entry.player.id, s)}
-                                      className={`px-2 py-1 rounded-lg text-xs font-medium transition-all border ${
+                                      className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all border ${
                                         isActive
                                           ? `${colors.bg} ${colors.text} ${colors.border} shadow-sm`
                                           : 'text-[#5a4a8a] border-[#150d40] hover:border-[#5a4a8a] hover:text-[#8a7aaa]'
                                       }`}
                                     >
-                                      {s === 'on-time' ? '✓' : s === 'late' ? '⏰' : s === 'absent' ? '✗' : '🙏'}
-                                      <span className="ml-1 hidden sm:inline">{s === 'on-time' ? 'On Time' : s.charAt(0).toUpperCase() + s.slice(1)}</span>
+                                      {s === 'on-time' ? '✓' : s === 'late' ? '⏰' : '✗'}
+                                      <span className="ml-1 hidden sm:inline">{STATUS_CONFIG[s].label}</span>
                                     </button>
                                   );
                                 })}
+                                {entry.actualStatus === 'late' && (
+                                  <div className="flex items-center gap-1">
+                                    <input
+                                      type="number"
+                                      min={1}
+                                      max={120}
+                                      placeholder="min"
+                                      value={lateMinutes[entry.player.id] || ''}
+                                      onChange={e => setLateMinutes(prev => ({ ...prev, [entry.player.id]: parseInt(e.target.value) || 0 }))}
+                                      className="w-14 text-xs px-1.5 py-1 rounded-lg bg-[#0a0520] border border-cyan-400/30 text-cyan-400 placeholder:text-[#3a2a6a] text-center"
+                                    />
+                                    <span className="text-[10px] text-[#5a4a8a]">min</span>
+                                  </div>
+                                )}
 
                                 <span
                                   className={`w-2 h-2 rounded-full ml-1 ${
@@ -332,12 +344,7 @@ export default function AttendancePage({ onNavigateToLineup }: AttendancePagePro
                         Only {availableCount} available — need at least 4
                       </span>
                     )}
-                    {counts && !hasEnoughPlayers && counts.confirmedExcused > 0 && (
-                      <span className="text-[#5a4a8a] text-xs">
-                        ({counts.confirmedExcused} excused)
-                      </span>
-                    )}
-                  </div>
+                                      </div>
                 </div>
               </div>
             </div>
@@ -353,7 +360,6 @@ function PredictedBadge({ status }: { status: AttendanceStatus }) {
     'on-time': 'text-dart-green bg-dart-green/15',
     late: 'text-cyan-400 bg-cyan-400/15',
     absent: 'text-dart-red bg-dart-red/15',
-    excused: 'text-[#5a4a8a] bg-[#5a4a8a]/15',
   };
   return <span className={`text-xs px-1.5 py-0.5 rounded ${colors[status]}`}>{status}</span>;
 }
