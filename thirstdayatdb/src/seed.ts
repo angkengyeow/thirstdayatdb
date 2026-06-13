@@ -20,6 +20,7 @@ const playerData: [string, number, string, number, number, number, number][] = [
   ['Wang GuanFei', 11.82, 'DL 90.23 · Cr 3.21', 90.23, 3.21, 17, 21],
   ['Marcus Tan', 11.30, 'DL 87.22 · Cr 3.13', 87.22, 3.13, 5, 5],
   ['Jack Li', 9.99, 'DL 80.06 · Cr 2.89', 80.06, 2.89, 13, 15],
+  ['Anonymous', 0, 'Mid-season replacement', 0, 0, 0, 0],
 ];
 
 interface MatchInfo {
@@ -101,7 +102,7 @@ export function seedDemoData(): void {
     const playerNameToId = new Map(players.map(p => [p.name, p.id]));
 
     // Per-match entry counts in REAL_GAME_PERFORMANCES (ordered by match)
-    const perfCounts = [19, 19, 15, 16, 19, 19, 19, 19, 19, 19, 19, 19, 19];
+    const perfCounts = [19, 19, 16, 16, 19, 19, 19, 19, 19, 19, 19, 19, 19];
     let startIdx = 0;
     for (let i = 0; i < mi; i++) startIdx += perfCounts[i];
     const endIdx = startIdx + perfCounts[mi];
