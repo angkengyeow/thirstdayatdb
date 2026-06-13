@@ -101,7 +101,7 @@ export function seedDemoData(): void {
     const playerNameToId = new Map(players.map(p => [p.name, p.id]));
 
     // Per-match entry counts in REAL_GAME_PERFORMANCES (ordered by match)
-    const perfCounts = [19, 18, 14, 14, 18, 18, 18, 18, 18, 18, 18, 18, 16];
+    const perfCounts = [19, 19, 15, 16, 19, 19, 19, 19, 19, 19, 19, 19, 19];
     let startIdx = 0;
     for (let i = 0; i < mi; i++) startIdx += perfCounts[i];
     const endIdx = startIdx + perfCounts[mi];
