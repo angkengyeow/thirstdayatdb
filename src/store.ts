@@ -335,9 +335,9 @@ export function getPlayerGameStats(playerId: string): PlayerGameStats {
   const losses = totalGames - wins;
   const winPct = totalGames > 0 ? Math.round((wins / totalGames) * 100) : 0;
 
-  // By format
-  const format01 = games.filter(g => g.format === '01');
-  const cricket = games.filter(g => g.format === 'cricket');
+  // By format — count games where player has 01/cricket stats (includes mixed format)
+  const format01 = games.filter(g => g.stats01 !== undefined);
+  const cricket = games.filter(g => g.statsCricket !== undefined);
   const halfIt = games.filter(g => g.format === 'half-it');
 
   const fmtStats = (gs: GamePerformance[]) => {
