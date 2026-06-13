@@ -1050,9 +1050,14 @@ export function getOpponentTeamProfile(matchDate: string): OpponentTeamProfile |
   if (!noteMatch) return null;
   const opponentTeam = noteMatch[1].trim();
 
+  // Filter out any records that accidentally match our own player names
+  // (DartsLive API can occasionally swap home/away players on some matches)
+  const ourPlayers = getPlayers();
+  const ourPlayerNames = new Set(ourPlayers.map(p => p.name));
+
   // Get all records for this opponent (past matches), limited to last 5 matches
   const pastMatches = opponents
-    .filter(o => o.opponentTeam === opponentTeam)
+    .filter(o => o.opponentTeam === opponentTeam && !ourPlayerNames.has(o.playerName))
     // Sort by matchDate descending, get unique match dates, keep last N
     .sort((a, b) => b.matchDate.localeCompare(a.matchDate));
   // Deduplicate by matchDate and keep only the last 5
@@ -1112,9 +1117,15 @@ export function getOpponentLastLineups(matchDate: string): OpponentLastMatchLine
   if (!noteMatch) return [];
   const opponentTeam = noteMatch[1].trim();
 
+  // Get our players so we can filter out any opponent records that
+  // were mistakenly populated with our team's names (DartsLive API
+  // can occasionally swap home/away players on some matches)
+  const ourPlayers = getPlayers();
+  const ourPlayerNames = new Set(ourPlayers.map(p => p.name));
+
   // Get all records for this opponent, limited to last 5 matches
   const teamRecords = opponents
-    .filter(o => o.opponentTeam === opponentTeam)
+    .filter(o => o.opponentTeam === opponentTeam && !ourPlayerNames.has(o.playerName))
     .sort((a, b) => b.matchDate.localeCompare(a.matchDate));
 
   // Group by matchDate
