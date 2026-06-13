@@ -3,6 +3,7 @@ import {
   getPlayerDashboardStats, getSessions, hasData, clearAllData,
   populateFromLiveData, updateFromLiveData, getTeamStanding,
   getUpcomingSessions, buildResponseLink, getGamePerformancesForSession,
+  getAllPlayersGameStats, getTeamGameStats,
 } from '../store';
 import { seedDemoData } from '../seed';
 import { fetchLiveData } from '../scraper';
@@ -19,6 +20,9 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(false);
   const [loadStatus, setLoadStatus] = useState<LoadStatus>('idle');
   const [statusMessage, setStatusMessage] = useState('');
+  const [teamStats, setTeamStats] = useState({ totalGames: 0, wins: 0, losses: 0, winPct: 0 });
+  const [matchRecord, setMatchRecord] = useState({ wins: 0, losses: 0, winPct: 0 });
+  const [playerStats, setPlayerStats] = useState(getAllPlayersGameStats());
   const matchSessions = sessions.filter(s => s.type === 'match');
 
   const refresh = useCallback(() => {
@@ -26,6 +30,10 @@ export default function DashboardPage() {
     setSessions(getSessions());
     setStanding(getTeamStanding());
     setUpcoming(getUpcomingSessions());
+    setTeamStats(getTeamGameStats());
+    const st = getTeamStanding();
+    setMatchRecord({ wins: st.wins, losses: st.losses, winPct: st.winRate });
+    setPlayerStats(getAllPlayersGameStats());
   }, []);
 
   // Auto-load seed data on mount
@@ -258,6 +266,50 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* Match Record */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+        <h2 className="text-lg font-semibold text-gray-700 mb-4">Match Record</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="text-center p-3 bg-indigo-50 rounded-lg">
+            <p className="text-2xl font-bold text-indigo-600">{matchRecord.wins + matchRecord.losses}</p>
+            <p className="text-xs text-gray-500">Matches Played</p>
+          </div>
+          <div className="text-center p-3 bg-green-50 rounded-lg">
+            <p className="text-2xl font-bold text-green-600">{matchRecord.wins}</p>
+            <p className="text-xs text-gray-500">Wins</p>
+          </div>
+          <div className="text-center p-3 bg-red-50 rounded-lg">
+            <p className="text-2xl font-bold text-red-600">{matchRecord.losses}</p>
+            <p className="text-xs text-gray-500">Losses</p>
+          </div>
+          <div className="text-center p-3 bg-amber-50 rounded-lg">
+            <p className="text-2xl font-bold text-amber-600">{matchRecord.winPct}%</p>
+            <p className="text-xs text-gray-500">Win Rate</p>
+          </div>
+        </div>
+        <div className="mt-4 pt-3 border-t border-gray-100">
+          <h3 className="text-sm font-semibold text-gray-600 mb-3">Player Game Slots</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="text-center p-3 bg-indigo-50/50 rounded-lg">
+              <p className="text-2xl font-bold text-indigo-600">{teamStats.totalGames}</p>
+              <p className="text-xs text-gray-500">Total Games</p>
+            </div>
+            <div className="text-center p-3 bg-green-50/50 rounded-lg">
+              <p className="text-2xl font-bold text-green-600">{teamStats.wins}</p>
+              <p className="text-xs text-gray-500">Wins</p>
+            </div>
+            <div className="text-center p-3 bg-red-50/50 rounded-lg">
+              <p className="text-2xl font-bold text-red-600">{teamStats.losses}</p>
+              <p className="text-xs text-gray-500">Losses</p>
+            </div>
+            <div className="text-center p-3 bg-amber-50/50 rounded-lg">
+              <p className="text-2xl font-bold text-amber-600">{teamStats.winPct}%</p>
+              <p className="text-xs text-gray-500">Win Rate</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Upcoming Matches + Attendance */}
       {upcoming.length > 0 && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
@@ -355,6 +407,25 @@ export default function DashboardPage() {
         )}
       </div>
 
+      {/* Game-Type Breakdown */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+        <h2 className="text-lg font-semibold text-gray-700 mb-4">By Game Type</h2>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          {(['singles', 'doubles', 'trios', 'team', 'half-it'] as const).map(gt => {
+            const gs = playerStats.reduce((sum, ps) => sum + ps.byGameType[gt].games, 0);
+            const ws = playerStats.reduce((sum, ps) => sum + ps.byGameType[gt].wins, 0);
+            const pct = gs > 0 ? Math.round((ws / gs) * 100) : 0;
+            return (
+              <div key={gt} className="text-center p-4 rounded-lg border border-gray-200">
+                <p className="text-lg font-bold text-gray-800 capitalize">{gt}</p>
+                <p className="text-2xl font-bold text-indigo-600 mt-1">{pct}%</p>
+                <p className="text-xs text-gray-400">{ws}/{gs} games won</p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Match Results — 2 columns: first half / second half */}
       {completedMatches.length > 0 && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
@@ -379,6 +450,99 @@ export default function DashboardPage() {
               <div className="space-y-2">
                 {secondHalf.map(s => <MatchCard key={s.id} s={s} />)}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Game History by Slot */}
+      {matchSessions.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+          <button
+            onClick={() => {
+              const el = document.getElementById('game-history');
+              if (el) el.classList.toggle('hidden');
+            }}
+            className="text-sm text-indigo-600 hover:text-indigo-800 font-medium mb-3"
+          >
+            View Game History by Slot ▼
+          </button>
+          <div id="game-history" className="hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-gray-200 text-gray-500">
+                    <th className="pb-2 pr-3 font-medium whitespace-nowrap">Game</th>
+                    <th className="pb-2 pr-3 font-medium whitespace-nowrap">Type</th>
+                    {matchSessions.map(s => (
+                      <th key={s.id} className="pb-2 px-2 font-medium text-center text-[10px] whitespace-nowrap">
+                        {s.date.slice(5)}
+                      </th>
+                    ))}
+                    <th className="pb-2 pl-3 font-medium text-center">W%</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(() => {
+                    const gameData = new Map<number, {
+                      gameType: string;
+                      format: string;
+                      results: { date: string; won: boolean }[];
+                    }>();
+                    const sortedSessions = [...matchSessions].sort((a, b) => a.date.localeCompare(b.date));
+
+                    for (const s of sortedSessions) {
+                      const gps = getGamePerformancesForSession(s.id);
+                      const seen = new Set<number>();
+                      for (const g of gps) {
+                        if (seen.has(g.gameId)) continue;
+                        seen.add(g.gameId);
+                        if (!gameData.has(g.gameId)) {
+                          gameData.set(g.gameId, { gameType: g.gameType, format: g.format, results: [] });
+                        }
+                        gameData.get(g.gameId)!.results.push({ date: s.date, won: g.won });
+                      }
+                    }
+
+                    const formatLabel: Record<string, string> = {
+                      '01': '01', cricket: 'Cr', 'half-it': '½', mixed: 'Mx',
+                    };
+                    const sortedGames = [...gameData.entries()].sort(([a], [b]) => a - b);
+
+                    return sortedGames.map(([gameId, data]) => {
+                      const wins = data.results.filter(r => r.won).length;
+                      const total = data.results.length;
+                      const winPct = total > 0 ? Math.round((wins / total) * 100) : 0;
+                      return (
+                        <tr key={gameId} className="border-b border-gray-100 hover:bg-gray-50">
+                          <td className="py-2 pr-3 font-semibold text-gray-800 whitespace-nowrap">G{gameId}</td>
+                          <td className="py-2 pr-3 text-gray-500 whitespace-nowrap">
+                            {data.gameType} {formatLabel[data.format] || data.format}
+                          </td>
+                          {sortedSessions.map(s => {
+                            const result = data.results.find(r => r.date === s.date);
+                            const r = result?.won;
+                            return (
+                              <td key={s.id} className="py-2 px-2 text-center">
+                                {r !== undefined ? (
+                                  <span className={`inline-block w-5 h-5 leading-5 rounded text-[10px] font-bold ${
+                                    r ? 'bg-green-100 text-green-700' : 'bg-red-50 text-red-500'
+                                  }`}>
+                                    {r ? 'W' : 'L'}
+                                  </span>
+                                ) : (
+                                  <span className="text-gray-200">-</span>
+                                )}
+                              </td>
+                            );
+                          })}
+                          <td className="py-2 pl-3 text-center"><WinBadge pct={winPct} /></td>
+                        </tr>
+                      );
+                    });
+                  })()}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>

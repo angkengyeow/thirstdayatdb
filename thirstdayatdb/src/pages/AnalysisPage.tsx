@@ -1,56 +1,23 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getAllPlayersGameStats, getPartnerStats, getTeamGameStats, getSessions, getGamePerformancesForSession, getPlayerMatchHistory, getPlayerDashboardStats, getTeamStanding, getPlayerAwardDisplayCounts } from '../store';
+import { getAllPlayersGameStats, getPartnerStats, getPlayerMatchHistory, getPlayerDashboardStats, getGamePerformancesForSession, getSessions } from '../store';
 import type { PlayerGameStats, PartnerStats } from '../types';
-
-const AWARD_PINS = [
-  { name: 'Hat Trick', thresholds: [2, 10, 23, 30] },
-  { name: 'High Ton', thresholds: [1, 1, 2, 3] },
-  { name: 'Ton 80', thresholds: [1, 2, 2, 2] },
-  { name: '3 in a Bed', thresholds: [1, 2, 3, 4] },
-  { name: 'White Horse', thresholds: [1, 1, 1, 3] },
-  { name: '3 in the Black', thresholds: [1, 1, 1, 1] },
-];
-
-const RATING_BRACKETS = [
-  { label: '1 – 5.99', min: 1, max: 5.99 },
-  { label: '6 – 9.99', min: 6, max: 9.99 },
-  { label: '10 – 14.99', min: 10, max: 14.99 },
-  { label: '15 – 18', min: 15, max: 18 },
-];
-
-function bracketIndex(liveRating: number): number {
-  if (liveRating <= 0) return -1;
-  if (liveRating < 6) return 0;
-  if (liveRating < 10) return 1;
-  if (liveRating < 15) return 2;
-  return 3;
-}
 
 export default function AnalysisPage() {
   const [refresh] = useState(0);
   const [playerStats, setPlayerStats] = useState<PlayerGameStats[]>([]);
   const [partnerStats, setPartnerStats] = useState<PartnerStats[]>([]);
-  const [teamStats, setTeamStats] = useState({ totalGames: 0, wins: 0, losses: 0, winPct: 0 });
-  const [matchRecord, setMatchRecord] = useState({ wins: 0, losses: 0, winPct: 0 });
   const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null);
-  const [awardData, setAwardData] = useState<{ playerName: string; awards: Record<string, number> }[]>([]);
-  const [dashboardStats, setDashboardStats] = useState<{ player: { id: string; name: string }; liveRating: number }[]>([]);
 
   const load = useCallback(() => {
     setPlayerStats(getAllPlayersGameStats());
     setPartnerStats(getPartnerStats());
-    setTeamStats(getTeamGameStats());
-    const standing = getTeamStanding();
-    setMatchRecord({ wins: standing.wins, losses: standing.losses, winPct: standing.winRate });
-    setAwardData(getPlayerAwardDisplayCounts());
-    setDashboardStats(getPlayerDashboardStats());
   }, []);
 
   useEffect(() => { load(); }, [refresh, load]);
 
   const matchSessions = getSessions().filter(s => s.type === 'match');
 
-  if (teamStats.totalGames === 0) {
+  if (playerStats.length === 0) {
     return (
       <div className="max-w-6xl mx-auto px-4 py-6">
         <h1 className="text-2xl font-bold text-gray-800 mb-6">Analysis</h1>
@@ -65,69 +32,6 @@ export default function AnalysisPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
       <h1 className="text-2xl font-bold text-gray-800 mb-6">Analysis</h1>
-
-      {/* Team Overview — Match Level */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-        <h2 className="text-lg font-semibold text-gray-700 mb-4">Match Record</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="text-center p-3 bg-indigo-50 rounded-lg">
-            <p className="text-2xl font-bold text-indigo-600">{matchRecord.wins + matchRecord.losses}</p>
-            <p className="text-xs text-gray-500">Matches Played</p>
-          </div>
-          <div className="text-center p-3 bg-green-50 rounded-lg">
-            <p className="text-2xl font-bold text-green-600">{matchRecord.wins}</p>
-            <p className="text-xs text-gray-500">Wins</p>
-          </div>
-          <div className="text-center p-3 bg-red-50 rounded-lg">
-            <p className="text-2xl font-bold text-red-600">{matchRecord.losses}</p>
-            <p className="text-xs text-gray-500">Losses</p>
-          </div>
-          <div className="text-center p-3 bg-amber-50 rounded-lg">
-            <p className="text-2xl font-bold text-amber-600">{matchRecord.winPct}%</p>
-            <p className="text-xs text-gray-500">Win Rate</p>
-          </div>
-        </div>
-        <div className="mt-4 pt-3 border-t border-gray-100">
-          <h3 className="text-sm font-semibold text-gray-600 mb-3">Player Game Slots</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-3 bg-indigo-50/50 rounded-lg">
-              <p className="text-2xl font-bold text-indigo-600">{teamStats.totalGames}</p>
-              <p className="text-xs text-gray-500">Total Games</p>
-            </div>
-            <div className="text-center p-3 bg-green-50/50 rounded-lg">
-              <p className="text-2xl font-bold text-green-600">{teamStats.wins}</p>
-              <p className="text-xs text-gray-500">Wins</p>
-            </div>
-            <div className="text-center p-3 bg-red-50/50 rounded-lg">
-              <p className="text-2xl font-bold text-red-600">{teamStats.losses}</p>
-              <p className="text-xs text-gray-500">Losses</p>
-            </div>
-            <div className="text-center p-3 bg-amber-50/50 rounded-lg">
-              <p className="text-2xl font-bold text-amber-600">{teamStats.winPct}%</p>
-              <p className="text-xs text-gray-500">Win Rate</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Game-Type Breakdown */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-        <h2 className="text-lg font-semibold text-gray-700 mb-4">By Game Type</h2>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          {(['singles', 'doubles', 'trios', 'team', 'half-it'] as const).map(gt => {
-            const gs = playerStats.reduce((sum, ps) => sum + ps.byGameType[gt].games, 0);
-            const ws = playerStats.reduce((sum, ps) => sum + ps.byGameType[gt].wins, 0);
-            const pct = gs > 0 ? Math.round((ws / gs) * 100) : 0;
-            return (
-              <div key={gt} className="text-center p-4 rounded-lg border border-gray-200">
-                <p className="text-lg font-bold text-gray-800 capitalize">{gt}</p>
-                <p className="text-2xl font-bold text-indigo-600 mt-1">{pct}%</p>
-                <p className="text-xs text-gray-400">{ws}/{gs} games won</p>
-              </div>
-            );
-          })}
-        </div>
-      </div>
 
       {/* Player Performance Table */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6 overflow-x-auto">
@@ -268,196 +172,6 @@ export default function AnalysisPage() {
         </div>
       )}
 
-      {/* Game-level history across all matches */}
-      {matchSessions.length > 0 && (
-        <div className="mt-6">
-          <button
-            onClick={() => {
-              const el = document.getElementById('game-history');
-              if (el) el.classList.toggle('hidden');
-            }}
-            className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
-          >
-            View Game History by Slot ▼
-          </button>
-          <div id="game-history" className="hidden mt-3">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-700 mb-4">Game History by Slot</h2>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-gray-200 text-gray-500">
-                      <th className="pb-2 pr-3 font-medium whitespace-nowrap">Game</th>
-                      <th className="pb-2 pr-3 font-medium whitespace-nowrap">Type</th>
-                      {matchSessions.map(s => (
-                        <th key={s.id} className="pb-2 px-2 font-medium text-center text-[10px] whitespace-nowrap">
-                          {s.date.slice(5)}
-                        </th>
-                      ))}
-                      <th className="pb-2 pl-3 font-medium text-center">W%</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(() => {
-                      // Build game-level data: for each gameId, collect results across matches
-                      const gameData = new Map<number, {
-                        gameType: string;
-                        format: string;
-                        results: { date: string; won: boolean }[];
-                      }>();
-                      const sortedSessions = [...matchSessions].sort((a, b) => a.date.localeCompare(b.date));
-
-                      for (const s of sortedSessions) {
-                        const gps = getGamePerformancesForSession(s.id);
-                        const seen = new Set<number>();
-                        for (const g of gps) {
-                          if (seen.has(g.gameId)) continue;
-                          seen.add(g.gameId);
-                          if (!gameData.has(g.gameId)) {
-                            gameData.set(g.gameId, { gameType: g.gameType, format: g.format, results: [] });
-                          }
-                          gameData.get(g.gameId)!.results.push({ date: s.date, won: g.won });
-                        }
-                      }
-
-                      const formatLabel: Record<string, string> = {
-                        '01': '01', cricket: 'Cr', 'half-it': '½', mixed: 'Mx',
-                      };
-                      const sortedGames = [...gameData.entries()].sort(([a], [b]) => a - b);
-
-                      return sortedGames.map(([gameId, data]) => {
-                        const wins = data.results.filter(r => r.won).length;
-                        const total = data.results.length;
-                        const winPct = total > 0 ? Math.round((wins / total) * 100) : 0;
-                        return (
-                          <tr key={gameId} className="border-b border-gray-100 hover:bg-gray-50">
-                            <td className="py-2 pr-3 font-semibold text-gray-800 whitespace-nowrap">G{gameId}</td>
-                            <td className="py-2 pr-3 text-gray-500 whitespace-nowrap">
-                              {data.gameType} {formatLabel[data.format] || data.format}
-                            </td>
-                            {sortedSessions.map(s => {
-                              const result = data.results.find(r => r.date === s.date);
-                              const r = result?.won;
-                              return (
-                                <td key={s.id} className="py-2 px-2 text-center">
-                                  {r !== undefined ? (
-                                    <span className={`inline-block w-5 h-5 leading-5 rounded text-[10px] font-bold ${
-                                      r ? 'bg-green-100 text-green-700' : 'bg-red-50 text-red-500'
-                                    }`}>
-                                      {r ? 'W' : 'L'}
-                                    </span>
-                                  ) : (
-                                    <span className="text-gray-200">-</span>
-                                  )}
-                                </td>
-                              );
-                            })}
-                            <td className="py-2 pl-3 text-center"><WinBadge pct={winPct} /></td>
-                          </tr>
-                        );
-                      });
-                    })()}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Award Analysis */}
-      {awardData.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">Awards Analysis</h2>
-          <p className="text-xs text-gray-500 mb-4">
-            Total award achievement counts across all matches. ✓ = meets bracket threshold.
-          </p>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-200 text-gray-500">
-                  <th className="pb-3 font-medium text-left">Player</th>
-                  <th className="pb-3 font-medium text-center">Rt.</th>
-                  <th className="pb-3 font-medium text-center">Bracket</th>
-                  <th className="pb-3 font-medium text-center">Games</th>
-                  {AWARD_PINS.map(pin => (
-                    <th key={pin.name} className="pb-3 font-medium text-center text-xs">{pin.name}</th>
-                  ))}
-                  <th className="pb-3 font-medium text-center">Clocked</th>
-                  <th className="pb-3 font-medium text-center">Avg/Game</th>
-                </tr>
-              </thead>
-              <tbody>
-                {playerStats
-                  .filter(ps => awardData.some(a => a.playerName === ps.playerName))
-                  .sort((a, b) => {
-                    const aAwd = awardData.find(x => x.playerName === a.playerName);
-                    const bAwd = awardData.find(x => x.playerName === b.playerName);
-                    const aTotal = aAwd ? Object.values(aAwd.awards).reduce((s, v) => s + v, 0) : 0;
-                    const bTotal = bAwd ? Object.values(bAwd.awards).reduce((s, v) => s + v, 0) : 0;
-                    return bTotal - aTotal;
-                  })
-                  .map(ps => {
-                    const playerAward = awardData.find(a => a.playerName === ps.playerName);
-                    const awards = playerAward?.awards || {};
-                    const ds = dashboardStats.find(d => d.player.id === ps.playerId);
-                    const bIdx = ds ? bracketIndex(ds.liveRating) : -1;
-                    const totalAwards = Object.values(awards).reduce((s, v) => s + v, 0);
-                    const avgPerGame = ps.totalGames > 0 ? (totalAwards / ps.totalGames).toFixed(2) : '-';
-                    const clocked = AWARD_PINS.filter(pin => (awards[pin.name] || 0) >= pin.thresholds[bIdx]).length;
-
-                    return (
-                      <tr key={ps.playerId} className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="py-2.5 font-medium text-gray-800">{ps.playerName}</td>
-                        <td className="py-2.5 text-center font-mono text-gray-700 text-xs">
-                          {ds?.liveRating ? ds.liveRating.toFixed(2) : '-'}
-                        </td>
-                        <td className="py-2.5 text-center">
-                          {bIdx >= 0 ? (
-                            <span className="text-xs font-bold px-2 py-0.5 rounded bg-indigo-100 text-indigo-700">
-                              {RATING_BRACKETS[bIdx].label}
-                            </span>
-                          ) : (
-                            <span className="text-gray-300">-</span>
-                          )}
-                        </td>
-                        <td className="py-2.5 text-center font-mono text-gray-600">{ps.totalGames}</td>
-                        {AWARD_PINS.map(pin => {
-                          const count = awards[pin.name] || 0;
-                          const threshold = pin.thresholds[bIdx];
-                          const achieved = count >= threshold;
-                          return (
-                            <td key={pin.name} className="py-2.5 text-center">
-                              <span className={`text-xs font-mono font-bold px-1 py-0.5 rounded ${
-                                achieved
-                                  ? 'text-emerald-600 bg-emerald-50'
-                                  : count > 0
-                                    ? 'text-amber-600 bg-amber-50'
-                                    : 'text-gray-300'
-                              }`}>
-                                {achieved ? `✓${count}` : count > 0 ? `${count}/${threshold}` : '0'}
-                              </span>
-                            </td>
-                          );
-                        })}
-                        <td className="py-2.5 text-center">
-                          <span className={`text-sm font-bold ${
-                            clocked >= 4 ? 'text-emerald-600' :
-                            clocked >= 2 ? 'text-amber-600' :
-                            'text-gray-400'
-                          }`}>
-                            {clocked}/{AWARD_PINS.length}
-                          </span>
-                        </td>
-                        <td className="py-2.5 text-center font-mono text-xs text-gray-500">{avgPerGame}</td>
-                      </tr>
-                    );
-                  })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
