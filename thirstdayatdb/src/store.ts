@@ -606,14 +606,29 @@ export function generateFullLineup(
   const assignments: GameAssignment[] = [];
   const skippedGames: SkippedGame[] = [];
 
-  // Super League rule: first 3 games (G1, G2, G3) must have all unique players.
-  // Track players assigned to these games so they're excluded from subsequent ones.
-  const firstThreeUsed = new Set<string>();
+  // Split games: first 3 have the no-repeat rule, rest are free-for-all
+  const firstThreeGames = games.filter(g => g.id >= 1 && g.id <= 3);
+  const restGames = games.filter(g => g.id > 3);
 
-  // Assign games in sequence — skip any where there aren't enough available players.
-  // Game count penalty in the ranking naturally balances distribution
-  // so players with fewer games get priority for the next slot.
-  for (const game of games) {
+  // --- Optimize G1-G3 block ---
+  // When we can't field all 3 (need 4 unique players), evaluate every valid
+  // subset of games and pick the combination with the highest total format score.
+  const firstThreeUsed = new Set<string>();
+  const firstThreeResult = optimizeFirstThreeBlock(firstThreeGames, availablePlayers, gameCount);
+
+  for (const a of firstThreeResult.assignments) {
+    assignments.push(a);
+    for (const p of a.players) {
+      firstThreeUsed.add(p.player.id);
+      gameCount.set(p.player.id, (gameCount.get(p.player.id) || 0) + 1);
+    }
+  }
+  for (const s of firstThreeResult.skipped) {
+    skippedGames.push(s);
+  }
+
+  // --- G4-G9: no repeat restrictions ---
+  for (const game of restGames) {
     const needed = game.playerCount;
 
     if (availablePlayers.length < needed) {
@@ -624,25 +639,10 @@ export function generateFullLineup(
       continue;
     }
 
-    // For G1-G3: exclude players already used in earlier first-three games
-    // so no player repeats across G1, G2, or G3
-    const isFirstThree = game.id <= 3;
-    let pool = availablePlayers;
-    if (isFirstThree && firstThreeUsed.size > 0) {
-      pool = availablePlayers.filter(p => !firstThreeUsed.has(p.player.id));
-      if (pool.length < needed) {
-        skippedGames.push({
-          game,
-          reason: `G1-G3 no-repeat rule: need ${needed} unused player${needed > 1 ? 's' : ''}, only ${pool.length} available`,
-        });
-        continue;
-      }
-    }
-
     const assigned: PlayerWithStats[] = [];
 
     // Rank by format score, penalize high game count
-    const ranked = [...pool].sort((a, b) => {
+    const ranked = [...availablePlayers].sort((a, b) => {
       const aScore = formatScore(a, game.legs) - (gameCount.get(a.player.id) || 0) * 10;
       const bScore = formatScore(b, game.legs) - (gameCount.get(b.player.id) || 0) * 10;
       return bScore - aScore;
@@ -652,7 +652,6 @@ export function generateFullLineup(
       const p2 = ranked[i];
       assigned.push(p2);
       gameCount.set(p2.player.id, (gameCount.get(p2.player.id) || 0) + 1);
-      if (isFirstThree) firstThreeUsed.add(p2.player.id);
     }
 
     assignments.push({ game, players: assigned });
@@ -667,6 +666,87 @@ export function generateFullLineup(
     .sort((a, b) => b.count - a.count);
 
   return { assignments, playerGameCount, skippedGames, unavailablePlayers };
+}
+
+/**
+ * Optimizes the G1-G3 block when not enough unique players exist for all 3 games.
+ * Evaluates every valid subset of games (respecting the no-repeat rule) and picks
+ * the combination with the highest total format score to maximize winning chance.
+ */
+function optimizeFirstThreeBlock(
+  games: MatchGame[],
+  availablePlayers: PlayerWithStats[],
+  gameCount: Map<string, number>
+): { assignments: GameAssignment[]; skipped: SkippedGame[] } {
+  const totalPlayers = availablePlayers.length;
+
+  // Generate all non-empty subsets of [0, 1, 2] → [G1, G2, G3] as bitmask indices
+  const subsets: number[][] = [];
+  for (let mask = 1; mask < (1 << 3); mask++) {
+    const subset: number[] = [];
+    for (let i = 0; i < 3; i++) {
+      if (mask & (1 << i)) subset.push(i);
+    }
+    subsets.push(subset);
+  }
+
+  let bestScore = -1;
+  let bestResult: { assignments: GameAssignment[]; skipped: SkippedGame[] } | null = null;
+  const allGames = games;
+
+  for (const subset of subsets) {
+    const used = new Set<string>();
+    const subsetAssignments: GameAssignment[] = [];
+    let valid = true;
+    let totalScore = 0;
+
+    for (const idx of subset) {
+      const game = games[idx];
+      const pool = availablePlayers.filter(p => !used.has(p.player.id));
+      const ranked = [...pool].sort((a, b) => {
+        // No game count penalty within first 3 (no-repeat rule makes it moot)
+        return formatScore(b, game.legs) - formatScore(a, game.legs);
+      });
+
+      if (ranked.length < game.playerCount) {
+        valid = false;
+        break;
+      }
+
+      const players = ranked.slice(0, game.playerCount);
+      for (const p of players) {
+        used.add(p.player.id);
+        totalScore += formatScore(p, game.legs);
+      }
+      subsetAssignments.push({ game, players });
+    }
+
+    if (!valid) continue;
+
+    if (totalScore > bestScore) {
+      bestScore = totalScore;
+      const skipped = allGames.filter((_, i) => !subset.includes(i)).map(g => {
+        const reason = g.playerCount <= totalPlayers
+          ? `Forfeited — fielding higher-win-probability combination`
+          : `G1-G3 no-repeat rule: need ${g.playerCount} unique player${g.playerCount > 1 ? 's' : ''}, only ${totalPlayers} available`;
+        return { game: g, reason };
+      });
+      bestResult = { assignments: subsetAssignments, skipped };
+    }
+  }
+
+  // Fallback: all 3 games could be played normally with enough unique players
+  if (!bestResult) {
+    return {
+      assignments: [],
+      skipped: games.map(g => ({
+        game: g,
+        reason: `Not enough unique players for G1-G3 no-repeat rule`,
+      })),
+    };
+  }
+
+  return bestResult;
 }
 
 /** Returns a 0-100 skill score tailored to the game format (01 vs cricket vs half-it vs mixed). */
