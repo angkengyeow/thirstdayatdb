@@ -606,20 +606,19 @@ export function generateFullLineup(
   const assignments: GameAssignment[] = [];
   const skippedGames: SkippedGame[] = [];
 
-  // Split games: first 3 have the no-repeat rule, rest are free-for-all
+  // Split games into three blocks with different repeat rules
   const firstThreeGames = games.filter(g => g.id >= 1 && g.id <= 3);
-  const restGames = games.filter(g => g.id > 3);
+  const repeatOnceGames = games.filter(g => g.id >= 4 && g.id <= 6);
+  const freeGames = games.filter(g => g.id > 6);
 
   // --- Optimize G1-G3 block ---
   // When we can't field all 3 (need 4 unique players), evaluate every valid
   // subset of games and pick the combination with the highest total format score.
-  const firstThreeUsed = new Set<string>();
   const firstThreeResult = optimizeFirstThreeBlock(firstThreeGames, availablePlayers, gameCount);
 
   for (const a of firstThreeResult.assignments) {
     assignments.push(a);
     for (const p of a.players) {
-      firstThreeUsed.add(p.player.id);
       gameCount.set(p.player.id, (gameCount.get(p.player.id) || 0) + 1);
     }
   }
@@ -627,8 +626,51 @@ export function generateFullLineup(
     skippedGames.push(s);
   }
 
-  // --- G4-G9: no repeat restrictions ---
-  for (const game of restGames) {
+  // --- G4-G6: repeat once (each player at most 2 appearances across G4-G6) ---
+  const repeatOnceCounts = new Map<string, number>();
+
+  for (const game of repeatOnceGames) {
+    const needed = game.playerCount;
+
+    if (availablePlayers.length < needed) {
+      skippedGames.push({
+        game,
+        reason: `Need ${needed} players, only ${availablePlayers.length} available`,
+      });
+      continue;
+    }
+
+    // Exclude players already used twice within G4-G6
+    const pool = availablePlayers.filter(p => (repeatOnceCounts.get(p.player.id) || 0) < 2);
+    if (pool.length < needed) {
+      skippedGames.push({
+        game,
+        reason: `G4-G6 repeat-once rule: need ${needed} player${needed > 1 ? 's' : ''} with <2 appearances, only ${pool.length} available`,
+      });
+      continue;
+    }
+
+    const assigned: PlayerWithStats[] = [];
+
+    // Rank by format score, penalize high game count
+    const ranked = [...pool].sort((a, b) => {
+      const aScore = formatScore(a, game.legs) - (gameCount.get(a.player.id) || 0) * 10;
+      const bScore = formatScore(b, game.legs) - (gameCount.get(b.player.id) || 0) * 10;
+      return bScore - aScore;
+    });
+
+    for (let i = 0; i < needed; i++) {
+      const p2 = ranked[i];
+      assigned.push(p2);
+      gameCount.set(p2.player.id, (gameCount.get(p2.player.id) || 0) + 1);
+      repeatOnceCounts.set(p2.player.id, (repeatOnceCounts.get(p2.player.id) || 0) + 1);
+    }
+
+    assignments.push({ game, players: assigned });
+  }
+
+  // --- G7-G9: no repeat restrictions ---
+  for (const game of freeGames) {
     const needed = game.playerCount;
 
     if (availablePlayers.length < needed) {

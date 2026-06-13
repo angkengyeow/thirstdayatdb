@@ -146,8 +146,8 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
             <li><strong className="text-[#eeeef4]">G6</strong> (Half-It) → ranked by <strong className="text-gold-400">Half-It Composite</strong> (50% Cricket Avg + 50% Half-It Leg Win Rate)</li>
           </ul>
           <p className="text-[#6b6b8a] mt-1">
-            <strong className="text-[#eeeef4]">Rule:</strong> G1–G3 must have all unique players (no repeats). From G4 onward, players can repeat with game count balancing.
-            With fewer players, the same players will repeat across games naturally.
+            <strong className="text-[#eeeef4]">Rules:</strong> G1–G3 = all unique (no repeats). G4–G6 = at most 2 appearances per player. G7–G9 = free.
+            Game count balancing spreads play across all games.
           </p>
         </div>
       </div>
@@ -313,7 +313,7 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
               <li>• G1: Singles 701/701/701 (1P)</li>
               <li>• G2: Singles 701/Cricket/701 (1P)</li>
               <li>• G3: Doubles 701/Cricket/Choice (2P)</li>
-              <li className="text-gold-400 font-medium mt-2">Part 2</li>
+              <li className="text-gold-400 font-medium mt-2">Part 2 — Max 2 appearances per player across G4-G6</li>
               <li>• G4: Doubles 701/Cricket/701 (2P)</li>
               <li>• G5: Doubles Cricket/Cricket/Cricket (2P)</li>
               <li>• G6: Doubles Half-It x3 (2P)</li>
