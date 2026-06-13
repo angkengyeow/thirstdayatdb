@@ -361,7 +361,7 @@ function WinBadge({ pct }: { pct: number }) {
   let color = 'text-red-600 bg-red-50';
   if (pct >= 60) color = 'text-green-600 bg-green-50';
   else if (pct >= 40) color = 'text-amber-600 bg-amber-50';
-  return <span className={`text-xs font-bold px-2 py-1 rounded-full ${color}`}>{pct.toFixed(2)}%</span>;
+  return <span className={`text-xs font-bold px-2 py-1 rounded-full ${color}`}>{pct}%</span>;
 }
 
 function RtBadge({ rt }: { rt: number }) {
