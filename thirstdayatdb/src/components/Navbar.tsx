@@ -9,6 +9,7 @@ const navItems = [
   { id: 'awards', label: 'Awards' },
   { id: 'attendance', label: 'Attendance' },
   { id: 'lineup', label: 'Lineup' },
+  { id: 'scoring', label: 'Scoring' },
 ];
 
 export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
