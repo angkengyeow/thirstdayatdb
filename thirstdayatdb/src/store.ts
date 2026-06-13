@@ -31,6 +31,8 @@ export async function syncFromServer(): Promise<boolean> {
   try {
     const data = await loadAllFromServer();
     if (!data.players || data.players.length === 0) return false;
+    // Don't overwrite if server data is missing rating fields (old schema)
+    if (data.players.some((p: any) => p.liveRating === undefined)) return false;
     localStorage.setItem(STORAGE_KEYS.players, JSON.stringify(data.players));
     localStorage.setItem(STORAGE_KEYS.sessions, JSON.stringify(data.sessions));
     localStorage.setItem(STORAGE_KEYS.attendance, JSON.stringify(data.attendance));

@@ -26,6 +26,11 @@ function initSchema() {
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       rating REAL DEFAULT 0,
+      liveRating REAL DEFAULT 0,
+      wins INTEGER DEFAULT 0,
+      losses INTEGER DEFAULT 0,
+      stats01Avg REAL DEFAULT 0,
+      statsCricketAvg REAL DEFAULT 0,
       notes TEXT DEFAULT '',
       createdAt TEXT NOT NULL
     );
@@ -85,6 +90,19 @@ function initSchema() {
       FOREIGN KEY (sessionId) REFERENCES sessions(id)
     );
   `);
+
+  // Migrate existing databases that have the old schema (missing rating columns)
+  const existingCols = db.prepare("PRAGMA table_info('players')").all().map(c => c.name);
+  const missingCols = [
+    ['liveRating',     'REAL DEFAULT 0'],
+    ['wins',           'INTEGER DEFAULT 0'],
+    ['losses',         'INTEGER DEFAULT 0'],
+    ['stats01Avg',     'REAL DEFAULT 0'],
+    ['statsCricketAvg','REAL DEFAULT 0'],
+  ].filter(([name]) => !existingCols.includes(name));
+  for (const [name, type] of missingCols) {
+    db.exec(`ALTER TABLE players ADD COLUMN ${name} ${type}`);
+  }
 }
 
 // --- CRUD helpers ---
@@ -118,7 +136,7 @@ function upsertRow(table, data, columns) {
 module.exports = {
   // Players
   getPlayers: () => allRows('players'),
-  savePlayer: (p) => upsertRow('players', p, ['id', 'name', 'rating', 'notes', 'createdAt']),
+  savePlayer: (p) => upsertRow('players', p, ['id', 'name', 'rating', 'liveRating', 'wins', 'losses', 'stats01Avg', 'statsCricketAvg', 'notes', 'createdAt']),
   deletePlayer: (id) => deleteRow('players', id),
 
   // Sessions
@@ -189,7 +207,7 @@ module.exports = {
       db2.prepare('DELETE FROM game_performances').run();
       db2.prepare('DELETE FROM player_responses').run();
 
-      const insP = db2.prepare('INSERT INTO players (id, name, rating, notes, createdAt) VALUES (@id, @name, @rating, @notes, @createdAt)');
+      const insP = db2.prepare('INSERT INTO players (id, name, rating, liveRating, wins, losses, stats01Avg, statsCricketAvg, notes, createdAt) VALUES (@id, @name, @rating, @liveRating, @wins, @losses, @stats01Avg, @statsCricketAvg, @notes, @createdAt)');
       for (const r of (data.players || [])) insP.run(r);
 
       const insS = db2.prepare('INSERT INTO sessions (id, date, type, notes, createdAt) VALUES (@id, @date, @type, @notes, @createdAt)');
