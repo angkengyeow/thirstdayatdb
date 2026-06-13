@@ -15,7 +15,6 @@ function isRespondMode(): boolean {
 }
 
 function clearRespondHash() {
-  // Remove the hash without triggering a full page reload
   window.history.replaceState(null, '', window.location.pathname + window.location.search);
 }
 
@@ -39,13 +38,10 @@ export default function App() {
 
   if (syncing) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#06060f] flex items-center justify-center">
         <div className="text-center">
-          <svg className="animate-spin h-8 w-8 text-indigo-600 mx-auto mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-          </svg>
-          <p className="text-gray-500">Syncing data from server...</p>
+          <div className="w-12 h-12 mx-auto mb-4 rounded-full border-2 border-[#f59e0b] border-t-transparent animate-spin" />
+          <p className="text-[#9e9eb4] text-sm">Loading data...</p>
         </div>
       </div>
     );
@@ -66,7 +62,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <Navbar currentPage={page} onNavigate={(p) => {
         setPage(p as Page);
         if (p !== 'lineup') setLineupPreselectDate(null);

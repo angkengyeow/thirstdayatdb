@@ -12,10 +12,10 @@ import {
 import type { Session, AttendanceStatus } from '../types';
 
 const STATUS_CONFIG: Record<AttendanceStatus, { label: string; bg: string; text: string; border: string }> = {
-  'on-time': { label: 'On Time', bg: 'bg-green-100', text: 'text-green-700', border: 'border-green-300' },
-  late: { label: 'Late', bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-300' },
-  absent: { label: 'Absent', bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300' },
-  excused: { label: 'Excused', bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-300' },
+  'on-time': { label: 'On Time', bg: 'bg-dart-green/20', text: 'text-dart-green', border: 'border-dart-green/30' },
+  late: { label: 'Late', bg: 'bg-gold-400/15', text: 'text-gold-400', border: 'border-gold-400/30' },
+  absent: { label: 'Absent', bg: 'bg-dart-red/15', text: 'text-dart-red', border: 'border-dart-red/30' },
+  excused: { label: 'Excused', bg: 'bg-[#6b6b8a]/15', text: 'text-[#6b6b8a]', border: 'border-[#6b6b8a]/30' },
 };
 
 interface AttendancePageProps {
@@ -36,7 +36,6 @@ export default function AttendancePage({ onNavigateToLineup }: AttendancePagePro
     refresh();
   }, [refreshKey, refresh]);
 
-  // Auto-select the nearest upcoming session
   useEffect(() => {
     if (sessions.length > 0 && !selectedSessionId) {
       setSelectedSessionId(sessions[0].id);
@@ -60,7 +59,7 @@ export default function AttendancePage({ onNavigateToLineup }: AttendancePagePro
     if (!selectedSession) return;
     const sessionType = selectedSession.type === 'match' ? '🏆 Match' : '🎯 Practice';
     const msg = encodeURIComponent(
-      `[Darts S1 Manager] ${sessionType} on ${selectedSession.date}${selectedSession.notes ? ` — ${selectedSession.notes}` : ''}\n\nPlease respond with your attendance:\n${responseLink}`
+      `[Captain Liting (Virtual)] ${sessionType} on ${selectedSession.date}${selectedSession.notes ? ` — ${selectedSession.notes}` : ''}\n\nPlease respond with your attendance:\n${responseLink}`
     );
     window.open(`https://wa.me/?text=${msg}`, '_blank');
   }
@@ -68,7 +67,6 @@ export default function AttendancePage({ onNavigateToLineup }: AttendancePagePro
   function handleManualAttendance(playerId: string, status: AttendanceStatus) {
     if (!selectedSessionId) return;
 
-    // Save as an attendance record
     saveAttendanceRecord({
       id: generateId(),
       playerId,
@@ -76,7 +74,6 @@ export default function AttendancePage({ onNavigateToLineup }: AttendancePagePro
       status,
     });
 
-    // Also create a manual response entry
     const player = getPlayers().find(p => p.id === playerId);
     if (player) {
       saveResponse({
@@ -104,16 +101,15 @@ export default function AttendancePage({ onNavigateToLineup }: AttendancePagePro
     <div className="max-w-6xl mx-auto px-4 py-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Attendance</h1>
-          <p className="text-sm text-gray-500 mt-1">Broadcast, capture responses, and plan the lineup</p>
+          <h1 className="text-2xl font-bold text-[#eeeef4]">Attendance</h1>
+          <p className="text-sm text-[#6b6b8a] mt-1">Broadcast, capture responses, and plan the lineup</p>
         </div>
       </div>
 
-      {/* Session Selector */}
       {sessions.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
-          <p className="text-gray-400 text-lg mb-2">No upcoming sessions</p>
-          <p className="text-gray-400 text-sm">Create a match or practice session first, then come back here to manage attendance.</p>
+        <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-8 text-center">
+          <p className="text-[#6b6b8a] text-lg mb-2">No upcoming sessions</p>
+          <p className="text-[#6b6b8a] text-sm">Create a match or practice session first, then come back here to manage attendance.</p>
         </div>
       ) : (
         <>
@@ -124,8 +120,8 @@ export default function AttendancePage({ onNavigateToLineup }: AttendancePagePro
                 onClick={() => setSelectedSessionId(s.id)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   selectedSessionId === s.id
-                    ? 'bg-indigo-600 text-white shadow-sm'
-                    : 'bg-white border border-gray-200 text-gray-600 hover:border-indigo-300 hover:text-indigo-600'
+                    ? 'bg-gold-400 text-[#0d0d1a] shadow-lg shadow-gold-400/20'
+                    : 'bg-[#111122] border border-[#1c1c34] text-[#9e9eb4] hover:border-gold-400/50 hover:text-gold-400'
                 }`}
               >
                 <span className="mr-1">{s.type === 'match' ? '🏆' : '🎯'}</span>
@@ -137,49 +133,49 @@ export default function AttendancePage({ onNavigateToLineup }: AttendancePagePro
 
           {selectedSession && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-              {/* Left column: Session info + Broadcast */}
+              {/* Left column */}
               <div className="lg:col-span-1 space-y-4">
                 {/* Session Card */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-5">
                   <div className="flex items-center gap-2 mb-3">
                     <span className="text-2xl">{selectedSession.type === 'match' ? '🏆' : '🎯'}</span>
                     <div>
-                      <h2 className="font-semibold text-gray-800">{selectedSession.type === 'match' ? 'Match' : 'Practice'}</h2>
-                      <p className="text-sm text-gray-500">{selectedSession.date}</p>
+                      <h2 className="font-semibold text-[#eeeef4]">{selectedSession.type === 'match' ? 'Match' : 'Practice'}</h2>
+                      <p className="text-sm text-[#6b6b8a]">{selectedSession.date}</p>
                     </div>
                   </div>
                   {selectedSession.notes && (
-                    <p className="text-sm text-gray-600 bg-gray-50 rounded-lg p-2">{selectedSession.notes}</p>
+                    <p className="text-sm text-[#9e9eb4] bg-[#0d0d1a] rounded-lg p-2 border border-[#1c1c34]">{selectedSession.notes}</p>
                   )}
                 </div>
 
                 {/* Broadcast Card */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-                  <h3 className="font-semibold text-gray-800 mb-3">Broadcast</h3>
+                <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-5">
+                  <h3 className="font-semibold text-[#eeeef4] mb-3">Broadcast</h3>
                   <div className="space-y-3">
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <p className="text-xs text-gray-500 mb-1">Response Link</p>
-                      <p className="text-xs text-indigo-600 break-all">{responseLink}</p>
+                    <div className="bg-[#0d0d1a] rounded-lg p-3 border border-[#1c1c34]">
+                      <p className="text-xs text-[#6b6b8a] mb-1">Response Link</p>
+                      <p className="text-xs text-gold-400 break-all">{responseLink}</p>
                     </div>
                     <div className="flex gap-2">
                       <button
                         onClick={handleCopyLink}
                         className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                           copied
-                            ? 'bg-green-100 text-green-700 border border-green-300'
-                            : 'bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100'
+                            ? 'bg-dart-green/20 text-dart-green border border-dart-green/30'
+                            : 'bg-[#0d0d1a] text-gold-400 border border-[#2e2e52] hover:bg-[#1c1c34]'
                         }`}
                       >
                         {copied ? '✓ Copied!' : 'Copy Link'}
                       </button>
                       <button
                         onClick={handleWhatsAppShare}
-                        className="flex-1 px-3 py-2 rounded-lg text-sm font-medium bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors"
+                        className="flex-1 px-3 py-2 rounded-lg text-sm font-medium bg-dart-green/15 text-dart-green border border-dart-green/30 hover:bg-dart-green/25 transition-colors"
                       >
                         Share via WhatsApp
                       </button>
                     </div>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-[#6b6b8a]">
                       Share the link with players so they can confirm their attendance.
                     </p>
                   </div>
@@ -187,41 +183,41 @@ export default function AttendancePage({ onNavigateToLineup }: AttendancePagePro
 
                 {/* Response Summary */}
                 {counts && (
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-                    <h3 className="font-semibold text-gray-800 mb-3">Response Summary</h3>
+                  <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-5">
+                    <h3 className="font-semibold text-[#eeeef4] mb-3">Response Summary</h3>
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Responded</span>
-                        <span className="text-sm font-semibold text-gray-800">{counts.responded} / {counts.total}</span>
+                        <span className="text-sm text-[#9e9eb4]">Responded</span>
+                        <span className="text-sm font-semibold text-[#eeeef4]">{counts.responded} / {counts.total}</span>
                       </div>
-                      <div className="w-full bg-gray-100 rounded-full h-2">
+                      <div className="w-full bg-[#0d0d1a] rounded-full h-2 border border-[#1c1c34]">
                         <div
-                          className="bg-indigo-500 h-2 rounded-full transition-all"
+                          className="bg-gold-400 h-2 rounded-full transition-all"
                           style={{ width: `${counts.total > 0 ? (counts.responded / counts.total) * 100 : 0}%` }}
                         />
                       </div>
                       <div className="pt-2 space-y-1">
                         <div className="flex justify-between text-xs">
-                          <span className="text-green-600">✓ On Time</span>
-                          <span className="font-medium">{counts.confirmedOnTime}</span>
+                          <span className="text-dart-green">✓ On Time</span>
+                          <span className="font-medium text-[#c8c8d8]">{counts.confirmedOnTime}</span>
                         </div>
                         <div className="flex justify-between text-xs">
-                          <span className="text-amber-600">⏰ Late</span>
-                          <span className="font-medium">{counts.confirmedLate}</span>
+                          <span className="text-gold-400">⏰ Late</span>
+                          <span className="font-medium text-[#c8c8d8]">{counts.confirmedLate}</span>
                         </div>
                         <div className="flex justify-between text-xs">
-                          <span className="text-red-600">✗ Absent</span>
-                          <span className="font-medium">{counts.confirmedAbsent}</span>
+                          <span className="text-dart-red">✗ Absent</span>
+                          <span className="font-medium text-[#c8c8d8]">{counts.confirmedAbsent}</span>
                         </div>
                         <div className="flex justify-between text-xs">
-                          <span className="text-gray-600">🙏 Excused</span>
-                          <span className="font-medium">{counts.confirmedExcused}</span>
+                          <span className="text-[#6b6b8a]">🙏 Excused</span>
+                          <span className="font-medium text-[#c8c8d8]">{counts.confirmedExcused}</span>
                         </div>
                       </div>
-                      <div className="border-t border-gray-100 pt-2 mt-2">
+                      <div className="border-t border-[#1c1c34] pt-2 mt-2">
                         <div className="flex justify-between text-sm font-medium">
-                          <span className="text-indigo-700">Available to play</span>
-                          <span className={hasEnoughPlayers ? 'text-green-600' : 'text-red-600'}>
+                          <span className="text-gold-400">Available to play</span>
+                          <span className={hasEnoughPlayers ? 'text-dart-green' : 'text-dart-red'}>
                             {availableCount}
                           </span>
                         </div>
@@ -234,48 +230,48 @@ export default function AttendancePage({ onNavigateToLineup }: AttendancePagePro
                 {onNavigateToLineup && (
                   <button
                     onClick={() => onNavigateToLineup(selectedSession.date)}
-                    className="w-full px-4 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-semibold text-sm"
+                    className="w-full px-4 py-3 bg-gold-400 text-[#0d0d1a] rounded-xl hover:bg-gold-300 transition-colors font-semibold text-sm shadow-lg shadow-gold-400/20"
                   >
                     Plan Lineup for {selectedSession.date}
                   </button>
                 )}
               </div>
 
-              {/* Right column: Player Response Table */}
+              {/* Right column */}
               <div className="lg:col-span-2">
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                  <div className="p-5 border-b border-gray-100">
-                    <h3 className="font-semibold text-gray-800">Player Responses</h3>
-                    <p className="text-xs text-gray-500 mt-1">
+                <div className="bg-[#111122] rounded-xl border border-[#1c1c34] overflow-hidden">
+                  <div className="p-5 border-b border-[#1c1c34]">
+                    <h3 className="font-semibold text-[#eeeef4]">Player Responses</h3>
+                    <p className="text-xs text-[#6b6b8a] mt-1">
                       Green = responded. Tap a status badge to manually override for a player.
                     </p>
                   </div>
 
                   {overview.length === 0 ? (
-                    <div className="p-8 text-center text-gray-400">
-                      <p>No players in the roster</p>
+                    <div className="p-8 text-center">
+                      <p className="text-[#6b6b8a]">No players in the roster</p>
                     </div>
                   ) : (
-                    <div className="divide-y divide-gray-100">
+                    <div className="divide-y divide-[#1c1c34]">
                       {overview.map(entry => {
                         const isConfirmed = !!entry.actualStatus;
 
                         return (
-                          <div key={entry.player.id} className="p-4 hover:bg-gray-50 transition-colors">
+                          <div key={entry.player.id} className="p-4 hover:bg-[#16162a] transition-colors">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-3">
                                 <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${
-                                  isConfirmed ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-500'
+                                  isConfirmed ? 'bg-gold-400/20 text-gold-400' : 'bg-[#1c1c34] text-[#6b6b8a]'
                                 }`}>
                                   {entry.player.name.charAt(0)}
                                 </div>
                                 <div>
-                                  <p className="font-medium text-gray-800">{entry.player.name}</p>
+                                  <p className="font-medium text-[#eeeef4]">{entry.player.name}</p>
                                   <div className="flex items-center gap-2 mt-0.5">
                                     {entry.response ? (
-                                      <span className="text-xs text-green-600">Responded {new Date(entry.response.respondedAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                                      <span className="text-xs text-dart-green">Responded {new Date(entry.response.respondedAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                                     ) : (
-                                      <span className="text-xs text-gray-400">
+                                      <span className="text-xs text-[#6b6b8a]">
                                         Predicted: <PredictedBadge status={entry.predictedStatus} />
                                       </span>
                                     )}
@@ -284,7 +280,6 @@ export default function AttendancePage({ onNavigateToLineup }: AttendancePagePro
                               </div>
 
                               <div className="flex items-center gap-2">
-                                {/* Quick status override buttons */}
                                 {(['on-time', 'late', 'absent', 'excused'] as AttendanceStatus[]).map(s => {
                                   const isActive = entry.actualStatus === s;
                                   const colors = STATUS_CONFIG[s];
@@ -295,7 +290,7 @@ export default function AttendancePage({ onNavigateToLineup }: AttendancePagePro
                                       className={`px-2 py-1 rounded-lg text-xs font-medium transition-all border ${
                                         isActive
                                           ? `${colors.bg} ${colors.text} ${colors.border} shadow-sm`
-                                          : 'text-gray-400 border-gray-200 hover:border-gray-300 hover:text-gray-600'
+                                          : 'text-[#6b6b8a] border-[#1c1c34] hover:border-[#6b6b8a] hover:text-[#9e9eb4]'
                                       }`}
                                     >
                                       {s === 'on-time' ? '✓' : s === 'late' ? '⏰' : s === 'absent' ? '✗' : '🙏'}
@@ -306,7 +301,7 @@ export default function AttendancePage({ onNavigateToLineup }: AttendancePagePro
 
                                 <span
                                   className={`w-2 h-2 rounded-full ml-1 ${
-                                    entry.hasResponded || entry.actualStatus ? 'bg-green-400' : 'bg-gray-300'
+                                    entry.hasResponded || entry.actualStatus ? 'bg-dart-green' : 'bg-[#2e2e52]'
                                   }`}
                                   title={entry.hasResponded || entry.actualStatus ? 'Responded' : 'Pending'}
                                 />
@@ -320,20 +315,20 @@ export default function AttendancePage({ onNavigateToLineup }: AttendancePagePro
                 </div>
 
                 {/* Attendance Summary Bar */}
-                <div className="mt-4 bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                <div className="mt-4 bg-[#111122] rounded-xl border border-[#1c1c34] p-4">
                   <div className="flex flex-wrap items-center gap-4 text-sm">
-                    <span className="text-gray-600 font-medium">Lineup availability:</span>
+                    <span className="text-[#9e9eb4] font-medium">Lineup availability:</span>
                     {hasEnoughPlayers ? (
-                      <span className="text-green-700 bg-green-50 px-3 py-1 rounded-full text-xs font-medium">
+                      <span className="text-dart-green bg-dart-green/15 px-3 py-1 rounded-full text-xs font-medium">
                         {availableCount} players available — enough for a lineup
                       </span>
                     ) : (
-                      <span className="text-red-700 bg-red-50 px-3 py-1 rounded-full text-xs font-medium">
+                      <span className="text-dart-red bg-dart-red/15 px-3 py-1 rounded-full text-xs font-medium">
                         Only {availableCount} available — need at least 4
                       </span>
                     )}
                     {counts && !hasEnoughPlayers && counts.confirmedExcused > 0 && (
-                      <span className="text-gray-500 text-xs">
+                      <span className="text-[#6b6b8a] text-xs">
                         ({counts.confirmedExcused} excused)
                       </span>
                     )}
@@ -350,10 +345,10 @@ export default function AttendancePage({ onNavigateToLineup }: AttendancePagePro
 
 function PredictedBadge({ status }: { status: AttendanceStatus }) {
   const colors: Record<AttendanceStatus, string> = {
-    'on-time': 'text-green-600 bg-green-50',
-    late: 'text-amber-600 bg-amber-50',
-    absent: 'text-red-600 bg-red-50',
-    excused: 'text-gray-500 bg-gray-50',
+    'on-time': 'text-dart-green bg-dart-green/15',
+    late: 'text-gold-400 bg-gold-400/15',
+    absent: 'text-dart-red bg-dart-red/15',
+    excused: 'text-[#6b6b8a] bg-[#6b6b8a]/15',
   };
   return <span className={`text-xs px-1.5 py-0.5 rounded ${colors[status]}`}>{status}</span>;
 }

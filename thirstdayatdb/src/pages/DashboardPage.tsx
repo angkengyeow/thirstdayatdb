@@ -31,7 +31,6 @@ export default function DashboardPage() {
     setPlayerStats(getAllPlayersGameStats());
   }, []);
 
-  // Auto-load seed data on mount
   useEffect(() => {
     seedDemoData();
     refresh();
@@ -95,12 +94,11 @@ export default function DashboardPage() {
 
   function handleWhatsAppShare(session: { date: string; notes?: string }) {
     const msg = encodeURIComponent(
-      `[Darts S1 Manager] 🏆 Match on ${session.date}${session.notes ? ` — ${session.notes}` : ''}\n\nPlease respond with your attendance:`
+      `[Captain Liting (Virtual)] 🏆 Match on ${session.date}${session.notes ? ` — ${session.notes}` : ''}\n\nPlease respond with your attendance:`
     );
     window.open(`https://wa.me/?text=${msg}`, '_blank');
   }
 
-  // Split completed matches into first and second half
   const completedMatches = [...matchSessions]
     .filter(s => s.notes?.match(/\((W|L)\s+/))
     .sort((a, b) => a.date.localeCompare(b.date));
@@ -114,7 +112,6 @@ export default function DashboardPage() {
     const opponent = noteParts?.[2] || s.notes || '';
     const score = noteParts ? `${noteParts[4]}-${noteParts[5]}` : '';
 
-    // Per-game breakdown from store
     const sessionGames = getGamePerformancesForSession(s.id);
     const gameMap = new Map<number, { won: boolean; format: string }>();
     for (const g of sessionGames) {
@@ -124,25 +121,25 @@ export default function DashboardPage() {
     const gameIds = Array.from(gameMap.keys()).sort((a, b) => a - b);
 
     return (
-      <div className={`p-3 rounded-lg border ${isWin ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
+      <div className={`p-3 rounded-lg border ${isWin ? 'border-dart-green/30 bg-dart-green/[0.06]' : 'border-dart-red/30 bg-dart-red/[0.06]'}`}>
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-3 min-w-0">
-            <span className={`text-sm font-bold px-2 py-0.5 rounded shrink-0 ${isWin ? 'text-green-700 bg-green-100' : 'text-red-700 bg-red-100'}`}>
+            <span className={`text-sm font-bold px-2 py-0.5 rounded shrink-0 ${isWin ? 'text-dart-green bg-dart-green/20' : 'text-dart-red bg-dart-red/20'}`}>
               {isWin ? 'W' : 'L'}
             </span>
             <div className="min-w-0">
-              <span className="text-sm font-medium text-gray-800 truncate block">{opponent}</span>
-              <p className="text-xs text-gray-500">{s.date}</p>
+              <span className="text-sm font-medium text-[#eeeef4] truncate block">{opponent}</span>
+              <p className="text-xs text-[#6b6b8a]">{s.date}</p>
             </div>
           </div>
           {score && (
-            <span className={`text-sm font-bold font-mono shrink-0 ${isWin ? 'text-green-700' : 'text-red-700'}`}>
+            <span className={`text-sm font-bold font-mono shrink-0 ${isWin ? 'text-dart-green' : 'text-dart-red'}`}>
               {score}
             </span>
           )}
         </div>
         {gameIds.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-1.5 pt-1.5 border-t border-gray-200/60">
+          <div className="flex flex-wrap gap-1 mt-1.5 pt-1.5 border-t border-[#1c1c34]/60">
             {gameIds.map(gid => {
               const g = gameMap.get(gid)!;
               const isHalfIt = g.format === 'half-it';
@@ -151,8 +148,8 @@ export default function DashboardPage() {
                   key={gid}
                   className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
                     g.won
-                      ? 'text-green-600 bg-green-100/80'
-                      : 'text-red-500 bg-red-100/80'
+                      ? 'text-dart-green bg-dart-green/15'
+                      : 'text-dart-red bg-dart-red/15'
                   }`}
                   title={g.format}
                 >
@@ -169,154 +166,149 @@ export default function DashboardPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
+        <h1 className="text-2xl font-bold text-[#eeeef4]">Dashboard</h1>
         <div className="flex gap-2">
           <button
             onClick={handleLoadData}
             disabled={loading}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               loading
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                ? 'bg-[#1c1c34] text-[#6b6b8a] cursor-not-allowed'
+                : 'bg-gold-400 text-[#0d0d1a] hover:bg-gold-300 shadow-lg shadow-gold-400/20'
             }`}
           >
             {loading ? 'Loading...' : 'Load Live Data'}
           </button>
           <button
             onClick={handleClearData}
-            className="px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
+            className="px-4 py-2 bg-dart-red/15 text-dart-red rounded-lg hover:bg-dart-red/25 transition-colors text-sm font-medium"
           >
             Clear Data
           </button>
         </div>
       </div>
 
-      {/* Load Status Banner */}
+      {/* Load Status Banners */}
       {loadStatus === 'loading' && (
-        <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 mb-6 flex items-center gap-3">
-          <svg className="animate-spin h-5 w-5 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-          </svg>
-          <span className="text-sm text-indigo-700">{statusMessage}</span>
+        <div className="bg-[#1e1e3e] border border-[#2e2e5e] rounded-lg p-4 mb-6 flex items-center gap-3">
+          <div className="w-4 h-4 rounded-full border-2 border-gold-400 border-t-transparent animate-spin" />
+          <span className="text-sm text-[#c8c8d8]">{statusMessage}</span>
         </div>
       )}
       {loadStatus === 'success' && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 flex items-center gap-2">
-          <span className="text-green-600 text-lg">✓</span>
-          <span className="text-sm text-green-700">{statusMessage}</span>
+        <div className="bg-dart-green/[0.06] border border-dart-green/30 rounded-lg p-4 mb-6 flex items-center gap-2">
+          <span className="text-dart-green text-lg">✓</span>
+          <span className="text-sm text-dart-green">{statusMessage}</span>
         </div>
       )}
       {loadStatus === 'fallback' && (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6 flex items-center gap-2">
-          <span className="text-amber-500 text-lg">⚠</span>
-          <span className="text-sm text-amber-700">{statusMessage}</span>
+        <div className="bg-gold-400/[0.06] border border-gold-400/30 rounded-lg p-4 mb-6 flex items-center gap-2">
+          <span className="text-gold-400 text-lg">⚠</span>
+          <span className="text-sm text-gold-400">{statusMessage}</span>
         </div>
       )}
       {loadStatus === 'error' && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-center gap-2">
-          <span className="text-red-500 text-lg">✗</span>
-          <span className="text-sm text-red-700">{statusMessage}</span>
+        <div className="bg-dart-red/[0.06] border border-dart-red/30 rounded-lg p-4 mb-6 flex items-center gap-2">
+          <span className="text-dart-red text-lg">✗</span>
+          <span className="text-sm text-dart-red">{statusMessage}</span>
         </div>
       )}
 
       {/* Team Standing */}
-      <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 rounded-xl shadow-sm p-6 mb-8 text-white">
+      <div className="bg-gradient-to-br from-[#0d0d1a] via-[#16162a] to-[#1c1c34] rounded-xl border border-[#2e2e52] shadow-lg shadow-gold-400/5 p-6 mb-8">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-bold">Thirstday@DB</h2>
-            <p className="text-indigo-200 text-sm">S1 Division · Group 2</p>
+            <h2 className="text-lg font-bold text-gold-400 font-display tracking-wider">Thirstday@DB</h2>
+            <p className="text-[#6b6b8a] text-xs">S1 Division · Group 2</p>
           </div>
           <div className="text-right">
-            <p className="text-3xl font-bold">{standing.wins}W - {standing.losses}L</p>
-            <p className="text-indigo-200 text-xs">{standing.played} played · {standing.remaining} remaining</p>
+            <p className="text-3xl font-bold text-gold-400">{standing.wins}W - {standing.losses}L</p>
+            <p className="text-[#6b6b8a] text-xs">{standing.played} played · {standing.remaining} remaining</p>
           </div>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          <div className="bg-white/15 rounded-lg px-4 py-3 text-center">
-            <p className="text-indigo-200 text-xs">Players</p>
-            <p className="text-xl font-bold">{players.length}</p>
+          <div className="bg-[#111122]/80 rounded-lg px-4 py-3 text-center border border-[#1c1c34]">
+            <p className="text-[#6b6b8a] text-xs">Players</p>
+            <p className="text-xl font-bold text-[#eeeef4]">{players.length}</p>
           </div>
-          <div className="bg-white/15 rounded-lg px-4 py-3 text-center">
-            <p className="text-indigo-200 text-xs">Win Rate</p>
-            <p className="text-xl font-bold">{standing.winRate}%</p>
+          <div className="bg-[#111122]/80 rounded-lg px-4 py-3 text-center border border-[#1c1c34]">
+            <p className="text-[#6b6b8a] text-xs">Win Rate</p>
+            <p className="text-xl font-bold text-dart-green">{standing.winRate}%</p>
           </div>
-          <div className="bg-white/15 rounded-lg px-4 py-3 text-center">
-            <p className="text-indigo-200 text-xs">Points For</p>
-            <p className="text-xl font-bold">{standing.pointsFor}</p>
+          <div className="bg-[#111122]/80 rounded-lg px-4 py-3 text-center border border-[#1c1c34]">
+            <p className="text-[#6b6b8a] text-xs">Points For</p>
+            <p className="text-xl font-bold text-[#eeeef4]">{standing.pointsFor}</p>
           </div>
-          <div className="bg-white/15 rounded-lg px-4 py-3 text-center">
-            <p className="text-indigo-200 text-xs">Points Against</p>
-            <p className="text-xl font-bold">{standing.pointsAgainst}</p>
+          <div className="bg-[#111122]/80 rounded-lg px-4 py-3 text-center border border-[#1c1c34]">
+            <p className="text-[#6b6b8a] text-xs">Points Against</p>
+            <p className="text-xl font-bold text-[#eeeef4]">{standing.pointsAgainst}</p>
           </div>
-          <div className="bg-white/15 rounded-lg px-4 py-3 text-center">
-            <p className="text-indigo-200 text-xs">Point Diff</p>
-            <p className={`text-xl font-bold ${standing.pointDiff >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+          <div className="bg-[#111122]/80 rounded-lg px-4 py-3 text-center border border-[#1c1c34]">
+            <p className="text-[#6b6b8a] text-xs">Point Diff</p>
+            <p className={`text-xl font-bold ${standing.pointDiff >= 0 ? 'text-dart-green' : 'text-dart-red'}`}>
               {standing.pointDiff >= 0 ? '+' : ''}{standing.pointDiff}
             </p>
           </div>
         </div>
-        <div className="mt-4 pt-3 border-t border-white/20 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-indigo-200">
+        <div className="mt-4 pt-3 border-t border-[#1c1c34] flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-[#6b6b8a]">
           <span>64 Credits · No Handicap · OI/MO</span>
         </div>
       </div>
 
-      {/* Upcoming Matches + Attendance */}
+      {/* Upcoming Matches */}
       {upcoming.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+        <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-6 mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-700">Upcoming Matches</h2>
-            <span className="text-xs text-gray-400">{upcoming.length} upcoming</span>
+            <h2 className="text-lg font-semibold text-[#eeeef4]">Upcoming Matches</h2>
+            <span className="text-xs text-[#6b6b8a]">{upcoming.length} upcoming</span>
           </div>
           <div className="space-y-3">
-            {upcoming.map(s => {
-              return (
-                <div key={s.id} className="flex items-center justify-between p-4 rounded-lg border border-indigo-100 bg-indigo-50/50">
-                  <div className="flex items-center gap-3">
-                    <span className="text-lg">🏆</span>
-                    <div>
-                      <span className="text-sm font-semibold text-gray-800">{s.date}</span>
-                      {s.notes && <p className="text-xs text-gray-500">{s.notes}</p>}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleCopyLink(s.id)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                        copiedId === s.id
-                          ? 'bg-green-100 text-green-700 border border-green-300'
-                          : 'bg-white text-indigo-600 border border-indigo-200 hover:bg-indigo-50'
-                      }`}
-                    >
-                      {copiedId === s.id ? '✓ Copied' : 'Copy Link'}
-                    </button>
-                    <button
-                      onClick={() => { handleWhatsAppShare(s); handleCopyLink(s.id); }}
-                      className="px-3 py-1.5 rounded-lg text-xs font-medium bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors"
-                    >
-                      Share
-                    </button>
+            {upcoming.map(s => (
+              <div key={s.id} className="flex items-center justify-between p-4 rounded-lg border border-[#1c1c34] bg-[#0d0d1a]/80">
+                <div className="flex items-center gap-3">
+                  <span className="text-lg text-gold-400">🏆</span>
+                  <div>
+                    <span className="text-sm font-semibold text-[#eeeef4]">{s.date}</span>
+                    {s.notes && <p className="text-xs text-[#6b6b8a]">{s.notes}</p>}
                   </div>
                 </div>
-              );
-            })}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleCopyLink(s.id)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                      copiedId === s.id
+                        ? 'bg-dart-green/20 text-dart-green border border-dart-green/30'
+                        : 'bg-[#111122] text-gold-400 border border-[#2e2e52] hover:bg-[#1c1c34]'
+                    }`}
+                  >
+                    {copiedId === s.id ? '✓ Copied' : 'Copy Link'}
+                  </button>
+                  <button
+                    onClick={() => { handleWhatsAppShare(s); handleCopyLink(s.id); }}
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium bg-dart-green/15 text-dart-green border border-dart-green/30 hover:bg-dart-green/25 transition-colors"
+                  >
+                    Share
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
 
       {/* Player Ratings */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-        <h2 className="text-lg font-semibold text-gray-700 mb-4">Player Ratings</h2>
+      <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-6 mb-8">
+        <h2 className="text-lg font-semibold text-[#eeeef4] mb-4">Player Ratings</h2>
         {players.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-gray-400 mb-3">No data yet</p>
-            <p className="text-sm text-gray-400">Click <strong>Load Live Data</strong> to fetch from DartsLive — or load static seed data if the API is unavailable.</p>
+            <p className="text-[#6b6b8a] mb-3">No data yet</p>
+            <p className="text-xs text-[#6b6b8a]">Click <strong className="text-gold-400">Load Live Data</strong> to fetch from DartsLive.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left">
+            <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-gray-200 text-sm text-gray-500">
+                <tr className="border-b border-[#1c1c34] text-[#6b6b8a]">
                   <th className="pb-3 font-medium">#</th>
                   <th className="pb-3 font-medium">Player</th>
                   <th className="pb-3 font-medium text-center">Rt.</th>
@@ -332,22 +324,22 @@ export default function DashboardPage() {
                 {[...players]
                   .sort((a, b) => (b.liveRating || 0) - (a.liveRating || 0) || b.games - a.games)
                   .map((p, i) => (
-                  <tr key={p.player.id} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="py-3 text-gray-400 font-medium">{i + 1}</td>
+                  <tr key={p.player.id} className="border-b border-[#1c1c34] hover:bg-[#16162a]">
+                    <td className="py-3 text-[#6b6b8a] font-medium">{i + 1}</td>
                     <td className="py-3">
-                      <span className="font-medium text-gray-800">{p.player.name}</span>
+                      <span className="font-medium text-[#eeeef4]">{p.player.name}</span>
                     </td>
                     <td className="py-3 text-center">
                       <RtBadge rt={p.liveRating || 0} />
                     </td>
-                    <td className="py-3 text-center font-medium text-gray-700">{p.games}</td>
-                    <td className="py-3 text-center text-green-600 font-medium">{p.wins}</td>
-                    <td className="py-3 text-center text-red-600 font-medium">{p.losses}</td>
+                    <td className="py-3 text-center font-medium text-[#c8c8d8]">{p.games}</td>
+                    <td className="py-3 text-center text-dart-green font-medium">{p.wins}</td>
+                    <td className="py-3 text-center text-dart-red font-medium">{p.losses}</td>
                     <td className="py-3 text-center"><WinBadge pct={p.winPct} /></td>
-                    <td className="py-3 text-center font-mono text-sm text-gray-700">
+                    <td className="py-3 text-center font-mono text-sm text-[#c8c8d8]">
                       {p.stats01Avg > 0 ? <><TrendArrow dir={p.stats01Trend} />{' '}{p.stats01Avg.toFixed(2)}</> : '-'}
                     </td>
-                    <td className="py-3 text-center font-mono text-sm text-gray-700">
+                    <td className="py-3 text-center font-mono text-sm text-[#c8c8d8]">
                       {p.statsCricketAvg > 0 ? <><TrendArrow dir={p.statsCricketTrend} />{' '}{p.statsCricketAvg.toFixed(2)}</> : '-'}
                     </td>
                   </tr>
@@ -359,45 +351,43 @@ export default function DashboardPage() {
       </div>
 
       {/* Game-Type Breakdown */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-        <h2 className="text-lg font-semibold text-gray-700 mb-4">By Game Type</h2>
+      <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-6 mb-8">
+        <h2 className="text-lg font-semibold text-[#eeeef4] mb-4">By Game Type</h2>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           {(['singles', 'doubles', 'trios', 'team', 'half-it'] as const).map(gt => {
             const gs = playerStats.reduce((sum, ps) => sum + ps.byGameType[gt].games, 0);
             const ws = playerStats.reduce((sum, ps) => sum + ps.byGameType[gt].wins, 0);
             const pct = gs > 0 ? Math.round((ws / gs) * 100) : 0;
             return (
-              <div key={gt} className="text-center p-4 rounded-lg border border-gray-200">
-                <p className="text-lg font-bold text-gray-800 capitalize">{gt}</p>
-                <p className="text-2xl font-bold text-indigo-600 mt-1">{pct}%</p>
-                <p className="text-xs text-gray-400">{ws}/{gs} games won</p>
+              <div key={gt} className="text-center p-4 rounded-lg border border-[#1c1c34] bg-[#0d0d1a]/60">
+                <p className="text-sm font-bold text-[#6b6b8a] capitalize">{gt}</p>
+                <p className="text-2xl font-bold text-gold-400 mt-1">{pct}%</p>
+                <p className="text-xs text-[#6b6b8a]">{ws}/{gs} won</p>
               </div>
             );
           })}
         </div>
       </div>
 
-      {/* Match Results — 2 columns: first half / second half */}
+      {/* Match Results */}
       {completedMatches.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+        <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-6 mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-700">Match Results</h2>
+            <h2 className="text-lg font-semibold text-[#eeeef4]">Match Results</h2>
             <div className="flex items-center gap-3 text-sm">
-              <span className="text-green-700 font-medium">{completedMatches.filter(s => s.notes?.includes('(W ')).length}W</span>
-              <span className="text-red-700 font-medium">{completedMatches.filter(s => s.notes?.includes('(L ')).length}L</span>
+              <span className="text-dart-green font-medium">{completedMatches.filter(s => s.notes?.includes('(W ')).length}W</span>
+              <span className="text-dart-red font-medium">{completedMatches.filter(s => s.notes?.includes('(L ')).length}L</span>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* First Half */}
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">First Half</p>
+              <p className="text-xs font-semibold text-[#6b6b8a] uppercase tracking-wider mb-2">First Half</p>
               <div className="space-y-2">
                 {firstHalf.map(s => <MatchCard key={s.id} s={s} />)}
               </div>
             </div>
-            {/* Second Half */}
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Second Half</p>
+              <p className="text-xs font-semibold text-[#6b6b8a] uppercase tracking-wider mb-2">Second Half</p>
               <div className="space-y-2">
                 {secondHalf.map(s => <MatchCard key={s.id} s={s} />)}
               </div>
@@ -405,24 +395,23 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
-
-      </div>
+    </div>
   );
 }
 
 function WinBadge({ pct }: { pct: number }) {
-  let color = 'text-red-600 bg-red-50';
-  if (pct >= 60) color = 'text-green-600 bg-green-50';
-  else if (pct >= 40) color = 'text-amber-600 bg-amber-50';
+  let color = 'text-dart-red bg-dart-red/15';
+  if (pct >= 60) color = 'text-dart-green bg-dart-green/15';
+  else if (pct >= 40) color = 'text-gold-400 bg-gold-400/15';
   return <span className={`text-xs font-bold px-2 py-1 rounded-full ${color}`}>{pct}%</span>;
 }
 
 function RtBadge({ rt }: { rt: number }) {
-  if (rt <= 0) return <span className="text-xs text-gray-300">-</span>;
-  let color = 'text-amber-600 bg-amber-50';
-  if (rt >= 12.5) color = 'text-yellow-600 bg-yellow-100';
-  else if (rt >= 11.5) color = 'text-blue-600 bg-blue-50';
-  else if (rt >= 10) color = 'text-indigo-600 bg-indigo-50';
+  if (rt <= 0) return <span className="text-xs text-[#2e2e52]">-</span>;
+  let color = 'text-gold-400 bg-gold-400/15';
+  if (rt >= 12.5) color = 'text-gold-400 bg-gold-400/25';
+  else if (rt >= 11.5) color = 'text-gold-400 bg-gold-400/20';
+  else if (rt >= 10) color = 'text-gold-400 bg-gold-400/10';
   return (
     <span className={`text-xs font-semibold font-mono px-1.5 py-0.5 rounded ${color}`}>
       {rt.toFixed(2)}
@@ -431,8 +420,7 @@ function RtBadge({ rt }: { rt: number }) {
 }
 
 function TrendArrow({ dir }: { dir: 'up' | 'down' | 'same' }) {
-  if (dir === 'up') return <span className="text-green-500 font-bold">↑</span>;
-  if (dir === 'down') return <span className="text-red-500 font-bold">↓</span>;
+  if (dir === 'up') return <span className="text-dart-green font-bold">↑</span>;
+  if (dir === 'down') return <span className="text-dart-red font-bold">↓</span>;
   return null;
 }
-

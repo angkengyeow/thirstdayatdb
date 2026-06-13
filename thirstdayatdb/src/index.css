@@ -1,6 +1,133 @@
 @import "tailwindcss";
 
+@theme {
+  --font-display: "Bebas Neue", sans-serif;
+  --font-body: "Outfit", system-ui, sans-serif;
+
+  --color-field-50: #0d0d1a;
+  --color-field-100: #111122;
+  --color-field-200: #16162a;
+  --color-field-300: #1c1c34;
+  --color-field-400: #252544;
+  --color-field-500: #2e2e52;
+  --color-field-600: #6b6b8a;
+  --color-field-700: #9e9eb4;
+  --color-field-800: #c8c8d8;
+  --color-field-900: #eeeef4;
+  --color-gold-50: #fef3c7;
+  --color-gold-100: #fde68a;
+  --color-gold-200: #fcd34d;
+  --color-gold-300: #fbbf24;
+  --color-gold-400: #f59e0b;
+  --color-gold-500: #d97706;
+  --color-gold-600: #b45309;
+  --color-gold-700: #92400e;
+  --color-dart-green: #10b981;
+  --color-dart-red: #ef4444;
+}
+
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: var(--font-body);
+  background-color: #06060f;
+  color: #eeeef4;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #06060f;
+}
+::-webkit-scrollbar-thumb {
+  background: #2e2e52;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3e3e62;
+}
+
+/* Subtle dartboard background glow */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(245, 158, 11, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 70% 80%, rgba(16, 185, 129, 0.02) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(251, 191, 36, 0.015) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+/* Dark form inputs */
+input[type="date"],
+input[type="text"],
+select {
+  background-color: #0d0d1a;
+  border: 1px solid #2e2e52;
+  color: #eeeef4;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  outline: none;
+}
+input[type="date"]:focus,
+input[type="text"]:focus,
+select:focus {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.15);
+}
+
+/* Override common Tailwind structural classes for dark theme */
+.bg-white {
+  background-color: #111122 !important;
+}
+.border-gray-200 {
+  border-color: #1c1c34 !important;
+}
+.border-gray-100 {
+  border-color: #1c1c34 !important;
+}
+.text-gray-400 {
+  color: #6b6b8a !important;
+}
+.text-gray-500 {
+  color: #9e9eb4 !important;
+}
+.text-gray-600 {
+  color: #c8c8d8 !important;
+}
+.text-gray-700 {
+  color: #e0e0ea !important;
+}
+.text-gray-800 {
+  color: #f1f5f9 !important;
+}
+.text-indigo-600 {
+  color: #f59e0b !important;
+}
+.text-indigo-700 {
+  color: #d97706 !important;
+}
+.text-indigo-200 {
+  color: #c8c8d8 !important;
+}
+.bg-indigo-50 {
+  background-color: #1e1e3e !important;
+}
+.border-indigo-200 {
+  border-color: #2e2e5e !important;
+}
+.border-indigo-100 {
+  border-color: #2e2e5e !important;
+}
+.hover\:bg-gray-50:hover {
+  background-color: #16162a !important;
 }

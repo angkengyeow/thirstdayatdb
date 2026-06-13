@@ -54,18 +54,16 @@ const RATING_BRACKETS = [
   { label: '15 – 18', min: 15, max: 18 },
 ];
 
-/** Map DartsLive rating to bracket index */
 function estimateBracketIndex(liveRating: number): number {
-  if (liveRating === 0) return -1; // no rating
-  if (liveRating < 6) return 0;    // 1-5.99
-  if (liveRating < 10) return 1;   // 6-9.99
-  if (liveRating < 15) return 2;   // 10-14.99
-  return 3;                         // 15-18
+  if (liveRating === 0) return -1;
+  if (liveRating < 6) return 0;
+  if (liveRating < 10) return 1;
+  if (liveRating < 15) return 2;
+  return 3;
 }
 
-const BRACKET_COLORS = ['bg-gray-100', 'bg-indigo-100', 'bg-indigo-200', 'bg-indigo-300'];
+const BRACKET_COLORS = ['bg-[#1c1c34]', 'bg-gold-400/10', 'bg-gold-400/20', 'bg-gold-400/30'];
 
-/** Compute how many awards a player has clocked (actual >= bracket threshold) */
 function clockedCount(awards: Record<string, number>, bracketIdx: number): number {
   let clocked = 0;
   for (const pin of AWARD_PINS) {
@@ -88,12 +86,12 @@ export default function AwardsPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">Award Pins</h1>
+      <h1 className="text-2xl font-bold text-[#eeeef4] mb-6">Award Pins</h1>
 
       {/* Info banner */}
-      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 text-sm text-amber-800">
-        <p className="font-medium mb-1">How it works</p>
-        <p>
+      <div className="bg-gold-400/[0.06] border border-gold-400/30 rounded-xl p-4 mb-8 text-sm">
+        <p className="font-medium text-gold-400 mb-1">How it works</p>
+        <p className="text-[#9e9eb4]">
           Award pins are earned based on your final DARTSLIVE Rating at the end of the season.
           Each bracket requires a certain number of achievements to earn the pin.
           The table below shows actual achievements tracked per match from DartsLive.
@@ -103,19 +101,19 @@ export default function AwardsPage() {
       {/* Pin cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         {AWARD_PINS.map(pin => (
-          <div key={pin.name} className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+          <div key={pin.name} className="bg-[#111122] rounded-xl border border-[#1c1c34] p-5 hover:border-gold-400/30 transition-colors duration-200">
             <div className="flex items-center gap-3 mb-3">
               <span className="text-2xl">{pin.icon}</span>
               <div>
-                <h3 className="font-semibold text-gray-800">{pin.name}</h3>
-                <p className="text-xs text-gray-500">{pin.description}</p>
+                <h3 className="font-semibold text-[#eeeef4]">{pin.name}</h3>
+                <p className="text-xs text-[#6b6b8a]">{pin.description}</p>
               </div>
             </div>
             <div className="grid grid-cols-4 gap-1 text-center text-xs">
               {RATING_BRACKETS.map((b, i) => (
                 <div key={i} className={`${BRACKET_COLORS[i]} rounded p-1.5`}>
-                  <p className="font-bold text-gray-700">{pin.thresholds[i]}</p>
-                  <p className="text-gray-500 mt-0.5">{b.label}</p>
+                  <p className="font-bold text-[#eeeef4]">{pin.thresholds[i]}</p>
+                  <p className="text-[#6b6b8a] mt-0.5">{b.label}</p>
                 </div>
               ))}
             </div>
@@ -125,14 +123,14 @@ export default function AwardsPage() {
 
       {/* Actual award achievements */}
       {hasData && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8 overflow-x-auto">
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">Awards Achieved by Player</h2>
-          <p className="text-xs text-gray-500 mb-4">
+        <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-6 mb-8 overflow-x-auto">
+          <h2 className="text-lg font-semibold text-[#eeeef4] mb-4">Awards Achieved by Player</h2>
+          <p className="text-xs text-[#6b6b8a] mb-4">
             Real achievement counts tracked from each match. ✓ = met the bracket threshold.
           </p>
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-200 text-gray-500">
+              <tr className="border-b border-[#1c1c34] text-[#6b6b8a]">
                 <th className="pb-3 font-medium text-left">Player</th>
                 <th className="pb-3 font-medium text-center">DartsLive Rt.</th>
                 <th className="pb-3 font-medium text-center">Bracket</th>
@@ -150,11 +148,11 @@ export default function AwardsPage() {
                   const bracketIdx = estimateBracketIndex(p.liveRating);
                   const playerAwards = awardData.find(a => a.playerName === p.player.name)?.awards || {};
                   return (
-                    <tr key={p.player.id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-2.5 font-medium text-gray-800">{p.player.name}</td>
-                      <td className="py-2.5 text-center font-mono text-gray-700">{p.liveRating.toFixed(2)}</td>
+                    <tr key={p.player.id} className="border-b border-[#1c1c34] hover:bg-[#16162a]">
+                      <td className="py-2.5 font-medium text-[#eeeef4]">{p.player.name}</td>
+                      <td className="py-2.5 text-center font-mono text-[#c8c8d8]">{p.liveRating.toFixed(2)}</td>
                       <td className="py-2.5 text-center">
-                        <span className={`text-xs font-bold px-2 py-1 rounded-full ${BRACKET_COLORS[bracketIdx]} text-gray-700`}>
+                        <span className={`text-xs font-bold px-2 py-1 rounded-full ${BRACKET_COLORS[bracketIdx]} text-[#eeeef4]`}>
                           {RATING_BRACKETS[bracketIdx].label}
                         </span>
                       </td>
@@ -166,10 +164,10 @@ export default function AwardsPage() {
                           <td key={pin.name} className="py-2.5 text-center">
                             <span className={`text-xs font-mono font-bold px-1.5 py-0.5 rounded ${
                               achieved
-                                ? 'text-emerald-600 bg-emerald-50'
+                                ? 'text-dart-green bg-dart-green/15'
                                 : actual > 0
-                                  ? 'text-amber-600 bg-amber-50'
-                                  : 'text-gray-300'
+                                  ? 'text-gold-400 bg-gold-400/15'
+                                  : 'text-[#2e2e52]'
                             }`}>
                               {achieved ? `✓${actual}` : actual > 0 ? `${actual}/${threshold}` : '0'}
                             </span>
@@ -177,7 +175,7 @@ export default function AwardsPage() {
                         );
                       })}
                       <td className="py-2.5 text-center">
-                        <span className="text-sm font-bold text-indigo-600">
+                        <span className="text-sm font-bold text-gold-400">
                           {clockedCount(playerAwards, bracketIdx)}/{AWARD_PINS.length}
                         </span>
                       </td>
@@ -186,15 +184,15 @@ export default function AwardsPage() {
                 })}
             </tbody>
           </table>
-          <p className="text-xs text-gray-400 mt-3">
+          <p className="text-xs text-[#6b6b8a] mt-3">
             ✓ = achieved (met bracket threshold). x/y = earned vs threshold. 0 = none recorded. Load live data to populate.
           </p>
         </div>
       )}
 
       {!hasData && (
-        <div className="text-center py-12 text-gray-400">
-          <p className="text-lg">Load data from DartsLive to see player awards</p>
+        <div className="text-center py-12">
+          <p className="text-lg text-[#6b6b8a]">Load data from DartsLive to see player awards</p>
         </div>
       )}
     </div>

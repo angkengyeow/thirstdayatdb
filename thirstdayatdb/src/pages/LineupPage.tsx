@@ -4,32 +4,22 @@ import { fetchLiveData } from '../scraper';
 import type { MatchGame, FullLineup } from '../types';
 
 const SUPER_LEAGUE_FORMAT: MatchGame[] = [
-  // Part 1 — No repeats
   { id: 1, type: 'singles', label: 'Singles 701 x3', legs: '701·701·701', playerCount: 1 },
   { id: 2, type: 'singles', label: 'Singles 701/Cricket/701', legs: '701·Cricket·701', playerCount: 1 },
   { id: 3, type: 'doubles', label: 'Doubles 701/Cricket/Choice', legs: '701·Cricket·Choice', playerCount: 2 },
-  // Part 2 — Repeat once allowed
   { id: 4, type: 'doubles', label: 'Doubles 701/Cricket/701', legs: '701·Cricket·701', playerCount: 2 },
   { id: 5, type: 'doubles', label: 'Doubles Cricket x3', legs: 'Cricket·Cricket·Cricket', playerCount: 2 },
   { id: 6, type: 'doubles', label: 'Doubles Half-It x3', legs: 'Half-It·Half-It·Half-It', playerCount: 2 },
   { id: 7, type: 'doubles', label: 'Doubles 701/Cricket/Choice', legs: '701·Cricket·Choice', playerCount: 2 },
-  // Part 3 — Repeat once allowed
   { id: 8, type: 'trios', label: 'Trios 901/Cricket/Choice', legs: '901·Cricket·Choice', playerCount: 3 },
   { id: 9, type: 'team', label: 'Team 1101', legs: '1101', playerCount: 4 },
 ];
 
-const GAME_COLORS: Record<string, string> = {
-  singles: 'bg-blue-100 text-blue-700 border-blue-200',
-  doubles: 'bg-purple-100 text-purple-700 border-purple-200',
-  trios: 'bg-amber-100 text-amber-700 border-amber-200',
-  team: 'bg-green-100 text-green-700 border-green-200',
-};
-
-const GAME_BADGE_COLORS: Record<string, string> = {
-  singles: 'bg-blue-500',
-  doubles: 'bg-purple-500',
-  trios: 'bg-amber-500',
-  team: 'bg-green-500',
+const GAME_TYPE_STYLES: Record<string, { border: string; badge: string; dot: string }> = {
+  singles: { border: 'border-gold-400/20', badge: 'bg-gold-400/15 text-gold-400 border-gold-400/30', dot: 'bg-gold-400' },
+  doubles: { border: 'border-dart-green/20', badge: 'bg-dart-green/15 text-dart-green border-dart-green/30', dot: 'bg-dart-green' },
+  trios: { border: 'border-[#6b6b8a]/20', badge: 'bg-[#6b6b8a]/15 text-[#6b6b8a] border-[#6b6b8a]/30', dot: 'bg-[#6b6b8a]' },
+  team: { border: 'border-gold-400/20', badge: 'bg-gold-400/15 text-gold-400 border-gold-400/30', dot: 'bg-gold-400' },
 };
 
 interface LineupPageProps {
@@ -41,7 +31,6 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
   const [result, setResult] = useState<FullLineup | null>(null);
   const [refreshStatus, setRefreshStatus] = useState<'idle' | 'loading' | 'done' | 'uptodate' | 'error'>('idle');
 
-  // Auto-select next upcoming match date (only if no preselect)
   useEffect(() => {
     if (preselectDate) return;
     const sessions = getSessions();
@@ -55,7 +44,6 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
     }
   }, [preselectDate]);
 
-  // Auto-fetch live stats on match day — only fetches new matches
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
     const sessions = getSessions();
@@ -76,7 +64,6 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
       });
   }, []);
 
-  // Auto-generate lineup when navigating from Attendance page with a preselect date
   useEffect(() => {
     if (preselectDate) {
       const lineup = generateFullLineup(preselectDate, SUPER_LEAGUE_FORMAT);
@@ -91,76 +78,71 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">Lineup Generator</h1>
+      <h1 className="text-2xl font-bold text-[#eeeef4] mb-6">Lineup Generator</h1>
 
       {/* Controls */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+      <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-6 mb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Match Date</label>
+            <label className="block text-sm font-medium text-[#9e9eb4] mb-1">Match Date</label>
             <input
               type="date"
               value={matchDate}
               onChange={e => setMatchDate(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+              className="w-full"
             />
           </div>
           <div>
             <button
               onClick={handleGenerate}
-              className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+              className="w-full px-4 py-2 bg-gold-400 text-[#0d0d1a] rounded-lg hover:bg-gold-300 transition-colors font-medium shadow-lg shadow-gold-400/20"
             >
               Generate Lineup
             </button>
           </div>
         </div>
 
-        {/* Match-day refresh banner */}
         {refreshStatus === 'loading' && (
-          <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3 mb-4 flex items-center gap-2 text-sm text-indigo-700">
-            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-            </svg>
+          <div className="bg-[#1e1e3e] border border-[#2e2e5e] rounded-lg p-3 mt-4 flex items-center gap-2 text-sm text-[#c8c8d8]">
+            <div className="w-4 h-4 rounded-full border-2 border-gold-400 border-t-transparent animate-spin" />
             Refreshing game stats from DartsLive...
           </div>
         )}
         {refreshStatus === 'done' && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4 flex items-center gap-2 text-sm text-green-700">
+          <div className="bg-dart-green/[0.06] border border-dart-green/30 rounded-lg p-3 mt-4 flex items-center gap-2 text-sm text-dart-green">
             ✓ Latest game stats loaded for match day
           </div>
         )}
         {refreshStatus === 'uptodate' && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 flex items-center gap-2 text-sm text-blue-700">
+          <div className="bg-gold-400/[0.06] border border-gold-400/30 rounded-lg p-3 mt-4 flex items-center gap-2 text-sm text-gold-400">
             ✓ All match data already up to date
           </div>
         )}
         {refreshStatus === 'error' && (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4 flex items-center gap-2 text-sm text-amber-700">
+          <div className="bg-dart-red/[0.06] border border-dart-red/30 rounded-lg p-3 mt-4 flex items-center gap-2 text-sm text-dart-red">
             ⚠ Could not refresh stats — using existing data
           </div>
         )}
 
-        {/* Attendance-based lineup banner */}
         {preselectDate && (
-          <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3 mb-4 flex items-center gap-2 text-sm text-indigo-700">
+          <div className="bg-[#1e1e3e] border border-[#2e2e5e] rounded-lg p-3 mt-4 flex items-center gap-2 text-sm text-[#c8c8d8]">
             <span>📋</span>
             <span>Lineup planned from Attendance — only responding players (on-time/late) are available</span>
           </div>
         )}
 
-        <div className="mt-4 p-4 bg-indigo-50 rounded-lg text-sm text-indigo-800">
-          <p className="font-medium mb-1">S1 Division — 64 Credits (No Handicap, OI/MO)</p>
-          <p className="mt-1">
-            <span className="font-medium">Ranking by game type:</span>
+        <div className="mt-4 p-4 bg-[#0d0d1a]/80 rounded-lg border border-[#1c1c34] text-sm">
+          <p className="text-gold-400 font-medium mb-1">S1 Division — 64 Credits (No Handicap, OI/MO)</p>
+          <p className="mt-1 text-[#9e9eb4]">
+            <span className="font-medium text-[#eeeef4]">Ranking by game type:</span>
           </p>
-          <ul className="mt-1 space-y-0.5 list-disc list-inside text-indigo-700">
-            <li><strong>G1, G9</strong> (pure 01) → ranked by <strong>01 Avg</strong></li>
-            <li><strong>G5</strong> (pure Cricket) → ranked by <strong>Cricket Avg</strong></li>
-            <li><strong>G2–G4, G7, G8</strong> (mixed) → ranked by <strong>Composite</strong> (50% 01 Avg + 50% Win Rate)</li>
-            <li><strong>G6</strong> (Half-It) → ranked by <strong>Half-It Composite</strong> (50% Cricket Avg + 50% Half-It Leg Win Rate)</li>
+          <ul className="mt-1 space-y-0.5 list-disc list-inside text-[#9e9eb4]">
+            <li><strong className="text-[#eeeef4]">G1, G9</strong> (pure 01) → ranked by <strong className="text-gold-400">01 Avg</strong></li>
+            <li><strong className="text-[#eeeef4]">G5</strong> (pure Cricket) → ranked by <strong className="text-gold-400">Cricket Avg</strong></li>
+            <li><strong className="text-[#eeeef4]">G2–G4, G7, G8</strong> (mixed) → ranked by <strong className="text-gold-400">Composite</strong> (50% 01 Avg + 50% Win Rate)</li>
+            <li><strong className="text-[#eeeef4]">G6</strong> (Half-It) → ranked by <strong className="text-gold-400">Half-It Composite</strong> (50% Cricket Avg + 50% Half-It Leg Win Rate)</li>
           </ul>
-          <p className="text-indigo-600 mt-1">
+          <p className="text-[#6b6b8a] mt-1">
             Game count is balanced by giving priority to players with fewer games. With fewer players, the same players will repeat across games naturally.
           </p>
         </div>
@@ -171,29 +153,25 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
         <>
           {/* Game Assignments */}
           <div className="mb-8">
-            <h2 className="text-lg font-semibold text-gray-700 mb-4">Game Assignments</h2>
+            <h2 className="text-lg font-semibold text-[#eeeef4] mb-4">Game Assignments</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {result.assignments.map(assignment => {
                 const game = assignment.game;
-                const colorClass = GAME_COLORS[game.type];
-                const badgeColor = GAME_BADGE_COLORS[game.type];
+                const styles = GAME_TYPE_STYLES[game.type];
                 return (
                   <div
                     key={game.id}
-                    className="bg-white rounded-xl shadow-sm border border-gray-200 p-3"
+                    className={`bg-[#111122] rounded-xl shadow-lg border ${styles.border} p-3 hover:bg-[#16162a] transition-colors duration-200`}
                   >
                     <div className="flex items-center gap-2 mb-2">
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${colorClass}`}>
+                      <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${styles.badge}`}>
                         {game.type.toUpperCase()}
                       </span>
-                      <span className="text-sm font-semibold text-gray-700">{game.label}</span>
-                      <span className="text-xs text-gray-400 ml-auto">
-                        {game.id <= 3 ? 'P1' : game.id <= 7 ? 'P2' : 'P3'}
-                        <span className="ml-1">G{game.id}</span>
-                      </span>
+                      <span className="text-sm font-semibold text-[#eeeef4]">{game.label}</span>
+                      <span className="text-[10px] text-[#6b6b8a] ml-auto font-mono">G{game.id}</span>
                     </div>
                     {game.legs && (
-                      <p className="text-xs text-gray-400 mb-2">{game.legs}</p>
+                      <p className="text-xs text-[#6b6b8a] mb-2">{game.legs}</p>
                     )}
                     <div className="space-y-1.5">
                       {assignment.players.map((p, i) => {
@@ -209,12 +187,12 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
                         return (
                           <div key={p.player.id} className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <span className={`w-5 h-5 rounded-full ${badgeColor} text-white flex items-center justify-center text-[10px] font-bold`}>
+                              <span className={`w-5 h-5 rounded-full ${styles.dot} text-white flex items-center justify-center text-[10px] font-bold`}>
                                 {i + 1}
                               </span>
-                              <span className="text-sm font-medium text-gray-800">{p.player.name}</span>
+                              <span className="text-sm font-medium text-[#eeeef4]">{p.player.name}</span>
                             </div>
-                            <span className="text-xs font-semibold text-indigo-600" title={`${statLabel}: ${statValue}`}>{statValue}</span>
+                            <span className="text-xs font-semibold text-gold-400" title={`${statLabel}: ${statValue}`}>{statValue}</span>
                           </div>
                         );
                       })}
@@ -225,12 +203,12 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
             </div>
           </div>
 
-          {/* Player Game Count */}
+          {/* Player Rotation */}
           <div className="mb-8">
-            <h2 className="text-lg font-semibold text-gray-700 mb-4">Player Rotation</h2>
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+            <h2 className="text-lg font-semibold text-[#eeeef4] mb-4">Player Rotation</h2>
+            <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-4">
               {result.playerGameCount.length === 0 ? (
-                <p className="text-gray-400 text-center py-2">No players assigned</p>
+                <p className="text-[#6b6b8a] text-center py-2">No players assigned</p>
               ) : (
                 <div className="space-y-2">
                   {result.playerGameCount.map(({ playerName, count }) => {
@@ -238,15 +216,15 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
                     const widthPct = maxCount > 0 ? (count / maxCount) * 100 : 0;
                     return (
                       <div key={playerName} className="flex items-center gap-3">
-                        <span className="text-sm font-medium text-gray-700 w-40 truncate">{playerName}</span>
-                        <div className="flex-1 h-4 bg-gray-100 rounded-full overflow-hidden">
+                        <span className="text-sm font-medium text-[#eeeef4] w-40 truncate">{playerName}</span>
+                        <div className="flex-1 h-4 bg-[#0d0d1a] rounded-full overflow-hidden border border-[#1c1c34]">
                           <div
-                            className="h-full bg-indigo-500 rounded-full transition-all"
+                            className="h-full bg-gradient-to-r from-gold-400/80 to-gold-400 rounded-full transition-all"
                             style={{ width: `${widthPct}%` }}
                           />
                         </div>
-                        <span className="text-sm font-semibold text-indigo-600 w-6 text-right">{count}</span>
-                        <span className="text-xs text-gray-400">games</span>
+                        <span className="text-sm font-semibold text-gold-400 w-6 text-right">{count}</span>
+                        <span className="text-[10px] text-[#6b6b8a]">games</span>
                       </div>
                     );
                   })}
@@ -256,40 +234,43 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
           </div>
 
           {/* Format Reference */}
-          <div className="bg-gray-50 rounded-xl border border-gray-200 p-4">
-            <h3 className="text-sm font-semibold text-gray-600 mb-2">Match Format</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-gray-500">
-              {SUPER_LEAGUE_FORMAT.map(g => (
-                <div key={g.id} className="flex items-center gap-1">
-                  <span className={`w-2 h-2 rounded-full ${g.type === 'singles' ? 'bg-blue-400' : g.type === 'doubles' ? 'bg-purple-400' : g.type === 'trios' ? 'bg-amber-400' : 'bg-green-400'}`} />
-                  <span>G{g.id}: {g.playerCount}P {g.label}</span>
-                </div>
-              ))}
+          <div className="bg-[#0d0d1a]/80 rounded-xl border border-[#1c1c34] p-4">
+            <h3 className="text-xs font-semibold text-[#6b6b8a] mb-2 uppercase tracking-wider">Match Format</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-[#6b6b8a]">
+              {SUPER_LEAGUE_FORMAT.map(g => {
+                const dot = GAME_TYPE_STYLES[g.type]?.dot || 'bg-gray-400';
+                return (
+                  <div key={g.id} className="flex items-center gap-1">
+                    <span className={`w-2 h-2 rounded-full ${dot}`} />
+                    <span>G{g.id}: {g.playerCount}P {g.label}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </>
       )}
 
       {!result && (
-        <div className="text-center py-16 text-gray-400">
-          <p className="text-lg mb-2">Select a match date and generate a Super League lineup</p>
-          <p className="text-sm">
+        <div className="text-center py-16">
+          <p className="text-lg text-[#6b6b8a] mb-2">Select a match date and generate a Super League lineup</p>
+          <p className="text-sm text-[#6b6b8a]">
             9 games — singles, doubles, trios &amp; team. Players can play multiple games
             with rotation optimized by rating, form, and punctuality.
           </p>
-          <div className="mt-6 inline-block text-left">
-            <p className="font-medium text-gray-500 text-sm mb-2">Format breakdown:</p>
-            <ul className="text-sm space-y-1 text-gray-400">
-              <li className="text-indigo-400 font-medium">Part 1 — No repeats</li>
+          <div className="mt-6 inline-block text-left bg-[#111122] rounded-xl border border-[#1c1c34] p-5">
+            <p className="font-medium text-[#9e9eb4] text-sm mb-2">Format breakdown:</p>
+            <ul className="text-sm space-y-1 text-[#6b6b8a]">
+              <li className="text-gold-400 font-medium">Part 1</li>
               <li>• G1: Singles 701/701/701 (1P)</li>
               <li>• G2: Singles 701/Cricket/701 (1P)</li>
               <li>• G3: Doubles 701/Cricket/Choice (2P)</li>
-              <li className="text-indigo-400 font-medium mt-2">Part 2 — Repeat once</li>
+              <li className="text-gold-400 font-medium mt-2">Part 2</li>
               <li>• G4: Doubles 701/Cricket/701 (2P)</li>
               <li>• G5: Doubles Cricket/Cricket/Cricket (2P)</li>
               <li>• G6: Doubles Half-It x3 (2P)</li>
               <li>• G7: Doubles 701/Cricket/Choice (2P)</li>
-              <li className="text-indigo-400 font-medium mt-2">Part 3 — Repeat once</li>
+              <li className="text-gold-400 font-medium mt-2">Part 3</li>
               <li>• G8: Trios 901/Cricket/Choice (3P)</li>
               <li>• G9: Team 1101 (4P)</li>
             </ul>

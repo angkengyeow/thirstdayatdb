@@ -20,10 +20,10 @@ export default function AnalysisPage() {
   if (playerStats.length === 0) {
     return (
       <div className="max-w-6xl mx-auto px-4 py-6">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">Analysis</h1>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
-          <p className="text-gray-400 text-lg mb-2">No game data yet</p>
-          <p className="text-gray-400 text-sm">Game performance data will appear here once matches are played and logged.</p>
+        <h1 className="text-2xl font-bold text-[#eeeef4] mb-6">Analysis</h1>
+        <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-8 text-center">
+          <p className="text-[#6b6b8a] text-lg mb-2">No game data yet</p>
+          <p className="text-[#6b6b8a] text-sm">Game performance data will appear here once matches are played and logged.</p>
         </div>
       </div>
     );
@@ -31,17 +31,17 @@ export default function AnalysisPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">Analysis</h1>
+      <h1 className="text-2xl font-bold text-[#eeeef4] mb-6">Analysis</h1>
 
       {/* Per-Format Game Counts */}
       <GameFormatTotals matchSessions={matchSessions} />
 
       {/* Player Performance Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6 overflow-x-auto">
-        <h2 className="text-lg font-semibold text-gray-700 mb-4">Player Performance</h2>
+      <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-6 mb-6 overflow-x-auto">
+        <h2 className="text-lg font-semibold text-[#eeeef4] mb-4">Player Performance</h2>
         <table className="w-full text-left text-sm">
           <thead>
-            <tr className="border-b border-gray-200 text-gray-500">
+            <tr className="border-b border-[#1c1c34] text-[#6b6b8a]">
               <th className="pb-3 font-medium">Player / Avg</th>
               <th className="pb-3 font-medium text-center">Games</th>
               <th className="pb-3 font-medium text-center">W</th>
@@ -62,47 +62,45 @@ export default function AnalysisPage() {
               <tr
                 key={ps.playerId}
                 onClick={() => setSelectedPlayer(selectedPlayer === ps.playerId ? null : ps.playerId)}
-                className={`border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${selectedPlayer === ps.playerId ? 'bg-indigo-50' : ''}`}
+                className={`border-b border-[#1c1c34] hover:bg-[#16162a] cursor-pointer ${selectedPlayer === ps.playerId ? 'bg-gold-400/[0.04]' : ''}`}
               >
                 <td className="py-3">
-                  <div className="font-medium text-gray-800">{ps.playerName}</div>
-                  <div className="text-xs text-gray-400">
+                  <div className="font-medium text-[#eeeef4]">{ps.playerName}</div>
+                  <div className="text-xs text-[#6b6b8a]">
                     {ps.stats01Avg > 0 ? `01: ${ps.stats01Avg.toFixed(2)}` : ''}
                     {ps.stats01Avg > 0 && ps.statsCricketAvg > 0 ? ' / ' : ''}
                     {ps.statsCricketAvg > 0 ? `Cr: ${ps.statsCricketAvg.toFixed(2)}` : ''}
                   </div>
                 </td>
-                <td className="py-3 text-center">{ps.totalGames}</td>
-                <td className="py-3 text-center text-green-600 font-medium">{ps.wins}</td>
-                <td className="py-3 text-center text-red-600 font-medium">{ps.losses}</td>
+                <td className="py-3 text-center text-[#c8c8d8]">{ps.totalGames}</td>
+                <td className="py-3 text-center text-dart-green font-medium">{ps.wins}</td>
+                <td className="py-3 text-center text-dart-red font-medium">{ps.losses}</td>
                 <td className="py-3 text-center"><WinBadge pct={ps.winPct} /></td>
-                <td className="py-3 text-center">{ps.format01.games > 0 ? <WinBadge pct={ps.format01.winPct} /> : <span className="text-gray-300">-</span>}</td>
-                <td className="py-3 text-center">{ps.cricket.games > 0 ? <WinBadge pct={ps.cricket.winPct} /> : <span className="text-gray-300">-</span>}</td>
-                <td className="py-3 text-center text-green-600 font-medium">{ps.legsWon}</td>
-                <td className="py-3 text-center text-red-600 font-medium">{ps.legsLost}</td>
+                <td className="py-3 text-center">{ps.format01.games > 0 ? <WinBadge pct={ps.format01.winPct} /> : <span className="text-[#2e2e52]">-</span>}</td>
+                <td className="py-3 text-center">{ps.cricket.games > 0 ? <WinBadge pct={ps.cricket.winPct} /> : <span className="text-[#2e2e52]">-</span>}</td>
+                <td className="py-3 text-center text-dart-green font-medium">{ps.legsWon}</td>
+                <td className="py-3 text-center text-dart-red font-medium">{ps.legsLost}</td>
                 <td className="py-3 text-center"><WinBadge pct={ps.legsWinPct} /></td>
-                <td className="py-3 text-center text-green-600 font-medium">{ps.halfIt.games > 0 ? ps.halfIt.legsWon : <span className="text-gray-300">-</span>}</td>
-                <td className="py-3 text-center text-red-600 font-medium">{ps.halfIt.games > 0 ? ps.halfIt.legsLost : <span className="text-gray-300">-</span>}</td>
-                <td className="py-3 text-center">{ps.halfIt.games > 0 ? <WinBadge pct={ps.halfIt.winPct} /> : <span className="text-gray-300">-</span>}</td>
+                <td className="py-3 text-center text-dart-green font-medium">{ps.halfIt.games > 0 ? ps.halfIt.legsWon : <span className="text-[#2e2e52]">-</span>}</td>
+                <td className="py-3 text-center text-dart-red font-medium">{ps.halfIt.games > 0 ? ps.halfIt.legsLost : <span className="text-[#2e2e52]">-</span>}</td>
+                <td className="py-3 text-center">{ps.halfIt.games > 0 ? <WinBadge pct={ps.halfIt.winPct} /> : <span className="text-[#2e2e52]">-</span>}</td>
               </tr>
             ))}
           </tbody>
         </table>
 
-        {/* Expanded per-player detail */}
         {selectedPlayer && <PlayerDetail playerId={selectedPlayer} playerStats={playerStats} />}
 
-        {/* Player match history chart */}
         {selectedPlayer && <PlayerChartCard playerId={selectedPlayer} />}
       </div>
 
       {/* Half-It Analysis */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-        <h2 className="text-lg font-semibold text-gray-700 mb-4">Half-It</h2>
+      <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-6 mb-6">
+        <h2 className="text-lg font-semibold text-[#eeeef4] mb-4">Half-It</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-gray-200 text-gray-500">
+              <tr className="border-b border-[#1c1c34] text-[#6b6b8a]">
                 <th className="pb-3 font-medium">Player</th>
                 <th className="pb-3 font-medium text-center">Games</th>
                 <th className="pb-3 font-medium text-center">W</th>
@@ -119,20 +117,20 @@ export default function AnalysisPage() {
                   ? Math.round((ps.halfIt.legsWon / (ps.halfIt.legsWon + ps.halfIt.legsLost)) * 100)
                   : 0;
                 return (
-                  <tr key={ps.playerId} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="py-3 font-medium text-gray-800">{ps.playerName}</td>
-                    <td className="py-3 text-center">{ps.halfIt.games}</td>
-                    <td className="py-3 text-center text-green-600 font-medium">{ps.halfIt.wins}</td>
-                    <td className="py-3 text-center text-red-600 font-medium">{ps.halfIt.games - ps.halfIt.wins}</td>
+                  <tr key={ps.playerId} className="border-b border-[#1c1c34] hover:bg-[#16162a]">
+                    <td className="py-3 font-medium text-[#eeeef4]">{ps.playerName}</td>
+                    <td className="py-3 text-center text-[#c8c8d8]">{ps.halfIt.games}</td>
+                    <td className="py-3 text-center text-dart-green font-medium">{ps.halfIt.wins}</td>
+                    <td className="py-3 text-center text-dart-red font-medium">{ps.halfIt.games - ps.halfIt.wins}</td>
                     <td className="py-3 text-center"><WinBadge pct={ps.halfIt.winPct} /></td>
-                    <td className="py-3 text-center text-green-600 font-medium">{ps.halfIt.legsWon}</td>
-                    <td className="py-3 text-center text-red-600 font-medium">{ps.halfIt.legsLost}</td>
+                    <td className="py-3 text-center text-dart-green font-medium">{ps.halfIt.legsWon}</td>
+                    <td className="py-3 text-center text-dart-red font-medium">{ps.halfIt.legsLost}</td>
                     <td className="py-3 text-center"><WinBadge pct={legPct} /></td>
                   </tr>
                 );
               })}
               {playerStats.filter(ps => ps.halfIt.games > 0).length === 0 && (
-                <tr><td colSpan={8} className="py-6 text-center text-gray-400 text-sm">No Half-It data yet</td></tr>
+                <tr><td colSpan={8} className="py-6 text-center text-[#6b6b8a] text-sm">No Half-It data yet</td></tr>
               )}
             </tbody>
           </table>
@@ -141,12 +139,12 @@ export default function AnalysisPage() {
 
       {/* Partner Analysis */}
       {partnerStats.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">Partner Analysis</h2>
+        <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-6 mb-6">
+          <h2 className="text-lg font-semibold text-[#eeeef4] mb-4">Partner Analysis</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-gray-200 text-gray-500">
+                <tr className="border-b border-[#1c1c34] text-[#6b6b8a]">
                   <th className="pb-3 font-medium">Players</th>
                   <th className="pb-3 font-medium text-center">Games Together</th>
                   <th className="pb-3 font-medium text-center">Wins</th>
@@ -155,14 +153,14 @@ export default function AnalysisPage() {
               </thead>
               <tbody>
                 {partnerStats.map(ps => (
-                  <tr key={`${ps.player1Id}::${ps.player2Id}`} className="border-b border-gray-100 hover:bg-gray-50">
+                  <tr key={`${ps.player1Id}::${ps.player2Id}`} className="border-b border-[#1c1c34] hover:bg-[#16162a]">
                     <td className="py-3">
-                      <span className="font-medium text-gray-800">{ps.player1Name}</span>
-                      <span className="text-gray-400 mx-1">+</span>
-                      <span className="font-medium text-gray-800">{ps.player2Name}</span>
+                      <span className="font-medium text-[#eeeef4]">{ps.player1Name}</span>
+                      <span className="text-[#6b6b8a] mx-1">+</span>
+                      <span className="font-medium text-[#eeeef4]">{ps.player2Name}</span>
                     </td>
-                    <td className="py-3 text-center">{ps.gamesTogether}</td>
-                    <td className="py-3 text-center text-green-600 font-medium">{ps.wins}</td>
+                    <td className="py-3 text-center text-[#c8c8d8]">{ps.gamesTogether}</td>
+                    <td className="py-3 text-center text-dart-green font-medium">{ps.wins}</td>
                     <td className="py-3 text-center"><WinBadge pct={ps.winPct} /></td>
                   </tr>
                 ))}
@@ -174,99 +172,97 @@ export default function AnalysisPage() {
 
       {/* Game History by Slot */}
       {matchSessions.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-6">
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">Game History by Slot</h2>
+        <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-6 mt-6">
+          <h2 className="text-lg font-semibold text-[#eeeef4] mb-4">Game History by Slot</h2>
           <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-gray-200 text-gray-500">
-                    <th className="pb-2 pr-3 font-medium whitespace-nowrap">Game</th>
-                    <th className="pb-2 pr-3 font-medium whitespace-nowrap">Type</th>
-                    {matchSessions.map(s => (
-                      <th key={s.id} className="pb-2 px-2 font-medium text-center text-[10px] whitespace-nowrap">
-                        {s.date.slice(5)}
-                      </th>
-                    ))}
-                    <th className="pb-2 pl-3 font-medium text-center">W%</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(() => {
-                    const gameData = new Map<number, {
-                      gameType: string;
-                      format: string;
-                      results: { date: string; won: boolean }[];
-                    }>();
-                    const sortedSessions = [...matchSessions].sort((a, b) => a.date.localeCompare(b.date));
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="border-b border-[#1c1c34] text-[#6b6b8a]">
+                  <th className="pb-2 pr-3 font-medium whitespace-nowrap">Game</th>
+                  <th className="pb-2 pr-3 font-medium whitespace-nowrap">Type</th>
+                  {matchSessions.map(s => (
+                    <th key={s.id} className="pb-2 px-2 font-medium text-center text-[10px] whitespace-nowrap">
+                      {s.date.slice(5)}
+                    </th>
+                  ))}
+                  <th className="pb-2 pl-3 font-medium text-center">W%</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(() => {
+                  const gameData = new Map<number, {
+                    gameType: string;
+                    format: string;
+                    results: { date: string; won: boolean }[];
+                  }>();
+                  const sortedSessions = [...matchSessions].sort((a, b) => a.date.localeCompare(b.date));
 
-                    for (const s of sortedSessions) {
-                      const gps = getGamePerformancesForSession(s.id);
-                      const seen = new Set<number>();
-                      for (const g of gps) {
-                        if (seen.has(g.gameId)) continue;
-                        seen.add(g.gameId);
-                        if (!gameData.has(g.gameId)) {
-                          gameData.set(g.gameId, { gameType: g.gameType, format: g.format, results: [] });
-                        }
-                        gameData.get(g.gameId)!.results.push({ date: s.date, won: g.won });
+                  for (const s of sortedSessions) {
+                    const gps = getGamePerformancesForSession(s.id);
+                    const seen = new Set<number>();
+                    for (const g of gps) {
+                      if (seen.has(g.gameId)) continue;
+                      seen.add(g.gameId);
+                      if (!gameData.has(g.gameId)) {
+                        gameData.set(g.gameId, { gameType: g.gameType, format: g.format, results: [] });
                       }
+                      gameData.get(g.gameId)!.results.push({ date: s.date, won: g.won });
                     }
+                  }
 
-                    const formatLabel: Record<string, string> = {
-                      '01': '01', cricket: 'Cr', 'half-it': '½', mixed: 'Mx',
-                    };
-                    const sortedGames = [...gameData.entries()].sort(([a], [b]) => a - b);
+                  const formatLabel: Record<string, string> = {
+                    '01': '01', cricket: 'Cr', 'half-it': '½', mixed: 'Mx',
+                  };
+                  const sortedGames = [...gameData.entries()].sort(([a], [b]) => a - b);
 
-                    return sortedGames.map(([gameId, data]) => {
-                      const wins = data.results.filter(r => r.won).length;
-                      const total = data.results.length;
-                      const winPct = total > 0 ? Math.round((wins / total) * 100) : 0;
-                      return (
-                        <tr key={gameId} className="border-b border-gray-100 hover:bg-gray-50">
-                          <td className="py-2 pr-3 font-semibold text-gray-800 whitespace-nowrap">G{gameId}</td>
-                          <td className="py-2 pr-3 text-gray-500 whitespace-nowrap">
-                            {data.gameType} {formatLabel[data.format] || data.format}
-                          </td>
-                          {sortedSessions.map(s => {
-                            const result = data.results.find(r => r.date === s.date);
-                            const r = result?.won;
-                            return (
-                              <td key={s.id} className="py-2 px-2 text-center">
-                                {r !== undefined ? (
-                                  <span className={`inline-block w-5 h-5 leading-5 rounded text-[10px] font-bold ${
-                                    r ? 'bg-green-100 text-green-700' : 'bg-red-50 text-red-500'
-                                  }`}>
-                                    {r ? 'W' : 'L'}
-                                  </span>
-                                ) : (
-                                  <span className="text-gray-200">-</span>
-                                )}
-                              </td>
-                            );
-                          })}
-                          <td className="py-2 pl-3 text-center"><WinBadge pct={winPct} /></td>
-                        </tr>
-                      );
-                    });
-                  })()}
-                </tbody>
-              </table>
-            </div>
+                  return sortedGames.map(([gameId, data]) => {
+                    const wins = data.results.filter(r => r.won).length;
+                    const total = data.results.length;
+                    const winPct = total > 0 ? Math.round((wins / total) * 100) : 0;
+                    return (
+                      <tr key={gameId} className="border-b border-[#1c1c34] hover:bg-[#16162a]">
+                        <td className="py-2 pr-3 font-semibold text-[#eeeef4] whitespace-nowrap">G{gameId}</td>
+                        <td className="py-2 pr-3 text-[#6b6b8a] whitespace-nowrap">
+                          {data.gameType} {formatLabel[data.format] || data.format}
+                        </td>
+                        {sortedSessions.map(s => {
+                          const result = data.results.find(r => r.date === s.date);
+                          const r = result?.won;
+                          return (
+                            <td key={s.id} className="py-2 px-2 text-center">
+                              {r !== undefined ? (
+                                <span className={`inline-block w-5 h-5 leading-5 rounded text-[10px] font-bold ${
+                                  r ? 'bg-dart-green/20 text-dart-green' : 'bg-dart-red/15 text-dart-red'
+                                }`}>
+                                  {r ? 'W' : 'L'}
+                                </span>
+                              ) : (
+                                <span className="text-[#2e2e52]">-</span>
+                              )}
+                            </td>
+                          );
+                        })}
+                        <td className="py-2 pl-3 text-center"><WinBadge pct={winPct} /></td>
+                      </tr>
+                    );
+                  });
+                })()}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
-
     </div>
   );
 }
 
 function WinBadge({ pct }: { pct: number }) {
-  let color = 'text-red-600 bg-red-50';
-  if (pct >= 60) color = 'text-green-600 bg-green-50';
-  else if (pct >= 40) color = 'text-amber-600 bg-amber-50';
+  let color = 'text-dart-red bg-dart-red/15';
+  if (pct >= 60) color = 'text-dart-green bg-dart-green/15';
+  else if (pct >= 40) color = 'text-gold-400 bg-gold-400/15';
   return <span className={`text-xs font-bold px-2 py-1 rounded-full ${color}`}>{pct}%</span>;
 }
 
-/** Per-player game counts by format */
 function GameFormatTotals({ matchSessions }: { matchSessions: { id: string }[] }) {
   const formatLabels: Record<string, string> = { singles: 'S', doubles: 'D', trios: 'T', team: 'Tm' };
   const formatOrder = ['singles', 'doubles', 'trios', 'team'] as const;
@@ -279,7 +275,6 @@ function GameFormatTotals({ matchSessions }: { matchSessions: { id: string }[] }
   for (const fmt of formatOrder) formatTotals[fmt] = 0;
   let totalHalfItGames = 0;
 
-  // Build player ID → name map from playerStats
   const playerStats = getAllPlayersGameStats();
   const idToName = new Map(playerStats.map(ps => [ps.playerId, ps.playerName]));
 
@@ -317,14 +312,14 @@ function GameFormatTotals({ matchSessions }: { matchSessions: { id: string }[] }
   const allFormatTotal = formatOrder.reduce((s, f) => s + (formatTotals[f] || 0), 0) + totalHalfItGames;
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+    <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-6 mb-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-700">Game Counts by Format</h2>
+        <h2 className="text-lg font-semibold text-[#eeeef4]">Game Counts by Format</h2>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs">
           <thead>
-            <tr className="border-b border-gray-200 text-gray-500">
+            <tr className="border-b border-[#1c1c34] text-[#6b6b8a]">
               <th className="pb-2 font-medium">Player</th>
               {formatOrder.map(f => (<th key={f} className="pb-2 font-medium text-center" title={f}>{formatLabels[f]}</th>))}
               <th className="pb-2 font-medium text-center" title="Half-It games">½It G</th>
@@ -335,19 +330,19 @@ function GameFormatTotals({ matchSessions }: { matchSessions: { id: string }[] }
             {sortedPlayers.map(({ name, formatCounts, halfItGames }) => {
               const total = formatOrder.reduce((s, f) => s + (formatCounts[f] || 0), 0) + halfItGames;
               return (
-                <tr key={name} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="py-1.5 font-medium text-gray-800">{name}</td>
-                  {formatOrder.map(f => (<td key={f} className="py-1.5 text-center font-mono text-gray-700">{formatCounts[f] || 0}</td>))}
-                  <td className="py-1.5 text-center font-mono font-semibold text-amber-600">{halfItGames}</td>
-                  <td className="py-1.5 text-center font-mono font-bold text-gray-800">{total}</td>
+                <tr key={name} className="border-b border-[#1c1c34] hover:bg-[#16162a]">
+                  <td className="py-1.5 font-medium text-[#eeeef4]">{name}</td>
+                  {formatOrder.map(f => (<td key={f} className="py-1.5 text-center font-mono text-[#c8c8d8]">{formatCounts[f] || 0}</td>))}
+                  <td className="py-1.5 text-center font-mono font-semibold text-gold-400">{halfItGames}</td>
+                  <td className="py-1.5 text-center font-mono font-bold text-[#eeeef4]">{total}</td>
                 </tr>
               );
             })}
-            <tr className="border-t-2 border-gray-300 bg-gray-50 font-semibold">
-              <td className="py-1.5 text-gray-700">Total</td>
-              {formatOrder.map(f => (<td key={f} className="py-1.5 text-center font-mono text-gray-700">{formatTotals[f] || 0}</td>))}
-              <td className="py-1.5 text-center font-mono font-bold text-amber-700">{totalHalfItGames}</td>
-              <td className="py-1.5 text-center font-mono font-bold text-gray-800">{allFormatTotal}</td>
+            <tr className="border-t-2 border-[#2e2e52] bg-[#0d0d1a]/80 font-semibold">
+              <td className="py-1.5 text-[#6b6b8a]">Total</td>
+              {formatOrder.map(f => (<td key={f} className="py-1.5 text-center font-mono text-[#c8c8d8]">{formatTotals[f] || 0}</td>))}
+              <td className="py-1.5 text-center font-mono font-bold text-gold-400">{totalHalfItGames}</td>
+              <td className="py-1.5 text-center font-mono font-bold text-[#eeeef4]">{allFormatTotal}</td>
             </tr>
           </tbody>
         </table>
@@ -361,22 +356,22 @@ function PlayerDetail({ playerId, playerStats }: { playerId: string; playerStats
   if (!ps) return null;
 
   return (
-    <div className="mt-4 pt-4 border-t border-gray-100">
-      <h4 className="text-sm font-semibold text-gray-600 mb-3">Breakdown for {ps.playerName}</h4>
+    <div className="mt-4 pt-4 border-t border-[#1c1c34]">
+      <h4 className="text-sm font-semibold text-[#9e9eb4] mb-3">Breakdown for {ps.playerName}</h4>
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {(['singles', 'doubles', 'trios', 'team', 'half-it'] as const).map(gt => {
           const s = ps.byGameType[gt];
           return (
-            <div key={gt} className="text-center p-3 rounded-lg bg-gray-50">
-              <p className="text-xs text-gray-500 capitalize mb-1">{gt}</p>
-              <p className={`text-lg font-bold ${s.winPct >= 60 ? 'text-green-600' : s.winPct >= 40 ? 'text-amber-600' : 'text-red-600'}`}>
+            <div key={gt} className="text-center p-3 rounded-lg bg-[#0d0d1a]/60 border border-[#1c1c34]">
+              <p className="text-xs text-[#6b6b8a] capitalize mb-1">{gt}</p>
+              <p className={`text-lg font-bold ${s.winPct >= 60 ? 'text-dart-green' : s.winPct >= 40 ? 'text-gold-400' : 'text-dart-red'}`}>
                 {s.winPct}%
               </p>
-              <p className="text-xs text-gray-400">{s.wins}/{s.games}</p>
+              <p className="text-xs text-[#6b6b8a]">{s.wins}/{s.games}</p>
             </div>
           );
         })}
-              </div>
+      </div>
     </div>
   );
 }
@@ -388,9 +383,9 @@ function PlayerChartCard({ playerId }: { playerId: string }) {
 
   if (history.length === 0) {
     return (
-      <div className="mt-4 bg-white rounded-xl shadow-sm border border-indigo-100 p-5">
-        <h3 className="font-semibold text-gray-700">{player.player.name} — Match History</h3>
-        <p className="text-sm text-gray-400 mt-3">No match data loaded yet.</p>
+      <div className="mt-4 bg-[#111122] rounded-xl border border-[#1c1c34] p-5">
+        <h3 className="font-semibold text-[#eeeef4]">{player.player.name} — Match History</h3>
+        <p className="text-sm text-[#6b6b8a] mt-3">No match data loaded yet.</p>
       </div>
     );
   }
@@ -400,24 +395,24 @@ function PlayerChartCard({ playerId }: { playerId: string }) {
   const maxCricket = Math.max(...history.map(h => h.statsCricketAvg), 0, 5);
 
   return (
-    <div className="mt-4 bg-white rounded-xl shadow-sm border border-indigo-100 p-5">
-      <h3 className="font-semibold text-gray-700 mb-4">{player.player.name} — Match History</h3>
+    <div className="mt-4 bg-[#111122] rounded-xl border border-[#1c1c34] p-5">
+      <h3 className="font-semibold text-[#eeeef4] mb-4">{player.player.name} — Match History</h3>
 
       <div className="mb-5">
-        <p className="text-xs text-gray-500 mb-2 font-medium">Games W/L per Match</p>
+        <p className="text-xs text-[#6b6b8a] mb-2 font-medium">Games W/L per Match</p>
         <div className="flex items-end gap-2" style={{ minHeight: '100px' }}>
           {history.map((h, i) => (
             <div key={i} className="flex-1 flex flex-col items-center gap-1">
               <div className="flex flex-col-reverse w-full items-center" style={{ height: '80px' }}>
                 {h.losses > 0 && (
-                  <div className="w-6 bg-red-300 rounded-t" style={{ height: `${(h.losses / maxGames) * 80}px` }} title={`${h.losses} losses`} />
+                  <div className="w-6 bg-dart-red/50 rounded-t" style={{ height: `${(h.losses / maxGames) * 80}px` }} title={`${h.losses} losses`} />
                 )}
                 {h.wins > 0 && (
-                  <div className="w-6 bg-green-400 rounded-t" style={{ height: `${(h.wins / maxGames) * 80}px` }} title={`${h.wins} wins`} />
+                  <div className="w-6 bg-dart-green/60 rounded-t" style={{ height: `${(h.wins / maxGames) * 80}px` }} title={`${h.wins} wins`} />
                 )}
-                {h.totalGames === 0 && <div className="w-6 h-0.5 bg-gray-200 mt-auto" />}
+                {h.totalGames === 0 && <div className="w-6 h-0.5 bg-[#2e2e52] mt-auto" />}
               </div>
-              <span className="text-[10px] text-gray-400 truncate w-full text-center">{h.date.slice(5)}</span>
+              <span className="text-[10px] text-[#6b6b8a] truncate w-full text-center">{h.date.slice(5)}</span>
             </div>
           ))}
         </div>
@@ -425,14 +420,14 @@ function PlayerChartCard({ playerId }: { playerId: string }) {
 
       {history.some(h => h.stats01Avg > 0) && (
         <div className="mb-4">
-          <p className="text-xs text-gray-500 mb-2 font-medium">01 Avg per Match</p>
+          <p className="text-xs text-[#6b6b8a] mb-2 font-medium">01 Avg per Match</p>
           <div className="flex items-end gap-2" style={{ minHeight: '60px' }}>
             {history.map((h, i) => (
               <div key={i} className="flex-1 flex flex-col items-center gap-1">
                 <div className="w-full flex justify-center" style={{ height: '50px' }}>
-                  <div className="w-6 bg-indigo-400 rounded-t" style={{ height: `${(h.stats01Avg / max01) * 50}px` }} title={`${h.stats01Avg}`} />
+                  <div className="w-6 bg-gold-400/60 rounded-t" style={{ height: `${(h.stats01Avg / max01) * 50}px` }} title={`${h.stats01Avg}`} />
                 </div>
-                <span className="text-[10px] text-gray-400">{h.date.slice(5)}</span>
+                <span className="text-[10px] text-[#6b6b8a]">{h.date.slice(5)}</span>
               </div>
             ))}
           </div>
@@ -441,14 +436,14 @@ function PlayerChartCard({ playerId }: { playerId: string }) {
 
       {history.some(h => h.statsCricketAvg > 0) && (
         <div>
-          <p className="text-xs text-gray-500 mb-2 font-medium">Cricket Avg per Match</p>
+          <p className="text-xs text-[#6b6b8a] mb-2 font-medium">Cricket Avg per Match</p>
           <div className="flex items-end gap-2" style={{ minHeight: '60px' }}>
             {history.map((h, i) => (
               <div key={i} className="flex-1 flex flex-col items-center gap-1">
                 <div className="w-full flex justify-center" style={{ height: '50px' }}>
-                  <div className="w-6 bg-amber-400 rounded-t" style={{ height: `${(h.statsCricketAvg / maxCricket) * 50}px` }} title={`${h.statsCricketAvg}`} />
+                  <div className="w-6 bg-[#6b6b8a]/60 rounded-t" style={{ height: `${(h.statsCricketAvg / maxCricket) * 50}px` }} title={`${h.statsCricketAvg}`} />
                 </div>
-                <span className="text-[10px] text-gray-400">{h.date.slice(5)}</span>
+                <span className="text-[10px] text-[#6b6b8a]">{h.date.slice(5)}</span>
               </div>
             ))}
           </div>
@@ -457,4 +452,3 @@ function PlayerChartCard({ playerId }: { playerId: string }) {
     </div>
   );
 }
-
