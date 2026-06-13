@@ -88,15 +88,14 @@ export default function AnalysisPage() {
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-gray-200 text-gray-500">
-              <th className="pb-3 font-medium">Player</th>
+              <th className="pb-3 font-medium">Player / Avg</th>
               <th className="pb-3 font-medium text-center">Games</th>
               <th className="pb-3 font-medium text-center">W</th>
               <th className="pb-3 font-medium text-center">L</th>
+              <th className="pb-3 font-medium text-center">Win%</th>
               <th className="pb-3 font-medium text-center">Legs W</th>
               <th className="pb-3 font-medium text-center">Legs L</th>
-              <th className="pb-3 font-medium text-center">Win%</th>
-              <th className="pb-3 font-medium text-center">01 Avg</th>
-              <th className="pb-3 font-medium text-center">Cricket Avg</th>
+              <th className="pb-3 font-medium text-center">Legs Win%</th>
               <th className="pb-3 font-medium text-center">01 Win%</th>
               <th className="pb-3 font-medium text-center">Cricket Win%</th>
               <th className="pb-3 font-medium text-center">Half-It Win%</th>
@@ -109,15 +108,21 @@ export default function AnalysisPage() {
                 onClick={() => setSelectedPlayer(selectedPlayer === ps.playerId ? null : ps.playerId)}
                 className={`border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${selectedPlayer === ps.playerId ? 'bg-indigo-50' : ''}`}
               >
-                <td className="py-3 font-medium text-gray-800">{ps.playerName}</td>
+                <td className="py-3">
+                  <div className="font-medium text-gray-800">{ps.playerName}</div>
+                  <div className="text-xs text-gray-400">
+                    {ps.stats01Avg > 0 ? `01: ${ps.stats01Avg.toFixed(2)}` : ''}
+                    {ps.stats01Avg > 0 && ps.statsCricketAvg > 0 ? ' / ' : ''}
+                    {ps.statsCricketAvg > 0 ? `Cr: ${ps.statsCricketAvg.toFixed(2)}` : ''}
+                  </div>
+                </td>
                 <td className="py-3 text-center">{ps.totalGames}</td>
                 <td className="py-3 text-center text-green-600 font-medium">{ps.wins}</td>
                 <td className="py-3 text-center text-red-600 font-medium">{ps.losses}</td>
+                <td className="py-3 text-center"><WinBadge pct={ps.winPct} /></td>
                 <td className="py-3 text-center text-green-600 font-medium">{ps.legsWon}</td>
                 <td className="py-3 text-center text-red-600 font-medium">{ps.legsLost}</td>
-                <td className="py-3 text-center"><WinBadge pct={ps.winPct} /></td>
-                <td className="py-3 text-center font-mono text-sm text-gray-700">{ps.stats01Avg > 0 ? ps.stats01Avg.toFixed(2) : '-'}</td>
-                <td className="py-3 text-center font-mono text-sm text-gray-700">{ps.statsCricketAvg > 0 ? ps.statsCricketAvg.toFixed(2) : '-'}</td>
+                <td className="py-3 text-center"><WinBadge pct={ps.legsWinPct} /></td>
                 <td className="py-3 text-center">{ps.format01.games > 0 ? <WinBadge pct={ps.format01.winPct} /> : <span className="text-gray-300">-</span>}</td>
                 <td className="py-3 text-center">{ps.cricket.games > 0 ? <WinBadge pct={ps.cricket.winPct} /> : <span className="text-gray-300">-</span>}</td>
                 <td className="py-3 text-center">{ps.halfIt.games > 0 ? <WinBadge pct={ps.halfIt.winPct} /> : <span className="text-gray-300">-</span>}</td>

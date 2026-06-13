@@ -328,9 +328,10 @@ export function getPlayerGameStats(playerId: string): PlayerGameStats {
   const player = getPlayers().find(p => p.id === playerId);
   const games = getGamePerformancesForPlayer(playerId);
 
-  // Play-focused: use game performances for all totals
-  const totalGames = games.length;
-  const wins = games.filter(g => g.won).length;
+  // Aggregate totals from DartsLive stored data (matches dashboard)
+  const hasStoredRecords = player ? player.wins > 0 || player.losses > 0 : false;
+  const totalGames = hasStoredRecords ? (player!.wins + player!.losses) : games.length;
+  const wins = hasStoredRecords ? player!.wins : games.filter(g => g.won).length;
   const losses = totalGames - wins;
   const winPct = totalGames > 0 ? Math.round((wins / totalGames) * 100) : 0;
 
@@ -369,6 +370,7 @@ export function getPlayerGameStats(playerId: string): PlayerGameStats {
   // Legs won/lost
   const legsWon = games.reduce((sum, g) => sum + g.legsWon, 0);
   const legsLost = games.reduce((sum, g) => sum + g.legsLost, 0);
+  const legsWinPct = (legsWon + legsLost) > 0 ? Math.round((legsWon / (legsWon + legsLost)) * 100) : 0;
 
   return {
     playerId,
@@ -379,6 +381,7 @@ export function getPlayerGameStats(playerId: string): PlayerGameStats {
     winPct,
     legsWon,
     legsLost,
+    legsWinPct,
     format01: fmtStats(format01),
     cricket: fmtStats(cricket),
     halfIt: fmtStats(halfIt),
