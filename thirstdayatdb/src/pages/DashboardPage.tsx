@@ -547,7 +547,6 @@ function GameFormatTotals({ players, matchSessions }: { players: any[]; matchSes
               <td className="py-1.5 text-center font-mono font-bold text-green-700">{totalHalfItLegsWon}</td>
               <td className="py-1.5 text-center font-mono font-bold text-red-600">{totalHalfItLegsLost}</td>
               <td className="py-1.5 text-center font-mono font-bold text-gray-800">{allFormatTotal}</td>
-              <td className="py-1.5 text-center font-mono font-bold text-gray-800">{allFormatTotal}</td>
             </tr>
           </tbody>
         </table>
