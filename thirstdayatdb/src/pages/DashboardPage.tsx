@@ -418,54 +418,84 @@ function TrendArrow({ dir }: { dir: 'up' | 'down' | 'same' }) {
   return null;
 }
 
-/** Per-player game counts by format (singles, doubles, trios, team, half-it) */
+/** Per-player game counts by format with Half-It leg details */
 function GameFormatTotals({ players, matchSessions }: { players: any[]; matchSessions: any[]; refresh: number }) {
   const formatLabels: Record<string, string> = {
     singles: 'S',
     doubles: 'D',
     trios: 'T',
     team: 'Tm',
-    'half-it': '½It',
   };
-  const formatOrder = ['singles', 'doubles', 'trios', 'team', 'half-it'] as const;
+  const formatOrder = ['singles', 'doubles', 'trios', 'team'] as const;
 
-  const playerFormatCounts = new Map<string, Record<string, number>>();
+  const playerData = new Map<string, {
+    formatCounts: Record<string, number>;
+    halfItGames: number;
+    halfItLegsWon: number;
+    halfItLegsLost: number;
+    otherLegsWon: number;
+    otherLegsLost: number;
+  }>();
   const formatTotals: Record<string, number> = {};
   for (const fmt of formatOrder) formatTotals[fmt] = 0;
+  let totalHalfItGames = 0;
+  let totalHalfItLegsWon = 0;
+  let totalHalfItLegsLost = 0;
+  let totalOtherLegsWon = 0;
+  let totalOtherLegsLost = 0;
 
   for (const s of matchSessions) {
     const games = getGamePerformancesForSession(s.id);
     for (const g of games) {
       const pName = players.find(p => p.player.id === g.playerId)?.player.name;
       if (!pName) continue;
-      if (!playerFormatCounts.has(pName)) {
-        playerFormatCounts.set(pName, Object.fromEntries(formatOrder.map(f => [f, 0])));
+      if (!playerData.has(pName)) {
+        playerData.set(pName, {
+          formatCounts: Object.fromEntries(formatOrder.map(f => [f, 0])),
+          halfItGames: 0,
+          halfItLegsWon: 0,
+          halfItLegsLost: 0,
+          otherLegsWon: 0,
+          otherLegsLost: 0,
+        });
       }
-      playerFormatCounts.get(pName)![g.gameType] = (playerFormatCounts.get(pName)![g.gameType] || 0) + 1;
-      formatTotals[g.gameType] = (formatTotals[g.gameType] || 0) + 1;
-      // Also count half-it format separately
+      const pd = playerData.get(pName)!;
+
       if (g.format === 'half-it') {
-        playerFormatCounts.get(pName)!['half-it'] = (playerFormatCounts.get(pName)!['half-it'] || 0) + 1;
-        formatTotals['half-it'] = (formatTotals['half-it'] || 0) + 1;
+        pd.halfItGames++;
+        pd.halfItLegsWon += g.legsWon;
+        pd.halfItLegsLost += g.legsLost;
+        totalHalfItGames++;
+        totalHalfItLegsWon += g.legsWon;
+        totalHalfItLegsLost += g.legsLost;
+      } else {
+        pd.formatCounts[g.gameType] = (pd.formatCounts[g.gameType] || 0) + 1;
+        formatTotals[g.gameType] = (formatTotals[g.gameType] || 0) + 1;
+        pd.otherLegsWon += g.legsWon;
+        pd.otherLegsLost += g.legsLost;
+        totalOtherLegsWon += g.legsWon;
+        totalOtherLegsLost += g.legsLost;
       }
     }
   }
 
-  const sortedPlayers = [...playerFormatCounts.entries()]
-    .map(([name, counts]) => ({ name, counts }))
+  const sortedPlayers = [...playerData.entries()]
+    .map(([name, d]) => ({ name, ...d }))
     .sort((a, b) => {
-      const totalA = formatOrder.reduce((s, f) => s + (a.counts[f] || 0), 0);
-      const totalB = formatOrder.reduce((s, f) => s + (b.counts[f] || 0), 0);
+      const totalA = formatOrder.reduce((s, f) => s + (a.formatCounts[f] || 0), 0) + a.halfItGames;
+      const totalB = formatOrder.reduce((s, f) => s + (b.formatCounts[f] || 0), 0) + b.halfItGames;
       return totalB - totalA;
     });
 
   if (sortedPlayers.length === 0) return null;
 
+  const allFormatTotal = formatOrder.reduce((s, f) => s + (formatTotals[f] || 0), 0) + totalHalfItGames;
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-gray-700">Game Counts by Format</h2>
-        <span className="text-xs text-gray-400">singles · doubles · trios · team · half-it</span>
+        <span className="text-xs text-gray-400">singles · doubles · trios · team</span>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs">
@@ -473,24 +503,31 @@ function GameFormatTotals({ players, matchSessions }: { players: any[]; matchSes
             <tr className="border-b border-gray-200 text-gray-500">
               <th className="pb-2 font-medium">Player</th>
               {formatOrder.map(f => (
-                <th key={f} className="pb-2 font-medium text-center" title={f}>
-                  {formatLabels[f]}
-                </th>
+                <th key={f} className="pb-2 font-medium text-center" title={f}>{formatLabels[f]}</th>
               ))}
+              <th className="pb-2 font-medium text-center" title="Half-It games">½It G</th>
+              <th className="pb-2 font-medium text-center" title="Half-It legs won">½It LegW</th>
+              <th className="pb-2 font-medium text-center" title="Half-It legs lost">½It LegL</th>
+              <th className="pb-2 font-medium text-center" title="Half-It leg win percentage">½It Leg%</th>
               <th className="pb-2 font-medium text-center">Total</th>
             </tr>
           </thead>
           <tbody>
-            {sortedPlayers.map(({ name, counts }) => {
-              const total = formatOrder.reduce((s, f) => s + (counts[f] || 0), 0);
+            {sortedPlayers.map(({ name, formatCounts, halfItGames, halfItLegsWon, halfItLegsLost }) => {
+              const total = formatOrder.reduce((s, f) => s + (formatCounts[f] || 0), 0) + halfItGames;
+              const halfItLegPct = (halfItLegsWon + halfItLegsLost) > 0
+                ? Math.round((halfItLegsWon / (halfItLegsWon + halfItLegsLost)) * 100)
+                : 0;
               return (
                 <tr key={name} className="border-b border-gray-100 hover:bg-gray-50">
                   <td className="py-1.5 font-medium text-gray-800">{name}</td>
                   {formatOrder.map(f => (
-                    <td key={f} className={`py-1.5 text-center font-mono ${f === 'half-it' ? 'text-amber-600 font-semibold' : 'text-gray-700'}`}>
-                      {counts[f] || 0}
-                    </td>
+                    <td key={f} className="py-1.5 text-center font-mono text-gray-700">{formatCounts[f] || 0}</td>
                   ))}
+                  <td className="py-1.5 text-center font-mono font-semibold text-amber-600">{halfItGames}</td>
+                  <td className="py-1.5 text-center font-mono text-green-600">{halfItLegsWon}</td>
+                  <td className="py-1.5 text-center font-mono text-red-500">{halfItLegsLost}</td>
+                  <td className="py-1.5 text-center"><WinBadge pct={halfItLegPct} /></td>
                   <td className="py-1.5 text-center font-mono font-bold text-gray-800">{total}</td>
                 </tr>
               );
@@ -499,13 +536,17 @@ function GameFormatTotals({ players, matchSessions }: { players: any[]; matchSes
             <tr className="border-t-2 border-gray-300 bg-gray-50 font-semibold">
               <td className="py-1.5 text-gray-700">Total</td>
               {formatOrder.map(f => (
-                <td key={f} className={`py-1.5 text-center font-mono ${f === 'half-it' ? 'text-amber-700 font-bold' : 'text-gray-700'}`}>
-                  {formatTotals[f] || 0}
-                </td>
+                <td key={f} className="py-1.5 text-center font-mono text-gray-700">{formatTotals[f] || 0}</td>
               ))}
-              <td className="py-1.5 text-center font-mono font-bold text-gray-800">
-                {formatOrder.reduce((s, f) => s + (formatTotals[f] || 0), 0)}
+              <td className="py-1.5 text-center font-mono font-bold text-amber-700">{totalHalfItGames}</td>
+              <td className="py-1.5 text-center font-mono font-bold text-green-700">{totalHalfItLegsWon}</td>
+              <td className="py-1.5 text-center font-mono font-bold text-red-600">{totalHalfItLegsLost}</td>
+              <td className="py-1.5 text-center font-bold">
+                <WinBadge pct={(totalHalfItLegsWon + totalHalfItLegsLost) > 0
+                  ? Math.round((totalHalfItLegsWon / (totalHalfItLegsWon + totalHalfItLegsLost)) * 100)
+                  : 0} />
               </td>
+              <td className="py-1.5 text-center font-mono font-bold text-gray-800">{allFormatTotal}</td>
             </tr>
           </tbody>
         </table>
