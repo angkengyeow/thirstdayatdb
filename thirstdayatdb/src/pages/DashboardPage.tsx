@@ -8,6 +8,147 @@ import {
 import { seedDemoData } from '../seed';
 import { fetchLiveData } from '../scraper';
 
+/* ─── Mini Sparkline SVG ─────────────────────────────────────────── */
+function Sparkline({ data, height = 32, width = 100 }: { data: number[]; height?: number; width?: number }) {
+  if (data.length < 2) return null;
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const range = max - min || 1;
+  const pad = 2;
+  const w = width - pad * 2;
+  const h = height - pad * 2;
+  const points = data.map((v, i) => {
+    const x = pad + (i / (data.length - 1)) * w;
+    const y = pad + h - ((v - min) / range) * h;
+    return `${x},${y}`;
+  });
+  const d = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p}`).join('');
+  const fillD = `${d}L${width - pad},${height}L${pad},${height}Z`;
+
+  return (
+    <svg width={width} height={height} className="shrink-0" viewBox={`0 0 ${width} ${height}`}>
+      <defs>
+        <filter id="glow-line">
+          <feGaussianBlur stdDeviation="1.5" result="blur" />
+          <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+        </filter>
+        <linearGradient id="line-grad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#00e5ff" stopOpacity="0.35" />
+          <stop offset="100%" stopColor="#00e5ff" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={fillD} fill="url(#line-grad)" />
+      <path d={d} fill="none" stroke="#00e5ff" strokeWidth="1.5" filter="url(#glow-line)" />
+      {/* Data point dots */}
+      {data.map((_, i) => {
+        const [x, y] = points[i].split(',').map(Number);
+        return <circle key={i} cx={x} cy={y} r="1.8" fill="#00e5ff" opacity="0.8" />;
+      })}
+    </svg>
+  );
+}
+
+/* ─── Glowing Stat Number ──────────────────────────────────────────── */
+function StatNumber({ value, suffix = '', glow = false, size = 'xl', color = '#00e5ff' }: {
+  value: string | number; suffix?: string; glow?: boolean; size?: 'lg' | 'xl' | '2xl' | '3xl'; color?: string;
+}) {
+  const sizeMap = { lg: 'text-lg', xl: 'text-xl', '2xl': 'text-2xl', '3xl': 'text-3xl' };
+  return (
+    <span
+      className={`font-display ${sizeMap[size]} tracking-wider`}
+      style={{
+        color,
+        textShadow: glow ? `0 0 12px ${color}40, 0 0 30px ${color}20` : undefined,
+      }}
+    >
+      {value}{suffix}
+    </span>
+  );
+}
+
+/* ─── Helper Components ────────────────────────────────────────────── */
+function WinBadge({ pct }: { pct: number }) {
+  let c = '#ff1744';
+  if (pct >= 60) c = '#00e676';
+  else if (pct >= 40) c = '#00e5ff';
+  return (
+    <span
+      className="stat-pill"
+      style={{ background: `${c}18`, color: c, border: `1px solid ${c}30` }}
+    >
+      {pct}%
+    </span>
+  );
+}
+
+function RtBadge({ rt }: { rt: number }) {
+  if (rt <= 0) return <span className="text-xs text-[#3a2a6a]">-</span>;
+  return (
+    <span className="stat-pill" style={{
+      background: rt >= 12.5 ? 'rgba(0,229,255,0.12)' : 'rgba(0,229,255,0.08)',
+      color: '#00e5ff',
+      border: `1px solid ${rt >= 12.5 ? 'rgba(0,229,255,0.25)' : 'rgba(0,229,255,0.15)'}`,
+    }}>
+      {rt.toFixed(2)}
+    </span>
+  );
+}
+
+function TrendArrow({ dir }: { dir: 'up' | 'down' | 'same' }) {
+  if (dir === 'up') return <span className="text-dart-green font-bold">↑</span>;
+  if (dir === 'down') return <span className="text-dart-red font-bold">↓</span>;
+  return null;
+}
+
+/* ─── Extreme Glass Card Wrapper ────────────────────────────────────── */
+function GlassCard({ children, className = '', hover = true }: { children: React.ReactNode; className?: string; hover?: boolean }) {
+  return (
+    <div
+      className={`rounded-2xl transition-all duration-300 ${hover ? 'hover:border-cyan-400/25' : ''} ${className}`}
+      style={{
+        background: 'rgba(8, 4, 26, 0.65)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        border: '1px solid rgba(0, 229, 255, 0.10)',
+        boxShadow: '0 0 40px rgba(0, 229, 255, 0.04), 0 0 80px rgba(42, 90, 255, 0.03), inset 0 1px 0 rgba(0, 229, 255, 0.06)',
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+/* ─── Section Header ────────────────────────────────────────────────── */
+function SectionHeader({ title, badge }: { title: string; badge?: string }) {
+  return (
+    <div className="flex items-center justify-between mb-5">
+      <h2 className="text-lg font-semibold text-[#e8e0f4] flex items-center gap-3 font-body tracking-wide">
+        <span
+          className="w-1 h-5 rounded-full inline-block"
+          style={{
+            background: '#00e5ff',
+            boxShadow: '0 0 8px rgba(0, 229, 255, 0.5)',
+          }}
+        />
+        {title}
+      </h2>
+      {badge && (
+        <span
+          className="text-xs font-medium px-3 py-1 rounded-full font-body tracking-wide"
+          style={{
+            background: 'rgba(0, 229, 255, 0.08)',
+            color: '#00e5ff',
+            border: '1px solid rgba(0, 229, 255, 0.2)',
+          }}
+        >
+          {badge}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/* ─── Main Page ──────────────────────────────────────────────────────── */
 export default function DashboardPage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [players, setPlayers] = useState(getPlayerDashboardStats);
@@ -32,16 +173,11 @@ export default function DashboardPage() {
   useEffect(() => {
     let cancelled = false;
     async function autoLoad() {
-      // If data exists and was last updated after the most recent match, skip
       if (shouldSkipAutoUpdate()) {
-        // Still ensure seed data is present as a baseline
         seedDemoData();
-        if (!cancelled) {
-          setRefreshKey(k => k + 1);
-        }
+        if (!cancelled) setRefreshKey(k => k + 1);
         return;
       }
-
       setLoading(true);
       setStatusMessage('Loading data...');
       try {
@@ -50,28 +186,19 @@ export default function DashboardPage() {
         populateFromLiveData(liveData);
         const added = updateFromLiveData(liveData);
         saveLastUpdated();
-        const msg = added > 0
-          ? `Updated — ${added} new match${added > 1 ? 'es' : ''}`
-          : 'Up to date';
-        setStatusMessage(msg);
+        setStatusMessage(added > 0 ? `Updated — ${added} new match${added > 1 ? 'es' : ''}` : 'Up to date');
       } catch {
         if (cancelled) return;
         seedDemoData();
         setStatusMessage('Seed data loaded');
       }
-      if (!cancelled) {
-        setLoading(false);
-        setRefreshKey(k => k + 1);
-      }
+      if (!cancelled) { setLoading(false); setRefreshKey(k => k + 1); }
     }
     autoLoad();
     return () => { cancelled = true; };
   }, []);
 
-  // Refresh view whenever underlying data changes
-  useEffect(() => {
-    refresh();
-  }, [refreshKey, refresh]);
+  useEffect(() => { refresh(); }, [refreshKey, refresh]);
 
   function handleCopyLink(sessionId: string) {
     const link = buildResponseLink(sessionId);
@@ -95,6 +222,17 @@ export default function DashboardPage() {
   const firstHalf = completedMatches.slice(0, half);
   const secondHalf = completedMatches.slice(half);
 
+  // Cumulative win rate data for sparkline
+  const winRateProgression = completedMatches.reduce<{ matches: number[]; rate: number[] }>((acc, s, i) => {
+    acc.matches.push(i + 1);
+    const isWin = s.notes?.includes('(W ');
+    const prevRate = i > 0 ? acc.rate[i - 1] : 0;
+    const winsSoFar = isWin ? (prevRate * i / 100) + 1 : (prevRate * i / 100);
+    acc.rate.push(Math.round((winsSoFar / (i + 1)) * 100));
+    return acc;
+  }, { matches: [], rate: [] });
+
+  /* ───── Match Card ───── */
   function MatchCard({ s, index }: { s: typeof matchSessions[0]; index: number }) {
     const isWin = s.notes?.includes('(W ');
     const noteParts = s.notes?.match(/(vs|@)\s+(.+?)\s+\((W|L)\s+(\d+)-(\d+)\)/);
@@ -111,42 +249,53 @@ export default function DashboardPage() {
 
     return (
       <div
-        className={`p-3 rounded-lg border transition-all duration-200 hover:scale-[1.01] ${
-          isWin
-            ? 'border-dart-green/30 bg-dart-green/[0.06] hover:bg-dart-green/[0.09] hover:shadow-lg hover:shadow-dart-green/5'
-            : 'border-dart-red/30 bg-dart-red/[0.06] hover:bg-dart-red/[0.09] hover:shadow-lg hover:shadow-dart-red/5'
-        }`}
-        style={{ animationDelay: `${index * 50}ms` }}
+        className="rounded-xl p-4 transition-all duration-200 hover:scale-[1.01]"
+        style={{
+          background: isWin
+            ? 'linear-gradient(135deg, rgba(0,230,118,0.06), rgba(0,230,118,0.02))'
+            : 'linear-gradient(135deg, rgba(255,23,68,0.06), rgba(255,23,68,0.02))',
+          border: `1px solid ${isWin ? 'rgba(0,230,118,0.2)' : 'rgba(255,23,68,0.2)'}`,
+          animationDelay: `${index * 50}ms`,
+        }}
       >
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-3 min-w-0">
-            <span className={`text-sm font-bold px-2 py-0.5 rounded shrink-0 ${isWin ? 'text-dart-green bg-dart-green/20' : 'text-dart-red bg-dart-red/20'}`}>
+            <span
+              className="text-sm font-bold px-2.5 py-0.5 rounded shrink-0 font-body"
+              style={{
+                background: isWin ? 'rgba(0,230,118,0.15)' : 'rgba(255,23,68,0.15)',
+                color: isWin ? '#00e676' : '#ff1744',
+              }}
+            >
               {isWin ? 'W' : 'L'}
             </span>
             <div className="min-w-0">
-              <span className="text-sm font-medium text-[#e8e0f4] truncate block">{opponent}</span>
-              <p className="text-xs text-[#5a4a8a]">{s.date}</p>
+              <span className="text-sm font-medium text-[#e8e0f4] truncate block font-body">{opponent}</span>
+              <p className="text-xs text-[#5a4a8a] font-body">{s.date}</p>
             </div>
           </div>
           {score && (
-            <span className={`text-sm font-bold font-mono shrink-0 ${isWin ? 'text-dart-green' : 'text-dart-red'}`}>
+            <span
+              className="text-base font-bold font-display tracking-wider shrink-0"
+              style={{ color: isWin ? '#00e676' : '#ff1744' }}
+            >
               {score}
             </span>
           )}
         </div>
         {gameIds.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-1.5 pt-1.5 border-t border-[#150d40]/60">
+          <div className="flex flex-wrap gap-1 mt-2 pt-2" style={{ borderTop: '1px solid rgba(21,13,64,0.5)' }}>
             {gameIds.map(gid => {
               const g = gameMap.get(gid)!;
               const isHalfIt = g.format === 'half-it';
               return (
                 <span
                   key={gid}
-                  className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
-                    g.won
-                      ? 'text-dart-green bg-dart-green/15'
-                      : 'text-dart-red bg-dart-red/15'
-                  }`}
+                  className="text-[10px] font-semibold px-1.5 py-0.5 rounded font-body"
+                  style={{
+                    background: g.won ? 'rgba(0,230,118,0.12)' : 'rgba(255,23,68,0.12)',
+                    color: g.won ? '#00e676' : '#ff1744',
+                  }}
                   title={g.format}
                 >
                   G{gid}{isHalfIt ? '½' : ''}{g.won ? 'W' : 'L'}
@@ -160,266 +309,416 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6 animate-fade-in">
-      {/* Page Header */}
-      <div className="flex items-start justify-between mb-8">
+    <div className="max-w-6xl mx-auto px-4 py-6 animate-fade-in space-y-6">
+      {/* ═══ Header ═══ */}
+      <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#e8e0f4] font-display tracking-wider">Dashboard</h1>
-          <p className="text-sm text-[#5a4a8a] mt-0.5">Team overview and match history</p>
+          <h1
+            className="text-2xl font-bold tracking-[0.08em] font-display"
+            style={{
+              background: 'linear-gradient(135deg, #00e5ff, #66f0ff)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              textShadow: 'none',
+            }}
+          >
+            DASHBOARD
+          </h1>
+          <p className="text-sm text-[#5a4a8a] mt-0.5 font-body">Team overview &amp; match history</p>
         </div>
-        {loading && (
-          <div className="flex items-center gap-2 text-xs text-[#5a4a8a] bg-[#0d0830]/80 px-3 py-1.5 rounded-full border border-[#1a2a5a]">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_4px_rgba(0,229,255,0.5)]" />
-            Loading...
-          </div>
-        )}
-        {!loading && statusMessage && (
-          <div className="text-[11px] text-[#3a2a6a] bg-[#0d0830]/60 px-3 py-1.5 rounded-full border border-[#1a2a5a]">
-            {statusMessage}
+        {(loading || statusMessage) && (
+          <div
+            className="flex items-center gap-2 text-xs font-body tracking-wide"
+            style={{
+              background: 'rgba(13, 8, 48, 0.7)',
+              border: '1px solid rgba(0, 229, 255, 0.15)',
+              borderRadius: '999px',
+              padding: '4px 14px',
+            }}
+          >
+            {loading && (
+              <span
+                className="w-2 h-2 rounded-full animate-pulse"
+                style={{
+                  background: '#00e5ff',
+                  boxShadow: '0 0 6px rgba(0, 229, 255, 0.6)',
+                }}
+              />
+            )}
+            <span className="text-[#5a4a8a]">{statusMessage || 'Loading...'}</span>
           </div>
         )}
       </div>
 
-      {/* Team Standing */}
-      <Section animate>
-        <div className="glass-card rounded-xl p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#00e5ff]/10 border border-[#00e5ff]/20 flex items-center justify-center">
-                <span className="text-lg font-display text-[#00e5ff] font-bold">TT</span>
+      {/* ═══ Hero Standing Card ═══ */}
+      <GlassCard>
+        <div className="p-6 md:p-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            {/* Left: Identity */}
+            <div className="flex items-center gap-4">
+              <div
+                className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(0,229,255,0.15), rgba(42,90,255,0.1))',
+                  border: '1px solid rgba(0,229,255,0.25)',
+                  boxShadow: '0 0 20px rgba(0,229,255,0.08)',
+                }}
+              >
+                <span className="text-xl font-display font-bold" style={{ color: '#00e5ff' }}>TT</span>
               </div>
               <div>
-                <h2 className="text-lg font-bold text-[#00e5ff] font-display tracking-wider">Thirstday@DB</h2>
-                <p className="text-[#5a4a8a] text-xs">S1 Division · Group 2</p>
+                <h2
+                  className="text-xl font-bold tracking-[0.06em] font-display"
+                  style={{
+                    background: 'linear-gradient(135deg, #e8e0f4, #b8aad8)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                  }}
+                >
+                  THIRSTDAY@DB
+                </h2>
+                <p className="text-sm font-body text-[#5a4a8a] tracking-wide">S1 Division · Group 2 · 64 Credits</p>
               </div>
             </div>
-            <div className="text-right">
-              <p className="text-3xl font-bold text-[#00e5ff]">{standing.wins}W - {standing.losses}L</p>
-              <p className="text-[#5a4a8a] text-xs">{standing.played} played · {standing.remaining} remaining</p>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-            <div className="bg-[#0d0830]/80 rounded-xl px-4 py-3 text-center border border-[#1a2a5a]">
-              <p className="text-[#5a4a8a] text-xs">Players</p>
-              <p className="text-xl font-bold text-[#e8e0f4]">{players.length}</p>
-            </div>
-            <div className="bg-[#0d0830]/80 rounded-xl px-4 py-3 text-center border border-[#1a2a5a]">
-              <p className="text-[#5a4a8a] text-xs">Win Rate</p>
-              <p className="text-xl font-bold text-dart-green">{standing.winRate}%</p>
-            </div>
-            <div className="bg-[#0d0830]/80 rounded-xl px-4 py-3 text-center border border-[#1a2a5a]">
-              <p className="text-[#5a4a8a] text-xs">Points For</p>
-              <p className="text-xl font-bold text-[#e8e0f4]">{standing.pointsFor}</p>
-            </div>
-            <div className="bg-[#0d0830]/80 rounded-xl px-4 py-3 text-center border border-[#1a2a5a]">
-              <p className="text-[#5a4a8a] text-xs">Points Against</p>
-              <p className="text-xl font-bold text-[#e8e0f4]">{standing.pointsAgainst}</p>
-            </div>
-            <div className="bg-[#0d0830]/80 rounded-xl px-4 py-3 text-center border border-[#1a2a5a]">
-              <p className="text-[#5a4a8a] text-xs">Point Diff</p>
-              <p className={`text-xl font-bold ${standing.pointDiff >= 0 ? 'text-dart-green' : 'text-dart-red'}`}>
-                {standing.pointDiff >= 0 ? '+' : ''}{standing.pointDiff}
-              </p>
-            </div>
-          </div>
-          <div className="mt-4 pt-3 border-t border-[#150d40] flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-[#5a4a8a]">
-            <span>64 Credits · No Handicap · OI/MO</span>
-          </div>
-        </div>
-      </Section>
 
-      {/* Upcoming Matches */}
-      {upcoming.length > 0 && (
-        <Section title="Upcoming Matches" badge={`${upcoming.length} upcoming`}>
-          <div className="space-y-3">
-            {upcoming.map(s => (
-              <div key={s.id} className="flex items-center justify-between p-4 rounded-lg border border-[#150d40] bg-[#0a0520]/80 hover:border-cyan-400/30 transition-all duration-200 hover:shadow-lg hover:shadow-cyan-400/5">
-                <div className="flex items-center gap-3">
-                  <span className="text-lg text-cyan-400">🏆</span>
-                  <div>
-                    <span className="text-sm font-semibold text-[#e8e0f4]">{s.date}</span>
-                    {s.notes && <p className="text-xs text-[#5a4a8a]">{s.notes}</p>}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => handleCopyLink(s.id)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 ${
-                      copiedId === s.id
-                        ? 'bg-dart-green/20 text-dart-green border border-dart-green/30'
-                        : 'bg-[#0d0830] text-cyan-400 border border-[#3a2a6a] hover:bg-[#150d40] hover:border-cyan-400/50'
-                    }`}
-                  >
-                    {copiedId === s.id ? '✓ Copied' : 'Copy Link'}
-                  </button>
-                  <button
-                    onClick={() => { handleWhatsAppShare(s); handleCopyLink(s.id); }}
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium bg-dart-green/15 text-dart-green border border-dart-green/30 hover:bg-dart-green/25 transition-colors"
-                  >
-                    Share
-                  </button>
-                </div>
+            {/* Right: W-L Record */}
+            <div className="flex items-center gap-8">
+              <div className="text-right">
+                <p className="text-xs font-body text-[#5a4a8a] tracking-wider mb-1">RECORD</p>
+                <p className="text-4xl md:text-5xl font-display font-bold tracking-wider" style={{ color: '#00e5ff', textShadow: '0 0 20px rgba(0,229,255,0.2)' }}>
+                  {standing.wins}<span className="text-[#5a4a8a]">-</span>{standing.losses}
+                </p>
+              </div>
+              <div className="text-center">
+                <p className="text-xs font-body text-[#5a4a8a] tracking-wider mb-1">WIN RATE</p>
+                <p
+                  className="text-4xl md:text-5xl font-display font-bold tracking-wider"
+                  style={{
+                    color: standing.winRate >= 50 ? '#00e676' : '#ff1744',
+                    textShadow: `0 0 20px ${standing.winRate >= 50 ? 'rgba(0,230,118,0.2)' : 'rgba(255,23,68,0.2)'}`,
+                  }}
+                >
+                  {standing.winRate}<span className="text-[#5a4a8a]" style={{ fontSize: '0.5em' }}>%</span>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-6">
+            {[
+              { label: 'Players', value: players.length, color: '#00e5ff' },
+              { label: 'Played', value: standing.played, color: '#b8aad8' },
+              { label: 'Points For', value: standing.pointsFor, color: '#00e676' },
+              { label: 'Points Against', value: standing.pointsAgainst, color: '#ff1744' },
+              { label: 'Point Diff', value: `${standing.pointDiff >= 0 ? '+' : ''}${standing.pointDiff}`, color: standing.pointDiff >= 0 ? '#00e676' : '#ff1744' },
+            ].map(stat => (
+              <div
+                key={stat.label}
+                className="rounded-xl px-4 py-3 text-center"
+                style={{
+                  background: 'rgba(13, 8, 48, 0.6)',
+                  border: '1px solid rgba(0, 229, 255, 0.08)',
+                }}
+              >
+                <p className="text-[10px] font-body text-[#5a4a8a] tracking-widest uppercase mb-1">{stat.label}</p>
+                <StatNumber value={stat.value} color={stat.color} size="xl" glow />
               </div>
             ))}
           </div>
-        </Section>
-      )}
 
-      {/* Player Ratings */}
-      <Section title="Player Ratings">
-        {players.length === 0 ? (
-          <div className="text-center py-10">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#150d40] flex items-center justify-center">
-              <svg className="w-8 h-8 text-[#5a4a8a]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-            </div>
-            <p className="text-[#5a4a8a] mb-2">No data yet</p>
-            <p className="text-xs text-[#5a4a8a]">Click <strong className="text-cyan-400">Load Live Data</strong> to fetch from DartsLive.</p>
+          {/* Bottom bar */}
+          <div
+            className="mt-4 pt-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-body text-[#5a4a8a]"
+            style={{ borderTop: '1px solid rgba(0, 229, 255, 0.06)' }}
+          >
+            <span>No Handicap · OI/MO</span>
+            <span>{standing.remaining} matches remaining</span>
           </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-[#150d40] text-[#5a4a8a] text-[11px] uppercase tracking-wider">
-                  <th className="pb-3 font-semibold">#</th>
-                  <th className="pb-3 font-semibold">Player</th>
-                  <th className="pb-3 font-semibold text-center">Rt.</th>
-                  <th className="pb-3 font-semibold text-center">G</th>
-                  <th className="pb-3 font-semibold text-center">W</th>
-                  <th className="pb-3 font-semibold text-center">L</th>
-                  <th className="pb-3 font-semibold text-center">Win%</th>
-                  <th className="pb-3 font-semibold text-center">01 Avg</th>
-                  <th className="pb-3 font-semibold text-center">Cricket Avg</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[...players]
-                  .sort((a, b) => (b.liveRating || 0) - (a.liveRating || 0) || b.games - a.games)
-                  .map((p, i) => (
-                  <tr key={p.player.id} className={`border-b border-[#150d40] hover:bg-[#100a30] transition-colors ${i % 2 === 0 ? 'bg-transparent' : 'bg-[#0a0520]/50'}`}>
-                    <td className={`py-3 font-medium ${i < 3 ? 'text-cyan-400' : 'text-[#5a4a8a]'}`}>
-                      {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}
-                    </td>
-                    <td className="py-3">
-                      <span className="font-medium text-[#e8e0f4]">{p.player.name}</span>
-                    </td>
-                    <td className="py-3 text-center">
-                      <RtBadge rt={p.liveRating || 0} />
-                    </td>
-                    <td className="py-3 text-center font-medium text-[#b8aad8]">{p.games}</td>
-                    <td className="py-3 text-center text-dart-green font-medium">{p.wins}</td>
-                    <td className="py-3 text-center text-dart-red font-medium">{p.losses}</td>
-                    <td className="py-3 text-center"><WinBadge pct={p.winPct} /></td>
-                    <td className="py-3 text-center font-mono text-sm text-[#b8aad8]">
-                      {p.stats01Avg > 0 ? <><TrendArrow dir={p.stats01Trend} />{' '}{p.stats01Avg.toFixed(2)}</> : '-'}
-                    </td>
-                    <td className="py-3 text-center font-mono text-sm text-[#b8aad8]">
-                      {p.statsCricketAvg > 0 ? <><TrendArrow dir={p.statsCricketTrend} />{' '}{p.statsCricketAvg.toFixed(2)}</> : '-'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Section>
-
-      {/* Game-Type Breakdown */}
-      <Section title="By Game Type">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          {(['singles', 'doubles', 'trios', 'team', 'half-it'] as const).map(gt => {
-            const gs = playerStats.reduce((sum, ps) => sum + ps.byGameType[gt].games, 0);
-            const ws = playerStats.reduce((sum, ps) => sum + ps.byGameType[gt].wins, 0);
-            const pct = gs > 0 ? Math.round((ws / gs) * 100) : 0;
-            return (
-              <div
-                key={gt}
-                className="text-center p-4 rounded-lg border border-[#150d40] bg-[#0a0520]/60 hover:bg-[#100a30] hover:border-cyan-400/30 hover:shadow-lg hover:shadow-cyan-400/5 transition-all duration-200"
-              >
-                <p className="text-xs font-semibold text-[#5a4a8a] uppercase tracking-wider mb-2">{gt}</p>
-                <p className="text-3xl font-bold text-cyan-400">{pct}%</p>
-                <p className="text-xs text-[#5a4a8a] mt-1">{ws}/{gs} won</p>
-              </div>
-            );
-          })}
         </div>
-      </Section>
+      </GlassCard>
 
-      {/* Match Results */}
+      {/* ═══ Performance Trend + Upcoming ═══ */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Performance Trend (span 2) */}
+        <GlassCard className="lg:col-span-2">
+          <div className="p-6">
+            <SectionHeader title="Performance Trend" />
+            <div className="flex items-end justify-between gap-6">
+              <div className="space-y-3">
+                <div className="flex items-center gap-4">
+                  <div>
+                    <p className="text-[10px] font-body text-[#5a4a8a] tracking-widest uppercase">Overall</p>
+                    <p
+                      className="text-3xl font-display font-bold tracking-wider"
+                      style={{
+                        color: standing.winRate >= 50 ? '#00e676' : '#ff1744',
+                        textShadow: standing.winRate >= 50
+                          ? '0 0 15px rgba(0,230,118,0.2)'
+                          : '0 0 15px rgba(255,23,68,0.2)',
+                      }}
+                    >
+                      {standing.winRate}<span className="text-base text-[#5a4a8a]">%</span>
+                    </p>
+                  </div>
+                  <div className="w-px h-10" style={{ background: 'rgba(0,229,255,0.1)' }} />
+                  <div>
+                    <p className="text-[10px] font-body text-[#5a4a8a] tracking-widest uppercase">Streak</p>
+                    <p className="text-lg font-display font-bold text-[#b8aad8] tracking-wider">
+                      {completedMatches.length > 0 ? (() => {
+                        let streak = 0;
+                        for (let i = completedMatches.length - 1; i >= 0; i--) {
+                          if (completedMatches[i].notes?.includes('(W ')) streak++;
+                          else break;
+                        }
+                        return `W${streak}`;
+                      })() : '-'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 text-xs font-body text-[#5a4a8a]">
+                  <span><span className="text-dart-green font-semibold">{completedMatches.filter(s => s.notes?.includes('(W ')).length}</span> Wins</span>
+                  <span><span className="text-dart-red font-semibold">{completedMatches.filter(s => s.notes?.includes('(L ')).length}</span> Losses</span>
+                  <span><span className="text-[#b8aad8] font-semibold">{completedMatches.length}</span> Total</span>
+                </div>
+              </div>
+              {/* Sparkline */}
+              {winRateProgression.rate.length >= 2 && (
+                <div className="hidden sm:flex flex-col items-end gap-1">
+                  <span className="text-[10px] font-body text-[#5a4a8a] tracking-widest uppercase">Progression</span>
+                  <Sparkline data={winRateProgression.rate} height={40} width={120} />
+                  <div className="flex justify-between w-[120px] text-[8px] font-body text-[#3a2a6a] tracking-wider">
+                    <span>M1</span>
+                    <span>M{winRateProgression.rate.length}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </GlassCard>
+
+        {/* Upcoming Mini Card */}
+        <GlassCard>
+          <div className="p-6">
+            <SectionHeader title="Upcoming" badge={`${upcoming.length}`} />
+            {upcoming.length === 0 ? (
+              <p className="text-xs font-body text-[#5a4a8a] text-center py-4">No upcoming matches</p>
+            ) : (
+              <div className="space-y-2">
+                {upcoming.map(s => (
+                  <div
+                    key={s.id}
+                    className="flex items-center justify-between p-3 rounded-xl transition-all duration-200"
+                    style={{
+                      background: 'rgba(10, 5, 32, 0.5)',
+                      border: '1px solid rgba(0, 229, 255, 0.08)',
+                    }}
+                  >
+                    <div>
+                      <p className="text-xs font-semibold text-[#e8e0f4] font-body">{s.date}</p>
+                      {s.notes && <p className="text-[10px] text-[#5a4a8a] font-body">{s.notes}</p>}
+                    </div>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => handleCopyLink(s.id)}
+                        className="text-[10px] font-medium px-2 py-1 rounded-lg font-body transition-colors"
+                        style={{
+                          background: copiedId === s.id ? 'rgba(0,230,118,0.15)' : 'rgba(0,229,255,0.08)',
+                          color: copiedId === s.id ? '#00e676' : '#00e5ff',
+                          border: `1px solid ${copiedId === s.id ? 'rgba(0,230,118,0.25)' : 'rgba(0,229,255,0.15)'}`,
+                        }}
+                      >
+                        {copiedId === s.id ? '✓' : 'Link'}
+                      </button>
+                      <button
+                        onClick={() => { handleWhatsAppShare(s); handleCopyLink(s.id); }}
+                        className="text-[10px] font-medium px-2 py-1 rounded-lg font-body transition-colors"
+                        style={{
+                          background: 'rgba(0,230,118,0.1)',
+                          color: '#00e676',
+                          border: '1px solid rgba(0,230,118,0.2)',
+                        }}
+                      >
+                        Share
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </GlassCard>
+      </div>
+
+      {/* ═══ Player Ratings ═══ */}
+      <GlassCard>
+        <div className="p-6">
+          <SectionHeader title="Player Ratings" badge={`${players.length} active`} />
+          {players.length === 0 ? (
+            <div className="text-center py-10">
+              <p className="text-[#5a4a8a] font-body mb-2">No data yet</p>
+              <p className="text-xs font-body text-[#5a4a8a]">Load data to see player ratings.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm font-body">
+                <thead>
+                  <tr className="text-[10px] text-[#5a4a8a] uppercase tracking-[0.12em]" style={{ borderBottom: '1px solid rgba(0,229,255,0.08)' }}>
+                    <th className="pb-3 font-semibold font-body">#</th>
+                    <th className="pb-3 font-semibold font-body">Player</th>
+                    <th className="pb-3 font-semibold font-body text-center">Rt.</th>
+                    <th className="pb-3 font-semibold font-body text-center">G</th>
+                    <th className="pb-3 font-semibold font-body text-center">W</th>
+                    <th className="pb-3 font-semibold font-body text-center">L</th>
+                    <th className="pb-3 font-semibold font-body text-center">Win%</th>
+                    <th className="pb-3 font-semibold font-body text-center">01 Avg</th>
+                    <th className="pb-3 font-semibold font-body text-center">Cricket Avg</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...players]
+                    .sort((a, b) => (b.liveRating || 0) - (a.liveRating || 0) || b.games - a.games)
+                    .map((p, i) => (
+                    <tr
+                      key={p.player.id}
+                      className="transition-colors duration-150"
+                      style={{
+                        borderBottom: '1px solid rgba(21, 13, 64, 0.5)',
+                        background: i % 2 === 0 ? 'transparent' : 'rgba(10, 5, 32, 0.4)',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,229,255,0.04)'}
+                      onMouseLeave={e => e.currentTarget.style.background = i % 2 === 0 ? 'transparent' : 'rgba(10,5,32,0.4)'}
+                    >
+                      <td className="py-3 pr-2">
+                        <span
+                          className="font-display font-bold text-sm"
+                          style={{ color: i < 3 ? '#00e5ff' : '#5a4a8a' }}
+                        >
+                          {i === 0 ? '01' : i === 1 ? '02' : i === 2 ? '03' : `0${i + 1}`}
+                        </span>
+                      </td>
+                      <td className="py-3 pr-4">
+                        <span className="font-medium text-[#e8e0f4] font-body">{p.player.name}</span>
+                      </td>
+                      <td className="py-3 text-center">
+                        <RtBadge rt={p.liveRating || 0} />
+                      </td>
+                      <td className="py-3 text-center font-medium text-[#b8aad8] font-body">{p.games}</td>
+                      <td className="py-3 text-center font-body">
+                        <span className="font-semibold" style={{ color: '#00e676' }}>{p.wins}</span>
+                      </td>
+                      <td className="py-3 text-center font-body">
+                        <span className="font-semibold" style={{ color: '#ff1744' }}>{p.losses}</span>
+                      </td>
+                      <td className="py-3 text-center"><WinBadge pct={p.winPct} /></td>
+                      <td className="py-3 text-center font-body">
+                        <span className="font-mono text-sm" style={{ color: '#b8aad8' }}>
+                          {p.stats01Avg > 0 ? <><TrendArrow dir={p.stats01Trend} />{' '}{p.stats01Avg.toFixed(2)}</> : '-'}
+                        </span>
+                      </td>
+                      <td className="py-3 text-center font-body">
+                        <span className="font-mono text-sm" style={{ color: '#b8aad8' }}>
+                          {p.statsCricketAvg > 0 ? <><TrendArrow dir={p.statsCricketTrend} />{' '}{p.statsCricketAvg.toFixed(2)}</> : '-'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </GlassCard>
+
+      {/* ═══ Game-Type Breakdown ═══ */}
+      <GlassCard>
+        <div className="p-6">
+          <SectionHeader title="By Game Type" />
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            {(['singles', 'doubles', 'trios', 'team', 'half-it'] as const).map(gt => {
+              const gs = playerStats.reduce((sum, ps) => sum + ps.byGameType[gt].games, 0);
+              const ws = playerStats.reduce((sum, ps) => sum + ps.byGameType[gt].wins, 0);
+              const pct = gs > 0 ? Math.round((ws / gs) * 100) : 0;
+              return (
+                <div
+                  key={gt}
+                  className="rounded-xl p-4 text-center transition-all duration-200 hover:scale-[1.02]"
+                  style={{
+                    background: 'rgba(13, 8, 48, 0.5)',
+                    border: '1px solid rgba(0, 229, 255, 0.08)',
+                  }}
+                >
+                  <p className="text-xs font-body text-[#5a4a8a] uppercase tracking-[0.1em] mb-2">{gt}</p>
+                  <p
+                    className="text-3xl md:text-4xl font-display font-bold tracking-wider"
+                    style={{
+                      color: pct >= 60 ? '#00e676' : pct >= 40 ? '#00e5ff' : '#ff1744',
+                      textShadow: `0 0 12px ${pct >= 60 ? 'rgba(0,230,118,0.15)' : pct >= 40 ? 'rgba(0,229,255,0.15)' : 'rgba(255,23,68,0.15)'}`,
+                    }}
+                  >
+                    {pct}<span className="text-base text-[#5a4a8a]">%</span>
+                  </p>
+                  <p className="text-xs font-body text-[#5a4a8a] mt-1">{ws}/{gs} won</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </GlassCard>
+
+      {/* ═══ Match Results ═══ */}
       {completedMatches.length > 0 && (
-        <Section title="Match Results">
-          <div className="flex items-center gap-3 mb-4">
-            <span className="text-sm font-medium text-dart-green bg-dart-green/15 px-3 py-1 rounded-full">{completedMatches.filter(s => s.notes?.includes('(W ')).length}W</span>
-            <span className="text-sm font-medium text-dart-red bg-dart-red/15 px-3 py-1 rounded-full">{completedMatches.filter(s => s.notes?.includes('(L ')).length}L</span>
-            <span className="text-xs text-[#5a4a8a] ml-auto">{completedMatches.length} total</span>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p className="text-xs font-semibold text-[#5a4a8a] uppercase tracking-wider mb-2">First Half</p>
-              <div className="space-y-2">
-                {firstHalf.map((s, i) => <MatchCard key={s.id} s={s} index={i} />)}
+        <GlassCard>
+          <div className="p-6">
+            <SectionHeader title="Match Results" />
+            <div className="flex items-center gap-3 mb-5">
+              <span
+                className="text-xs font-semibold px-3 py-1 rounded-full font-body"
+                style={{
+                  background: 'rgba(0,230,118,0.12)',
+                  color: '#00e676',
+                  border: '1px solid rgba(0,230,118,0.25)',
+                }}
+              >
+                {completedMatches.filter(s => s.notes?.includes('(W ')).length}W
+              </span>
+              <span
+                className="text-xs font-semibold px-3 py-1 rounded-full font-body"
+                style={{
+                  background: 'rgba(255,23,68,0.12)',
+                  color: '#ff1744',
+                  border: '1px solid rgba(255,23,68,0.25)',
+                }}
+              >
+                {completedMatches.filter(s => s.notes?.includes('(L ')).length}L
+              </span>
+              <span className="text-xs font-body text-[#5a4a8a] ml-auto">{completedMatches.length} total</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-[10px] font-body text-[#5a4a8a] uppercase tracking-[0.12em] mb-3">First Half</p>
+                <div className="space-y-2">
+                  {firstHalf.map((s, i) => <MatchCard key={s.id} s={s} index={i} />)}
+                </div>
+              </div>
+              <div>
+                <p className="text-[10px] font-body text-[#5a4a8a] uppercase tracking-[0.12em] mb-3">Second Half</p>
+                <div className="space-y-2">
+                  {secondHalf.map((s, i) => <MatchCard key={s.id} s={s} index={i} />)}
+                </div>
               </div>
             </div>
-            <div>
-              <p className="text-xs font-semibold text-[#5a4a8a] uppercase tracking-wider mb-2">Second Half</p>
-              <div className="space-y-2">
-                {secondHalf.map((s, i) => <MatchCard key={s.id} s={s} index={i} />)}
-              </div>
-            </div>
           </div>
-        </Section>
+        </GlassCard>
       )}
 
       {completedMatches.length === 0 && players.length > 0 && (
-        <Section title="Match Results">
-          <div className="text-center py-10">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#150d40] flex items-center justify-center">
-              <svg className="w-8 h-8 text-[#5a4a8a]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-            </div>
-            <p className="text-[#5a4a8a]">No completed matches yet</p>
+        <GlassCard>
+          <div className="p-8 text-center">
+            <p className="text-[#5a4a8a] font-body text-lg">No completed matches yet</p>
           </div>
-        </Section>
+        </GlassCard>
       )}
     </div>
   );
-}
-
-function Section({ title, badge, children, animate }: { title?: string; badge?: string; children: React.ReactNode; animate?: boolean }) {
-  return (
-    <div className={`glass-card rounded-xl p-6 mb-8 transition-all duration-200 ${animate ? '' : ''}`}>
-      {title && (
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-semibold text-[#e8e0f4] flex items-center gap-2">
-            <span className="w-1 h-5 bg-[#00e5ff] rounded-full inline-block shadow-[0_0_6px_rgba(0,229,255,0.4)]" />
-            {title}
-          </h2>
-          {badge && <span className="text-xs text-[#5a4a8a] bg-[#0a0520] px-2 py-1 rounded-lg border border-[#1a2a5a]">{badge}</span>}
-        </div>
-      )}
-      {children}
-    </div>
-  );
-}
-
-function WinBadge({ pct }: { pct: number }) {
-  let color = 'bg-[#ff1744]/15 text-[#ff1744] border border-[#ff1744]/25';
-  if (pct >= 60) color = 'bg-[#00e676]/15 text-[#00e676] border border-[#00e676]/25';
-  else if (pct >= 40) color = 'bg-[#00e5ff]/15 text-[#00e5ff] border border-[#00e5ff]/25';
-  return <span className={`stat-pill ${color}`}>{pct}%</span>;
-}
-
-function RtBadge({ rt }: { rt: number }) {
-  if (rt <= 0) return <span className="text-xs text-[#3a2a6a]">-</span>;
-  if (rt >= 12.5) return <span className="stat-pill stat-pill-ppd">{rt.toFixed(2)}</span>;
-  if (rt >= 11.5) return <span className="stat-pill bg-[#00e5ff]/10 text-[#00e5ff] border border-[#00e5ff]/20">{rt.toFixed(2)}</span>;
-  return <span className="stat-pill bg-[#00e5ff]/8 text-[#00e5ff] border border-[#00e5ff]/15">{rt.toFixed(2)}</span>;
-}
-
-function TrendArrow({ dir }: { dir: 'up' | 'down' | 'same' }) {
-  if (dir === 'up') return <span className="text-dart-green font-bold">↑</span>;
-  if (dir === 'down') return <span className="text-dart-red font-bold">↓</span>;
-  return null;
 }
