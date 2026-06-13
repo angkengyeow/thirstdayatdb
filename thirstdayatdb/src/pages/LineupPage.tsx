@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
-import { generateFullLineup, getSessions, updateFromLiveData } from '../store';
+import {
+  generateFullLineup, getSessions, updateFromLiveData,
+  getMatchSessionForDate, getGameResultsForSession, getMatchScore,
+  saveLiveLineup, loadLiveLineup, getAllPlayersWithStats,
+} from '../store';
 import { fetchLiveData } from '../scraper';
 import type { MatchGame, FullLineup } from '../types';
 
@@ -31,6 +35,13 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
   const [result, setResult] = useState<FullLineup | null>(null);
   const [refreshStatus, setRefreshStatus] = useState<'idle' | 'loading' | 'done' | 'uptodate' | 'error'>('idle');
 
+  // Live match-day state
+  const [isMatchDay, setIsMatchDay] = useState(false);
+  const [matchSessionId, setMatchSessionId] = useState<string | null>(null);
+  const [gameResults, setGameResults] = useState<Map<number, { won: boolean; legsWon: number; legsLost: number }>>(new Map());
+  const [score, setScore] = useState({ thirstday: 0, opponent: 0, total: 0 });
+  const [swapTarget, setSwapTarget] = useState<{ gameId: number; playerIdx: number } | null>(null);
+
   useEffect(() => {
     if (preselectDate) return;
     const sessions = getSessions();
@@ -44,25 +55,69 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
     }
   }, [preselectDate]);
 
+  // Match day detection and saved lineup restore
   useEffect(() => {
+    const session = getMatchSessionForDate(matchDate);
+    if (session) {
+      setIsMatchDay(true);
+      setMatchSessionId(session.id);
+      // Restore saved live lineup if exists
+      const saved = loadLiveLineup(session.id);
+      if (saved) {
+        setResult(saved);
+      }
+    } else {
+      setIsMatchDay(false);
+      setMatchSessionId(null);
+    }
+  }, [matchDate]);
+
+  // Auto-refresh live data on match day
+  useEffect(() => {
+    if (preselectDate) return;
     const today = new Date().toISOString().split('T')[0];
     const sessions = getSessions();
-    const isMatchDay = sessions.some(s => s.type === 'match' && s.date === today);
-    if (!isMatchDay) return;
+    const isMatchDayToday = sessions.some(s => s.type === 'match' && s.date === today);
+    if (!isMatchDayToday) return;
 
-    setRefreshStatus('loading');
-    fetchLiveData()
-      .then(liveData => {
-        const added = updateFromLiveData(liveData);
-        setRefreshStatus(added > 0 ? 'done' : 'uptodate');
-        if (added > 0) {
-          setResult(prev => prev ? generateFullLineup(matchDate, SUPER_LEAGUE_FORMAT) : null);
-        }
-      })
-      .catch(() => {
-        setRefreshStatus('error');
-      });
-  }, []);
+    const doRefresh = () => {
+      setRefreshStatus('loading');
+      fetchLiveData()
+        .then(liveData => {
+          const added = updateFromLiveData(liveData);
+          setRefreshStatus(added > 0 ? 'done' : 'uptodate');
+          if (added > 0) {
+            setResult(prev => prev ? generateFullLineup(matchDate, SUPER_LEAGUE_FORMAT) : null);
+          }
+        })
+        .catch(() => {
+          setRefreshStatus('error');
+        });
+    };
+
+    doRefresh();
+    const interval = setInterval(doRefresh, 60000);
+    return () => clearInterval(interval);
+  }, [matchDate, preselectDate]);
+
+  // Refresh game results / score periodically on match day
+  useEffect(() => {
+    if (!matchSessionId) return;
+    const updateResults = () => {
+      setGameResults(getGameResultsForSession(matchSessionId));
+      setScore(getMatchScore(matchSessionId));
+    };
+    updateResults();
+    const interval = setInterval(updateResults, 15000);
+    return () => clearInterval(interval);
+  }, [matchSessionId]);
+
+  // Persist lineup on match day whenever it changes
+  useEffect(() => {
+    if (matchSessionId && result) {
+      saveLiveLineup(matchSessionId, result);
+    }
+  }, [result, matchSessionId]);
 
   useEffect(() => {
     if (preselectDate) {
@@ -76,12 +131,102 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
     setResult(lineup);
   }
 
+  function handleSwapPlayer(gameId: number, playerIdx: number, newPlayerId: string) {
+    if (!result || !matchSessionId) return;
+    const idx = result.assignments.findIndex(a => a.game.id === gameId);
+    if (idx === -1) return;
+    if (playerIdx >= result.assignments[idx].players.length) return;
+
+    const assignment = result.assignments[idx];
+    const players = getAllPlayersWithStats();
+    const replacement = players.find(p => p.player.id === newPlayerId);
+    if (!replacement) return;
+
+    const newPlayers = [...assignment.players];
+    newPlayers[playerIdx] = replacement;
+
+    // Recalculate game count
+    const countMap = new Map<string, number>();
+    const newAssignments = result.assignments.map((a, i) => {
+      if (i !== idx) {
+        for (const p of a.players) {
+          countMap.set(p.player.id, (countMap.get(p.player.id) || 0) + 1);
+        }
+        return a;
+      }
+      for (const p of newPlayers) {
+        countMap.set(p.player.id, (countMap.get(p.player.id) || 0) + 1);
+      }
+      return { ...a, players: newPlayers };
+    });
+
+    const playerGameCount = Array.from(countMap.entries())
+      .map(([playerId, count]) => {
+        const p = players.find(pp => pp.player.id === playerId);
+        return { playerName: p?.player?.name || playerId, count };
+      })
+      .sort((a, b) => b.count - a.count);
+
+    setResult({ ...result, assignments: newAssignments, playerGameCount });
+    setSwapTarget(null);
+  }
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 animate-fade-in">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-[#e8e0f4]">Lineup Generator</h1>
         <p className="text-sm text-[#5a4a8a] mt-0.5">Optimize player assignments across all 9 Super League games</p>
       </div>
+
+      {/* Live Match Banner */}
+      {isMatchDay && matchSessionId && (
+        <div className="glass-card rounded-xl p-5 mb-8 border border-cyan-400/30 shadow-[0_0_20px_rgba(0,229,255,0.08)]">
+          <div className="flex items-center gap-3 mb-3">
+            <span className="flex items-center gap-1.5 text-xs font-semibold text-cyan-400 bg-cyan-400/10 px-3 py-1 rounded-full border border-cyan-400/25">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_6px_rgba(0,229,255,0.6)]" />
+              LIVE
+            </span>
+            <span className="text-sm text-[#b8aad8]">
+              Match on {matchDate}
+            </span>
+            {score.total > 0 && (
+              <span className="ml-auto text-lg font-bold text-[#e8e0f4] tabular-nums">
+                <span className={score.thirstday > score.opponent ? 'text-dart-green' : 'text-dart-red'}>
+                  {score.thirstday}
+                </span>
+                <span className="text-[#5a4a8a] mx-1">-</span>
+                <span className={score.opponent > score.thirstday ? 'text-dart-green' : 'text-dart-red'}>
+                  {score.opponent}
+                </span>
+                <span className="text-xs text-[#5a4a8a] ml-1.5">/ {score.total}</span>
+              </span>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {SUPER_LEAGUE_FORMAT.map(g => {
+              const r = gameResults.get(g.id);
+              const isCompleted = r !== undefined;
+              return (
+                <span
+                  key={g.id}
+                  className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                    isCompleted
+                      ? r!.won
+                        ? 'bg-dart-green/15 text-dart-green border border-dart-green/30'
+                        : 'bg-dart-red/15 text-dart-red border border-dart-red/30'
+                      : 'bg-[#0d0830] text-[#5a4a8a] border border-[#1a2a5a]'
+                  }`}
+                >
+                  G{g.id} {isCompleted ? (r!.won ? 'W' : 'L') : '-'}
+                </span>
+              );
+            })}
+          </div>
+          {score.total > 0 && score.total < 9 && (
+            <p className="text-xs text-cyan-400/70 mt-2">Results auto-refresh every 15s — swap players on pending games below</p>
+          )}
+        </div>
+      )}
 
       {/* Controls */}
       <div className="glass-card rounded-xl p-6 mb-8">
@@ -100,7 +245,7 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
               onClick={handleGenerate}
               className="w-full px-4 py-2 bg-cyan-400 text-[#0a0520] rounded-lg hover:bg-gold-300 transition-colors font-medium shadow-lg shadow-cyan-400/20"
             >
-              Generate Lineup
+              {isMatchDay ? 'Generate / Reset Lineup' : 'Generate Lineup'}
             </button>
           </div>
         </div>
@@ -131,6 +276,13 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
           <div className="bg-[#1a1050] border border-[#3a2a6a] rounded-lg p-3 mt-4 flex items-center gap-2 text-sm text-[#b8aad8]">
             <span>📋</span>
             <span>Lineup planned from Attendance — only responding players (on-time/late) are available</span>
+          </div>
+        )}
+
+        {isMatchDay && !preselectDate && (
+          <div className="bg-cyan-400/[0.06] border border-cyan-400/25 rounded-lg p-3 mt-4 flex items-center gap-2 text-sm text-cyan-400">
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+            <span>Match day — lineups are auto-saved. Click a player to swap if someone's not in their prime.</span>
           </div>
         )}
 
@@ -165,6 +317,7 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
                 const assignment = assignMap.get(game.id);
                 const skipped = skipMap.get(game.id);
                 const styles = GAME_TYPE_STYLES[game.type];
+                const completed = gameResults.get(game.id);
 
                 if (skipped) {
                   return (
@@ -183,8 +336,17 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
                 if (!assignment) return null;
 
                 return (
-                  <div key={game.id} className={`bg-[#0d0830] rounded-xl shadow-lg border ${styles.border} p-3 hover:bg-[#100a30] hover:scale-[1.02] hover:shadow-xl transition-all duration-200`}>
+                  <div key={game.id} className={`bg-[#0d0830] rounded-xl shadow-lg border ${styles.border} p-3 transition-all duration-200 ${completed ? '' : 'hover:bg-[#100a30] hover:shadow-xl'}`}>
                     <div className="flex items-center gap-2 mb-2">
+                      {completed ? (
+                        <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${completed.won ? 'bg-dart-green/15 text-dart-green border-dart-green/30' : 'bg-dart-red/15 text-dart-red border-dart-red/30'}`}>
+                          {completed.won ? 'W' : 'L'} {completed.legsWon}-{completed.legsLost}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full border bg-[#0a0520]/60 text-[#5a4a8a] border-[#1a2a5a]">
+                          PENDING
+                        </span>
+                      )}
                       <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${styles.badge}`}>
                         {game.type.toUpperCase()}
                       </span>
@@ -203,17 +365,36 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
                           : isOnlyCricket
                             ? (p.statsCricketAvg > 0 ? p.statsCricketAvg.toFixed(1) : '-')
                             : String(p.compositeScore);
+                        const isSwapping = swapTarget?.gameId === game.id && swapTarget?.playerIdx === i;
                         return (
-                          <div key={p.player.id} className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <span className={`w-5 h-5 rounded-full ${styles.dot} text-white flex items-center justify-center text-[10px] font-bold`}>{i + 1}</span>
-                              <span className="text-sm font-medium text-[#e8e0f4]">{p.player.name}</span>
+                          <div key={p.player.id} className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className={`w-5 h-5 rounded-full ${styles.dot} text-white flex items-center justify-center text-[10px] font-bold shrink-0`}>{i + 1}</span>
+                              <span className="text-sm font-medium text-[#e8e0f4] truncate">{p.player.name}</span>
+                              <span className="text-xs font-semibold text-cyan-400 shrink-0" title={`${statLabel}: ${statValue}`}>{statValue}</span>
                             </div>
-                            <span className="text-xs font-semibold text-cyan-400" title={`${statLabel}: ${statValue}`}>{statValue}</span>
+                            <div className="flex items-center gap-1 shrink-0">
+                              {!completed && isMatchDay && !preselectDate && (
+                                <button
+                                  onClick={() => setSwapTarget(isSwapping ? null : { gameId: game.id, playerIdx: i })}
+                                  className="text-[10px] px-2 py-0.5 rounded bg-[#150d40] text-[#5a4a8a] hover:bg-cyan-400/15 hover:text-cyan-400 border border-[#1a2a5a] hover:border-cyan-400/30 transition-colors"
+                                >
+                                  Swap
+                                </button>
+                              )}
+                            </div>
                           </div>
                         );
                       })}
                     </div>
+                    {/* Swap dropdown */}
+                    {isMatchDay && !completed && !preselectDate && swapTarget?.gameId === game.id && (
+                      <SwapDropdown
+                        currentPlayerIds={assignment.players.map(p => p.player.id)}
+                        onSelect={(pid) => handleSwapPlayer(game.id, swapTarget.playerIdx, pid)}
+                        onClose={() => setSwapTarget(null)}
+                      />
+                    )}
                   </div>
                 );
               };
@@ -359,3 +540,55 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
     </div>
   );
 }
+
+/** Inline swap dropdown showing available players to swap in */
+function SwapDropdown({
+  currentPlayerIds,
+  onSelect,
+  onClose,
+}: {
+  currentPlayerIds: string[];
+  onSelect: (newPlayerId: string) => void;
+  onClose: () => void;
+}) {
+  const [players, setPlayers] = useState<{ id: string; name: string; info: string }[]>([]);
+
+  useEffect(() => {
+    const all = getAllPlayersWithStats();
+    const filtered = all
+      .filter(p => !currentPlayerIds.includes(p.player.id))
+      .map(p => ({
+        id: p.player.id,
+        name: p.player.name,
+        info: `Rt ${p.player.liveRating.toFixed(1)}`,
+      }));
+    setPlayers(filtered);
+  }, [currentPlayerIds]);
+
+  return (
+    <div className="mt-2 pt-2 border-t border-[#150d40]">
+      <p className="text-[10px] text-[#5a4a8a] mb-1.5">Swap with:</p>
+      <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
+        {players.length === 0 && (
+          <span className="text-xs text-[#5a4a8a]">No other players available</span>
+        )}
+        {players.map(p => (
+          <button
+            key={p.id}
+            onClick={() => onSelect(p.id)}
+            className="text-xs px-2.5 py-1 rounded-lg bg-[#0a0520]/80 border border-[#1a2a5a] text-[#b8aad8] hover:bg-cyan-400/15 hover:text-cyan-400 hover:border-cyan-400/30 transition-colors"
+          >
+            {p.name} <span className="text-[#5a4a8a]">({p.info})</span>
+          </button>
+        ))}
+      </div>
+      <button
+        onClick={onClose}
+        className="text-[10px] text-[#5a4a8a] hover:text-[#b8aad8] mt-1"
+      >
+        Cancel
+      </button>
+    </div>
+  );
+}
+

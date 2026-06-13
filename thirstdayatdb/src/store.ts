@@ -541,6 +541,55 @@ export function generateLineup(
   };
 }
 
+// --- Live match-day lineup ---
+const LIVE_LINEUP_PREFIX = 'darts_live_lineup_';
+function getLiveLineupKey(sessionId: string): string {
+  return LIVE_LINEUP_PREFIX + sessionId;
+}
+
+export function getMatchSessionForDate(date: string): Session | null {
+  return getSessions().find(s => s.type === 'match' && s.date === date) || null;
+}
+
+export function getGameResultsForSession(sessionId: string): Map<number, { won: boolean; legsWon: number; legsLost: number }> {
+  const performances = getGamePerformancesForSession(sessionId);
+  const byGame = new Map<number, { won: boolean; legsWon: number; legsLost: number }>();
+  for (const p of performances) {
+    if (!byGame.has(p.gameId)) {
+      byGame.set(p.gameId, { won: p.won, legsWon: 0, legsLost: 0 });
+    }
+    const entry = byGame.get(p.gameId)!;
+    entry.legsWon += p.legsWon;
+    entry.legsLost += p.legsLost;
+    // A game is "won" if at least one player won it
+    if (p.won) entry.won = true;
+  }
+  return byGame;
+}
+
+export function getMatchScore(sessionId: string): { thirstday: number; opponent: number; total: number } {
+  const results = getGameResultsForSession(sessionId);
+  let thirstday = 0;
+  let opponent = 0;
+  let total = 0;
+  for (const [, r] of results) {
+    total++;
+    if (r.won) thirstday++; else opponent++;
+  }
+  return { thirstday, opponent, total };
+}
+
+export function saveLiveLineup(sessionId: string, lineup: FullLineup): void {
+  localStorage.setItem(getLiveLineupKey(sessionId), JSON.stringify(lineup));
+}
+
+export function loadLiveLineup(sessionId: string): FullLineup | null {
+  try {
+    const data = localStorage.getItem(getLiveLineupKey(sessionId));
+    return data ? JSON.parse(data) : null;
+  } catch { return null; }
+}
+
 /**
  * Generates a SUPER LEAGUE lineup with game assignments.
  * Players can play multiple games — optimized by composite score.
