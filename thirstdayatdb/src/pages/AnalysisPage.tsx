@@ -240,48 +240,100 @@ export default function AnalysisPage() {
         </div>
       )}
 
-      {/* Match-by-match game results */}
+      {/* Game-level history across all matches */}
       {matchSessions.length > 0 && (
         <div className="mt-6">
           <button
             onClick={() => {
-              const el = document.getElementById('match-results');
+              const el = document.getElementById('game-history');
               if (el) el.classList.toggle('hidden');
             }}
             className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
           >
-            View Match-by-Match Results ▼
+            View Game History by Slot ▼
           </button>
-          <div id="match-results" className="hidden mt-3 space-y-2">
-            {matchSessions.map(s => {
-              const gps = getGamePerformancesForSession(s.id);
-              if (gps.length === 0) return null;
-              const matchNote = s.notes?.match(/\((W|L)\s+(\d+)-(\d+)\)/);
-              const matchResult = matchNote ? `${matchNote[1]} ${matchNote[2]}-${matchNote[3]}` : '';
-              const isMatchWin = matchNote?.[1] === 'W';
-              return (
-                <div key={s.id} className="bg-white rounded-lg border border-gray-200 p-3 text-sm">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium text-gray-700">{s.date}</span>
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${isMatchWin ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                      {matchResult || s.date}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-3 sm:grid-cols-5 gap-1">
-                    {gps.filter((g, i, a) => a.findIndex(x => x.gameId === g.gameId) === i).map(g => {
-                      const gameGps = gps.filter(x => x.gameId === g.gameId);
-                      const won = gameGps.some(x => x.won);
-                      return (
-                        <div key={g.gameId} className={`text-xs p-1.5 rounded ${won ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>
-                          <span className="font-medium">G{g.gameId}</span>
-                          <span className="ml-1">{won ? 'W' : 'L'}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
+          <div id="game-history" className="hidden mt-3">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h2 className="text-lg font-semibold text-gray-700 mb-4">Game History by Slot</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-gray-200 text-gray-500">
+                      <th className="pb-2 pr-3 font-medium whitespace-nowrap">Game</th>
+                      <th className="pb-2 pr-3 font-medium whitespace-nowrap">Type</th>
+                      {matchSessions.map(s => (
+                        <th key={s.id} className="pb-2 px-2 font-medium text-center text-[10px] whitespace-nowrap">
+                          {s.date.slice(5)}
+                        </th>
+                      ))}
+                      <th className="pb-2 pl-3 font-medium text-center">W%</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(() => {
+                      // Build game-level data: for each gameId, collect results across matches
+                      const gameData = new Map<number, {
+                        gameType: string;
+                        format: string;
+                        results: { date: string; won: boolean }[];
+                      }>();
+                      const sortedSessions = [...matchSessions].sort((a, b) => a.date.localeCompare(b.date));
+
+                      for (const s of sortedSessions) {
+                        const gps = getGamePerformancesForSession(s.id);
+                        const seen = new Set<number>();
+                        for (const g of gps) {
+                          if (seen.has(g.gameId)) continue;
+                          seen.add(g.gameId);
+                          if (!gameData.has(g.gameId)) {
+                            gameData.set(g.gameId, { gameType: g.gameType, format: g.format, results: [] });
+                          }
+                          gameData.get(g.gameId)!.results.push({ date: s.date, won: g.won });
+                        }
+                      }
+
+                      const formatLabel: Record<string, string> = {
+                        '01': '01', cricket: 'Cr', 'half-it': '½', mixed: 'Mx',
+                      };
+                      const gameTypeOrder = ['singles', 'doubles', 'trios', 'team'];
+                      const sortedGames = [...gameData.entries()].sort(([a], [b]) => a - b);
+
+                      return sortedGames.map(([gameId, data]) => {
+                        const wins = data.results.filter(r => r.won).length;
+                        const total = data.results.length;
+                        const winPct = total > 0 ? Math.round((wins / total) * 100) : 0;
+                        return (
+                          <tr key={gameId} className="border-b border-gray-100 hover:bg-gray-50">
+                            <td className="py-2 pr-3 font-semibold text-gray-800 whitespace-nowrap">G{gameId}</td>
+                            <td className="py-2 pr-3 text-gray-500 whitespace-nowrap">
+                              {data.gameType} {formatLabel[data.format] || data.format}
+                            </td>
+                            {sortedSessions.map(s => {
+                              const result = data.results.find(r => r.date === s.date);
+                              const r = result?.won;
+                              return (
+                                <td key={s.id} className="py-2 px-2 text-center">
+                                  {r !== undefined ? (
+                                    <span className={`inline-block w-5 h-5 leading-5 rounded text-[10px] font-bold ${
+                                      r ? 'bg-green-100 text-green-700' : 'bg-red-50 text-red-500'
+                                    }`}>
+                                      {r ? 'W' : 'L'}
+                                    </span>
+                                  ) : (
+                                    <span className="text-gray-200">-</span>
+                                  )}
+                                </td>
+                              );
+                            })}
+                            <td className="py-2 pl-3 text-center"><WinBadge pct={winPct} /></td>
+                          </tr>
+                        );
+                      });
+                    })()}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
       )}
