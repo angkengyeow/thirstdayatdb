@@ -155,11 +155,8 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
           <p className="mt-1">
             <span className="font-medium">Format-aware ranking:</span> Pure 01 games (G1, G9) rank by 01 Avg. Pure Cricket (G5) ranks by Cricket Avg. Mixed games use the overall Composite.
           </p>
-          <p className="mt-1">
-            <span className="font-medium">Repeat of players:</span> G1 player is exclusive (no repeat). G4 allows 1 repeat from Part 1. G8 allows 1 repeat from Parts 1-2.
-          </p>
           <p className="text-indigo-600 mt-1">
-            Game count is balanced across the roster. Min 4 players to play.
+            Game count is balanced across the roster. With fewer players, the same players will repeat across games naturally.
           </p>
         </div>
       </div>

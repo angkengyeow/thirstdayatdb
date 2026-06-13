@@ -560,76 +560,29 @@ export function generateFullLineup(
   const gameCount = new Map<string, number>();
   availablePlayers.forEach(p => gameCount.set(p.player.id, 0));
 
-  // S1 format: 3 parts with repeat-of-players rules
-  // Part 1 (G1-G3): No repeats — G1 player is locked
-  // Part 2 (G4-G7): 1 repeat from Part 1 allowed
-  // Part 3 (G8-G9): All players available (game count penalty balances distribution)
-  const parts = [
-    { start: 0, end: 3, repeatSlots: 0 },  // G1-G3
-    { start: 3, end: 7, repeatSlots: 1 },   // G4-G7
-    { start: 7, end: 9, repeatSlots: 1 },   // G8-G9
-  ];
-
-  const partUsedPlayers: Set<string>[] = [];
   const assignments: GameAssignment[] = [];
 
-  for (let p = 0; p < parts.length; p++) {
-    const { start, end, repeatSlots } = parts[p];
-    const partGames = games.slice(start, end);
-    const usedThisPart = new Set<string>();
+  // Assign all games in sequence — no repeat restrictions.
+  // Game count penalty in the ranking naturally balances distribution
+  // so players with fewer games get priority for the next slot.
+  for (const game of games) {
+    const assigned: PlayerWithStats[] = [];
+    const needed = game.playerCount;
 
-    // Build the pool for this part
-    let partPool = [...availablePlayers];
+    // Rank by format score, penalize high game count
+    const ranked = [...availablePlayers].sort((a, b) => {
+      const aScore = formatScore(a, game.legs) - (gameCount.get(a.player.id) || 0) * 10;
+      const bScore = formatScore(b, game.legs) - (gameCount.get(b.player.id) || 0) * 10;
+      return bScore - aScore;
+    });
 
-    if (p === 0) {
-      // Part 1: all available players
-    } else if (p === 2) {
-      // Part 3 (G8-G9): Parts 1-2 likely used the whole roster, so allow all players back.
-      // The game count penalty in the ranking function naturally balances playing time.
-      // prevUsed filtering is skipped — repeats are allowed by design.
-    } else {
-      // Part 2: remove players used in Part 1, then add back top repeat candidates
-      const prevUsed = new Set(partUsedPlayers.flatMap(s => Array.from(s)));
-      partPool = partPool.filter(pp => !prevUsed.has(pp.player.id));
-
-      if (repeatSlots > 0) {
-        // Find top candidates from Part 1 by composite score
-        const prevPlayers = availablePlayers.filter(pp => prevUsed.has(pp.player.id));
-        const topRepeat = prevPlayers
-          .sort((a, b) => b.compositeScore - a.compositeScore)
-          .slice(0, repeatSlots);
-        partPool.push(...topRepeat);
-      }
+    for (let i = 0; i < needed && i < ranked.length; i++) {
+      const p2 = ranked[i];
+      assigned.push(p2);
+      gameCount.set(p2.player.id, (gameCount.get(p2.player.id) || 0) + 1);
     }
 
-    for (const game of partGames) {
-      const assigned: PlayerWithStats[] = [];
-      const needed = game.playerCount;
-
-      // Rank by format score, penalize high game count
-      const ranked = [...partPool].sort((a, b) => {
-        const aScore = formatScore(a, game.legs) - (gameCount.get(a.player.id) || 0) * 10;
-        const bScore = formatScore(b, game.legs) - (gameCount.get(b.player.id) || 0) * 10;
-        return bScore - aScore;
-      });
-
-      for (let i = 0; i < needed && i < ranked.length; i++) {
-        const p2 = ranked[i];
-        assigned.push(p2);
-        gameCount.set(p2.player.id, (gameCount.get(p2.player.id) || 0) + 1);
-        usedThisPart.add(p2.player.id);
-      }
-
-      assignments.push({ game, players: assigned });
-    }
-
-    partUsedPlayers.push(usedThisPart);
-
-    // Part 1 G1 player is locked — remove from all future parts
-    if (p === 0 && assignments.length > 0 && assignments[0].players.length > 0) {
-      const g1PlayerId = assignments[0].players[0].player.id;
-      availablePlayers = availablePlayers.filter(ap => ap.player.id !== g1PlayerId);
-    }
+    assignments.push({ game, players: assigned });
   }
 
   const playerGameCount = Array.from(gameCount.entries())
