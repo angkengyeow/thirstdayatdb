@@ -606,6 +606,10 @@ export function generateFullLineup(
   const assignments: GameAssignment[] = [];
   const skippedGames: SkippedGame[] = [];
 
+  // Super League rule: first 3 games (G1, G2, G3) must have all unique players.
+  // Track players assigned to these games so they're excluded from subsequent ones.
+  const firstThreeUsed = new Set<string>();
+
   // Assign games in sequence — skip any where there aren't enough available players.
   // Game count penalty in the ranking naturally balances distribution
   // so players with fewer games get priority for the next slot.
@@ -620,10 +624,25 @@ export function generateFullLineup(
       continue;
     }
 
+    // For G1-G3: exclude players already used in earlier first-three games
+    // so no player repeats across G1, G2, or G3
+    const isFirstThree = game.id <= 3;
+    let pool = availablePlayers;
+    if (isFirstThree && firstThreeUsed.size > 0) {
+      pool = availablePlayers.filter(p => !firstThreeUsed.has(p.player.id));
+      if (pool.length < needed) {
+        skippedGames.push({
+          game,
+          reason: `G1-G3 no-repeat rule: need ${needed} unused player${needed > 1 ? 's' : ''}, only ${pool.length} available`,
+        });
+        continue;
+      }
+    }
+
     const assigned: PlayerWithStats[] = [];
 
     // Rank by format score, penalize high game count
-    const ranked = [...availablePlayers].sort((a, b) => {
+    const ranked = [...pool].sort((a, b) => {
       const aScore = formatScore(a, game.legs) - (gameCount.get(a.player.id) || 0) * 10;
       const bScore = formatScore(b, game.legs) - (gameCount.get(b.player.id) || 0) * 10;
       return bScore - aScore;
@@ -633,6 +652,7 @@ export function generateFullLineup(
       const p2 = ranked[i];
       assigned.push(p2);
       gameCount.set(p2.player.id, (gameCount.get(p2.player.id) || 0) + 1);
+      if (isFirstThree) firstThreeUsed.add(p2.player.id);
     }
 
     assignments.push({ game, players: assigned });
