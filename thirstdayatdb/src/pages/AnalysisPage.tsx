@@ -15,7 +15,9 @@ export default function AnalysisPage() {
 
   useEffect(() => { load(); }, [refresh, load]);
 
-  const matchSessions = getSessions().filter(s => s.type === 'match');
+  const matchSessions = getSessions()
+    .filter(s => s.type === 'match')
+    .sort((a, b) => a.date.localeCompare(b.date));
 
   if (playerStats.length === 0) {
     return (
@@ -185,9 +187,7 @@ export default function AnalysisPage() {
                     format: string;
                     results: { date: string; won: boolean }[];
                   }>();
-                  const sortedSessions = [...matchSessions].sort((a, b) => a.date.localeCompare(b.date));
-
-                  for (const s of sortedSessions) {
+                  for (const s of matchSessions) {
                     const gps = getGamePerformancesForSession(s.id);
                     const seen = new Set<number>();
                     for (const g of gps) {
@@ -215,7 +215,7 @@ export default function AnalysisPage() {
                         <td className="py-2 pr-3 text-[#6b6b8a] whitespace-nowrap">
                           {data.gameType} {formatLabel[data.format] || data.format}
                         </td>
-                        {sortedSessions.map(s => {
+                        {matchSessions.map(s => {
                           const result = data.results.find(r => r.date === s.date);
                           const r = result?.won;
                           return (
