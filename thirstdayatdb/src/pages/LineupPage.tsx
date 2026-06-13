@@ -158,7 +158,7 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
             <li><strong>G1, G9</strong> (pure 01) → ranked by <strong>01 Avg</strong></li>
             <li><strong>G5</strong> (pure Cricket) → ranked by <strong>Cricket Avg</strong></li>
             <li><strong>G2–G4, G7, G8</strong> (mixed) → ranked by <strong>Composite</strong> (50% 01 Avg + 50% Win Rate)</li>
-            <li><strong>G6</strong> (Half-It) → ranked by <strong>Composite</strong></li>
+            <li><strong>G6</strong> (Half-It) → ranked by <strong>Half-It Composite</strong> (50% Cricket Avg + 50% Half-It Leg Win Rate)</li>
           </ul>
           <p className="text-indigo-600 mt-1">
             Game count is balanced by giving priority to players with fewer games. With fewer players, the same players will repeat across games naturally.

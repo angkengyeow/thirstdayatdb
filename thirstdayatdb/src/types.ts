@@ -49,6 +49,7 @@ export interface PlayerWithStats {
   compositeScore: number;
   stats01Avg: number;
   statsCricketAvg: number;
+  halfItLegWinPct: number; // 0-100 leg win rate in Half-It games
 }
 
 export interface LineupSlot {

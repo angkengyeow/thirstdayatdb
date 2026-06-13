@@ -491,7 +491,14 @@ export function getPlayerWithStats(playerId: string): PlayerWithStats | null {
     ? statsCricketValues.reduce((a, b) => a + b, 0) / statsCricketValues.length
     : 0;
 
-  return { player, formAverage, punctualityScore, recentForm, compositeScore, stats01Avg: rawStats01Avg, statsCricketAvg: rawStatsCricketAvg };
+  // Half-It leg win rate from past Half-It games
+  const halfItGames = gps.filter(g => g.format === 'half-it');
+  const halfItLegsWon = halfItGames.reduce((s, g) => s + g.legsWon, 0);
+  const halfItLegsLost = halfItGames.reduce((s, g) => s + g.legsLost, 0);
+  const halfItLegTotal = halfItLegsWon + halfItLegsLost;
+  const halfItLegWinPct = halfItLegTotal > 0 ? Math.round((halfItLegsWon / halfItLegTotal) * 100) : 0;
+
+  return { player, formAverage, punctualityScore, recentForm, compositeScore, stats01Avg: rawStats01Avg, statsCricketAvg: rawStatsCricketAvg, halfItLegWinPct };
 }
 
 export function getAllPlayersWithStats(): PlayerWithStats[] {
@@ -596,10 +603,11 @@ export function generateFullLineup(
   return { assignments, playerGameCount };
 }
 
-/** Returns a 0-100 skill score tailored to the game format (01 vs cricket vs mixed). */
+/** Returns a 0-100 skill score tailored to the game format (01 vs cricket vs half-it vs mixed). */
 function formatScore(player: PlayerWithStats, legs: string): number {
   const isOnly01 = !legs.includes('Cricket') && !legs.includes('Choice') && !legs.includes('Half-It');
   const isOnlyCricket = !legs.includes('701') && !legs.includes('901') && !legs.includes('1101') && !legs.includes('Choice') && !legs.includes('Half-It');
+  const isHalfIt = legs.includes('Half-It');
 
   if (isOnly01) {
     // Pure 01 game (G1, G9) — DartsLive API returns 0-100 rating
@@ -609,7 +617,14 @@ function formatScore(player: PlayerWithStats, legs: string): number {
     // Pure cricket game (G5) — use normalized cricket average
     return player.statsCricketAvg > 0 ? Math.min(100, Math.max(0, (player.statsCricketAvg - 1) * 14)) : 0;
   }
-  // Mixed-format or half-it games — use composite (01 avg + win rate)
+  if (isHalfIt) {
+    // Half-It (G6) — composite of cricket avg (similar target-hitting gameplay) + past half-it leg performance
+    const cricketScore = player.statsCricketAvg > 0 ? Math.min(100, Math.max(0, (player.statsCricketAvg - 1) * 14)) : 0;
+    const halfItScore = player.halfItLegWinPct;
+    // Weight: 50% cricket skill + 50% past half-it performance
+    return Math.round(cricketScore * 0.5 + halfItScore * 0.5);
+  }
+  // Mixed-format games — use composite (01 avg + win rate)
   return player.compositeScore;
 }
 
