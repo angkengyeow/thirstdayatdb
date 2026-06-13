@@ -3,7 +3,7 @@ import {
   getPlayerDashboardStats, getSessions, hasData, clearAllData,
   populateFromLiveData, updateFromLiveData, getTeamStanding,
   getUpcomingSessions, buildResponseLink, getGamePerformancesForSession,
-  getAllPlayersGameStats, getTeamGameStats,
+  getAllPlayersGameStats,
 } from '../store';
 import { seedDemoData } from '../seed';
 import { fetchLiveData } from '../scraper';
@@ -20,8 +20,6 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(false);
   const [loadStatus, setLoadStatus] = useState<LoadStatus>('idle');
   const [statusMessage, setStatusMessage] = useState('');
-  const [teamStats, setTeamStats] = useState({ totalGames: 0, wins: 0, losses: 0, winPct: 0 });
-  const [matchRecord, setMatchRecord] = useState({ wins: 0, losses: 0, winPct: 0 });
   const [playerStats, setPlayerStats] = useState(getAllPlayersGameStats());
   const matchSessions = sessions.filter(s => s.type === 'match');
 
@@ -30,9 +28,6 @@ export default function DashboardPage() {
     setSessions(getSessions());
     setStanding(getTeamStanding());
     setUpcoming(getUpcomingSessions());
-    setTeamStats(getTeamGameStats());
-    const st = getTeamStanding();
-    setMatchRecord({ wins: st.wins, losses: st.losses, winPct: st.winRate });
     setPlayerStats(getAllPlayersGameStats());
   }, []);
 
@@ -263,50 +258,6 @@ export default function DashboardPage() {
         </div>
         <div className="mt-4 pt-3 border-t border-white/20 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-indigo-200">
           <span>64 Credits · No Handicap · OI/MO</span>
-        </div>
-      </div>
-
-      {/* Match Record */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-        <h2 className="text-lg font-semibold text-gray-700 mb-4">Match Record</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="text-center p-3 bg-indigo-50 rounded-lg">
-            <p className="text-2xl font-bold text-indigo-600">{matchRecord.wins + matchRecord.losses}</p>
-            <p className="text-xs text-gray-500">Matches Played</p>
-          </div>
-          <div className="text-center p-3 bg-green-50 rounded-lg">
-            <p className="text-2xl font-bold text-green-600">{matchRecord.wins}</p>
-            <p className="text-xs text-gray-500">Wins</p>
-          </div>
-          <div className="text-center p-3 bg-red-50 rounded-lg">
-            <p className="text-2xl font-bold text-red-600">{matchRecord.losses}</p>
-            <p className="text-xs text-gray-500">Losses</p>
-          </div>
-          <div className="text-center p-3 bg-amber-50 rounded-lg">
-            <p className="text-2xl font-bold text-amber-600">{matchRecord.winPct}%</p>
-            <p className="text-xs text-gray-500">Win Rate</p>
-          </div>
-        </div>
-        <div className="mt-4 pt-3 border-t border-gray-100">
-          <h3 className="text-sm font-semibold text-gray-600 mb-3">Player Game Slots</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-3 bg-indigo-50/50 rounded-lg">
-              <p className="text-2xl font-bold text-indigo-600">{teamStats.totalGames}</p>
-              <p className="text-xs text-gray-500">Total Games</p>
-            </div>
-            <div className="text-center p-3 bg-green-50/50 rounded-lg">
-              <p className="text-2xl font-bold text-green-600">{teamStats.wins}</p>
-              <p className="text-xs text-gray-500">Wins</p>
-            </div>
-            <div className="text-center p-3 bg-red-50/50 rounded-lg">
-              <p className="text-2xl font-bold text-red-600">{teamStats.losses}</p>
-              <p className="text-xs text-gray-500">Losses</p>
-            </div>
-            <div className="text-center p-3 bg-amber-50/50 rounded-lg">
-              <p className="text-2xl font-bold text-amber-600">{teamStats.winPct}%</p>
-              <p className="text-xs text-gray-500">Win Rate</p>
-            </div>
-          </div>
         </div>
       </div>
 
