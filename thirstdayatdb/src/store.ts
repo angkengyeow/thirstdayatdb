@@ -996,13 +996,24 @@ export function getOpponentTeamProfile(matchDate: string): OpponentTeamProfile |
   if (!noteMatch) return null;
   const opponentTeam = noteMatch[1].trim();
 
-  // Get all records for this opponent (past matches)
-  const pastMatches = opponents.filter(o => o.opponentTeam === opponentTeam);
-  if (pastMatches.length === 0) return null;
+  // Get all records for this opponent (past matches), limited to last 5 matches
+  const pastMatches = opponents
+    .filter(o => o.opponentTeam === opponentTeam)
+    // Sort by matchDate descending, get unique match dates, keep last N
+    .sort((a, b) => b.matchDate.localeCompare(a.matchDate));
+  // Deduplicate by matchDate and keep only the last 5
+  const seenDates = new Set<string>();
+  const recentMatches = pastMatches.filter(rec => {
+    if (seenDates.has(rec.matchDate)) return true; // keep all records within a kept match
+    if (seenDates.size >= 5) return false; // reached limit
+    seenDates.add(rec.matchDate);
+    return true;
+  });
+  if (recentMatches.length === 0) return null;
 
   // Aggregate by game slot
   const slotMap = new Map<number, { playersFaced: string[]; stats01: number[]; statsCricket: number[] }>();
-  for (const rec of pastMatches) {
+  for (const rec of recentMatches) {
     for (const gameId of rec.gameIds) {
       if (!slotMap.has(gameId)) {
         slotMap.set(gameId, { playersFaced: [], stats01: [], statsCricket: [] });
@@ -1028,7 +1039,7 @@ export function getOpponentTeamProfile(matchDate: string): OpponentTeamProfile |
     }))
     .sort((a, b) => a.slotGameId - b.slotGameId);
 
-  const lastPlayed = [...pastMatches].sort((a, b) => b.matchDate.localeCompare(a.matchDate))[0]?.matchDate || '';
+  const lastPlayed = recentMatches[0]?.matchDate || '';
 
   return { teamName: opponentTeam, lastPlayed, gameSlots };
 }

@@ -574,6 +574,7 @@ function OpponentScouting({ matchDate, result }: { matchDate: string; result: Fu
           {profile.lastPlayed && (
             <span className="text-xs text-[#94A3B8] ml-auto font-body">Last met: {profile.lastPlayed}</span>
           )}
+          <span className="text-[10px] text-[#94A3B8] font-body">(last 5 matches)</span>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-xs font-body">
