@@ -55,12 +55,13 @@ const RATING_BRACKETS = [
   { label: '15 – 18', min: 15, max: 18 },
 ];
 
-/** Rough estimate of rating bracket based on 01 avg performance */
-function estimateBracketIndex(stats01Avg: number): number {
-  if (stats01Avg < 12) return 0;  // 1-5.99
-  if (stats01Avg < 16) return 1;  // 6-9.99
-  if (stats01Avg < 20) return 2;  // 10-14.99
-  return 3;                        // 15-18
+/** Map DartsLive rating to bracket index */
+function estimateBracketIndex(liveRating: number): number {
+  if (liveRating === 0) return -1; // no rating
+  if (liveRating < 6) return 0;    // 1-5.99
+  if (liveRating < 10) return 1;   // 6-9.99
+  if (liveRating < 15) return 2;   // 10-14.99
+  return 3;                         // 15-18
 }
 
 const BRACKET_COLORS = ['bg-gray-100', 'bg-indigo-100', 'bg-indigo-200', 'bg-indigo-300'];
@@ -146,6 +147,7 @@ export default function AwardsPage() {
                 <th className="pb-3 font-medium text-left">Player</th>
                 <th className="pb-3 font-medium text-center">01 Avg</th>
                 <th className="pb-3 font-medium text-center">Cricket Avg</th>
+                <th className="pb-3 font-medium text-center">DartsLive Rt.</th>
                 <th className="pb-3 font-medium text-center">Est. Rating Bracket</th>
                 <th className="pb-3 font-medium text-center">Hat Trick</th>
                 <th className="pb-3 font-medium text-center">High Ton</th>
@@ -157,20 +159,26 @@ export default function AwardsPage() {
             </thead>
             <tbody>
               {players.map(p => {
-                const bracketIdx = estimateBracketIndex(p.stats01Avg);
+                const bracketIdx = estimateBracketIndex(p.liveRating);
+                const hasRating = bracketIdx >= 0;
                 return (
                   <tr key={p.player.id} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="py-3 font-medium text-gray-800">{p.player.name}</td>
                     <td className="py-3 text-center font-mono text-gray-700">{p.stats01Avg > 0 ? p.stats01Avg.toFixed(1) : '-'}</td>
                     <td className="py-3 text-center font-mono text-gray-700">{p.statsCricketAvg > 0 ? p.statsCricketAvg.toFixed(1) : '-'}</td>
+                    <td className="py-3 text-center font-mono text-gray-700 font-semibold">{p.liveRating > 0 ? p.liveRating.toFixed(2) : '-'}</td>
                     <td className="py-3 text-center">
-                      <span className={`text-xs font-bold px-2 py-1 rounded-full ${BRACKET_COLORS[bracketIdx]} text-gray-700`}>
-                        {RATING_BRACKETS[bracketIdx].label}
-                      </span>
+                      {hasRating ? (
+                        <span className={`text-xs font-bold px-2 py-1 rounded-full ${BRACKET_COLORS[bracketIdx]} text-gray-700`}>
+                          {RATING_BRACKETS[bracketIdx].label}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-gray-300">—</span>
+                      )}
                     </td>
                     {AWARD_PINS.map(pin => (
                       <td key={pin.name} className="py-3 text-center font-mono text-gray-600">
-                        {pin.thresholds[bracketIdx]}
+                        {hasRating ? pin.thresholds[bracketIdx] : '-'}
                       </td>
                     ))}
                   </tr>
