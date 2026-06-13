@@ -47,7 +47,7 @@ const matchSchedule: MatchInfo[] = [
   { date: '2026-05-28', opponent: 'OBar - Alpha',           isHome: false, homeScore: 7, awayScore: 2, homeBonus: 1, awayBonus: 0 },
   { date: '2026-06-04', opponent: 'Good Vibes Club',        isHome: true,  homeScore: 5, awayScore: 4, homeBonus: 1, awayBonus: 0 },
   { date: '2026-06-11', opponent: 'CHAOS Primordial',       isHome: false, homeScore: 3, awayScore: 6, homeBonus: 0, awayBonus: 1 },
-  { date: '2026-06-18', opponent: 'Forest 5',               isHome: true,  homeScore: 0, awayScore: 0, homeBonus: 0, awayBonus: 0 },
+  { date: '2026-06-18', opponent: 'Forest 5',               isHome: true,  homeScore: 5, awayScore: 4, homeBonus: 1, awayBonus: 0 },
   { date: '2026-06-18', opponent: 'Yeti @ Shinjyu',         isHome: false, homeScore: 0, awayScore: 0, homeBonus: 0, awayBonus: 0 },
 ];
 

@@ -248,7 +248,7 @@ export function getSessionAttendanceOverview(sessionId: string) {
 export function getUpcomingSessions(): Session[] {
   const today = new Date().toISOString().split('T')[0];
   return getSessions()
-    .filter(s => s.date >= today)
+    .filter(s => s.date >= today && !s.notes?.match(/\((W|L)\s+\d+-\d+\)/))
     .sort((a, b) => a.date.localeCompare(b.date));
 }
 
