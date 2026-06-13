@@ -328,10 +328,8 @@ export function getPlayerGameStats(playerId: string): PlayerGameStats {
   const player = getPlayers().find(p => p.id === playerId);
   const games = getGamePerformancesForPlayer(playerId);
 
-  // Use DartsLive aggregate W/L when available, fall back to game performance data
-  const hasStoredRecords = player ? (player.wins > 0 || player.losses > 0) : false;
-  const totalGames = hasStoredRecords ? (player!.wins + player!.losses) : games.length;
-  const wins = hasStoredRecords ? player!.wins : games.filter(g => g.won).length;
+  const totalGames = games.length;
+  const wins = games.filter(g => g.won).length;
   const losses = totalGames - wins;
   const winPct = totalGames > 0 ? Math.round((wins / totalGames) * 100) : 0;
 
