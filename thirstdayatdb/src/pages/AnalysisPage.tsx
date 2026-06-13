@@ -150,6 +150,38 @@ export default function AnalysisPage() {
         </div>
       </div>
 
+      {/* Half-It Analysis */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <h2 className="text-lg font-semibold text-gray-700 mb-4">Half-It</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-gray-200 text-gray-500">
+                <th className="pb-3 font-medium">Player</th>
+                <th className="pb-3 font-medium text-center">Games</th>
+                <th className="pb-3 font-medium text-center">W</th>
+                <th className="pb-3 font-medium text-center">L</th>
+                <th className="pb-3 font-medium text-center">Win%</th>
+              </tr>
+            </thead>
+            <tbody>
+              {playerStats.filter(ps => ps.halfIt.games > 0).map(ps => (
+                <tr key={ps.playerId} className="border-b border-gray-100 hover:bg-gray-50">
+                  <td className="py-3 font-medium text-gray-800">{ps.playerName}</td>
+                  <td className="py-3 text-center">{ps.halfIt.games}</td>
+                  <td className="py-3 text-center text-green-600 font-medium">{ps.halfIt.wins}</td>
+                  <td className="py-3 text-center text-red-600 font-medium">{ps.halfIt.games - ps.halfIt.wins}</td>
+                  <td className="py-3 text-center"><WinBadge pct={ps.halfIt.winPct} /></td>
+                </tr>
+              ))}
+              {playerStats.filter(ps => ps.halfIt.games > 0).length === 0 && (
+                <tr><td colSpan={5} className="py-6 text-center text-gray-400 text-sm">No Half-It data yet</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       {/* Partner Analysis */}
       {partnerStats.length > 0 && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -246,7 +278,7 @@ function PlayerDetail({ playerId, playerStats }: { playerId: string; playerStats
   return (
     <div className="mt-4 pt-4 border-t border-gray-100">
       <h4 className="text-sm font-semibold text-gray-600 mb-3">Breakdown for {ps.playerName}</h4>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {(['singles', 'doubles', 'trios', 'team'] as const).map(gt => {
           const s = ps.byGameType[gt];
           return (
@@ -259,6 +291,15 @@ function PlayerDetail({ playerId, playerStats }: { playerId: string; playerStats
             </div>
           );
         })}
+        {ps.halfIt.games > 0 && (
+          <div className="text-center p-3 rounded-lg bg-purple-50">
+            <p className="text-xs text-gray-500 capitalize mb-1">half-it</p>
+            <p className={`text-lg font-bold ${ps.halfIt.winPct >= 60 ? 'text-green-600' : ps.halfIt.winPct >= 40 ? 'text-amber-600' : 'text-red-600'}`}>
+              {ps.halfIt.winPct}%
+            </p>
+            <p className="text-xs text-gray-400">{ps.halfIt.wins}/{ps.halfIt.games}</p>
+          </div>
+        )}
       </div>
     </div>
   );
