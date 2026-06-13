@@ -5,11 +5,10 @@ import AnalysisPage from './pages/AnalysisPage';
 import AwardsPage from './pages/AwardsPage';
 import AttendancePage from './pages/AttendancePage';
 import LineupPage from './pages/LineupPage';
-import LiveScoringSheet from './pages/LiveScoringSheet';
 import RespondPage from './pages/RespondPage';
 import { syncFromServer } from './store';
 
-type Page = 'dashboard' | 'analysis' | 'awards' | 'attendance' | 'lineup' | 'scoring';
+type Page = 'dashboard' | 'analysis' | 'awards' | 'attendance' | 'lineup';
 
 function isRespondMode(): boolean {
   return window.location.hash.startsWith('#respond');
@@ -73,7 +72,6 @@ export default function App() {
       {page === 'awards' && <AwardsPage />}
       {page === 'attendance' && <AttendancePage onNavigateToLineup={handleNavigateToLineup} />}
       {page === 'lineup' && <LineupPage preselectDate={lineupPreselectDate} />}
-      {page === 'scoring' && <LiveScoringSheet />}
-    </div>
+          </div>
   );
 }
