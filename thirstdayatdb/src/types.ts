@@ -118,7 +118,7 @@ export interface PlayerGameStats {
   legsLost: number;
   format01: { games: number; wins: number; winPct: number };
   cricket: { games: number; wins: number; winPct: number };
-  halfIt: { games: number; wins: number; winPct: number };
+  halfIt: { games: number; wins: number; winPct: number; legsWon: number; legsLost: number };
   legsWinPct: number;
   byGameType: Record<GameFormat, { games: number; wins: number; winPct: number }>;
   stats01Avg: number;

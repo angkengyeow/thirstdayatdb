@@ -339,7 +339,9 @@ export function getPlayerGameStats(playerId: string): PlayerGameStats {
   // half-it games are their own category
   const format01 = games.filter(g => g.stats01 !== undefined);
   const cricket = games.filter(g => g.statsCricket !== undefined);
-  const halfIt = games.filter(g => g.format === 'half-it');
+  const halfItGames = games.filter(g => g.format === 'half-it');
+  const halfItLegsWon = halfItGames.reduce((sum, g) => sum + g.legsWon, 0);
+  const halfItLegsLost = halfItGames.reduce((sum, g) => sum + g.legsLost, 0);
 
   const fmtStats = (gs: GamePerformance[]) => {
     const w = gs.filter(g => g.won).length;
@@ -383,7 +385,7 @@ export function getPlayerGameStats(playerId: string): PlayerGameStats {
     legsWinPct,
     format01: fmtStats(format01),
     cricket: fmtStats(cricket),
-    halfIt: fmtStats(halfIt),
+    halfIt: { ...fmtStats(halfItGames), legsWon: halfItLegsWon, legsLost: halfItLegsLost },
     byGameType,
     stats01Avg,
     statsCricketAvg,

@@ -98,6 +98,8 @@ export default function AnalysisPage() {
               <th className="pb-3 font-medium text-center">Legs W</th>
               <th className="pb-3 font-medium text-center">Legs L</th>
               <th className="pb-3 font-medium text-center">Legs Win%</th>
+              <th className="pb-3 font-medium text-center">H-It Legs W</th>
+              <th className="pb-3 font-medium text-center">H-It Legs L</th>
               <th className="pb-3 font-medium text-center">Half-It Win%</th>
             </tr>
           </thead>
@@ -125,6 +127,8 @@ export default function AnalysisPage() {
                 <td className="py-3 text-center text-green-600 font-medium">{ps.legsWon}</td>
                 <td className="py-3 text-center text-red-600 font-medium">{ps.legsLost}</td>
                 <td className="py-3 text-center"><WinBadge pct={ps.legsWinPct} /></td>
+                <td className="py-3 text-center text-green-600 font-medium">{ps.halfIt.games > 0 ? ps.halfIt.legsWon : <span className="text-gray-300">-</span>}</td>
+                <td className="py-3 text-center text-red-600 font-medium">{ps.halfIt.games > 0 ? ps.halfIt.legsLost : <span className="text-gray-300">-</span>}</td>
                 <td className="py-3 text-center">{ps.halfIt.games > 0 ? <WinBadge pct={ps.halfIt.winPct} /> : <span className="text-gray-300">-</span>}</td>
               </tr>
             ))}
