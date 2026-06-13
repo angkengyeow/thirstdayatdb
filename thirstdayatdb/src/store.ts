@@ -10,6 +10,7 @@ const STORAGE_KEYS = {
   responses: 'darts_responses',
   awards: 'darts_awards',
   opponentPlayers: 'darts_opponent_players',
+  lineups: 'darts_lineups',
   lastUpdated: 'darts_last_updated',
 } as const;
 
@@ -25,6 +26,7 @@ function scheduleServerSync() {
       performances: load<MatchPerformance[]>(STORAGE_KEYS.performances, []),
       gamePerformances: load<any[]>(STORAGE_KEYS.gamePerformances, []),
       responses: load<PlayerResponse[]>(STORAGE_KEYS.responses, []),
+      lineups: load<any>(STORAGE_KEYS.lineups, {}),
     });
     syncTimer = null;
   }, 2000);
@@ -43,6 +45,7 @@ export async function syncFromServer(): Promise<boolean> {
     localStorage.setItem(STORAGE_KEYS.gamePerformances, JSON.stringify(data.gamePerformances));
     localStorage.setItem(STORAGE_KEYS.responses, JSON.stringify(data.responses));
     if (data.awards) localStorage.setItem(STORAGE_KEYS.awards, JSON.stringify(data.awards));
+    if (data.lineups) localStorage.setItem(STORAGE_KEYS.lineups, JSON.stringify(data.lineups));
     return true;
   } catch {
     return false;
@@ -541,11 +544,7 @@ export function generateLineup(
   };
 }
 
-// --- Live match-day lineup ---
-const LIVE_LINEUP_PREFIX = 'darts_live_lineup_';
-function getLiveLineupKey(sessionId: string): string {
-  return LIVE_LINEUP_PREFIX + sessionId;
-}
+// --- Live match-day lineup (synced to server) ---
 
 export function getMatchSessionForDate(date: string): Session | null {
   return getSessions().find(s => s.type === 'match' && s.date === date) || null;
@@ -580,13 +579,15 @@ export function getMatchScore(sessionId: string): { thirstday: number; opponent:
 }
 
 export function saveLiveLineup(sessionId: string, lineup: FullLineup): void {
-  localStorage.setItem(getLiveLineupKey(sessionId), JSON.stringify(lineup));
+  const allLineups = load<Record<string, FullLineup>>(STORAGE_KEYS.lineups, {});
+  allLineups[sessionId] = lineup;
+  save(STORAGE_KEYS.lineups, allLineups);
 }
 
 export function loadLiveLineup(sessionId: string): FullLineup | null {
   try {
-    const data = localStorage.getItem(getLiveLineupKey(sessionId));
-    return data ? JSON.parse(data) : null;
+    const allLineups = load<Record<string, FullLineup>>(STORAGE_KEYS.lineups, {});
+    return allLineups[sessionId] || null;
   } catch { return null; }
 }
 

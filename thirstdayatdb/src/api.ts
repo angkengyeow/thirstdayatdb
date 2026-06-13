@@ -17,6 +17,7 @@ export async function loadAllFromServer(): Promise<{
   gamePerformances: any[];
   responses: any[];
   awards?: any;
+  lineups?: Record<string, any>;
 }> {
   try {
     const data = await api('/load');
@@ -41,6 +42,7 @@ export async function saveAllToServer(data: {
   performances: any[];
   gamePerformances: any[];
   responses: any[];
+  lineups?: Record<string, any>;
 }): Promise<void> {
   try {
     await api('/save', {
@@ -75,6 +77,7 @@ export async function saveAllToServerFireAndForget(data: {
   performances: any[];
   gamePerformances: any[];
   responses: any[];
+  lineups?: Record<string, any>;
 }): Promise<void> {
   return saveAllToServer(data);
 }
