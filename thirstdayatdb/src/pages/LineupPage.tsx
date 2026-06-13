@@ -47,6 +47,9 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
   const [dragOverGameId, setDragOverGameId] = useState<number | null>(null);
   const [dragOverPlayerIdx, setDragOverPlayerIdx] = useState<number | null>(null);
 
+  // Tap-to-swap state (works on touch devices where DnD isn't supported)
+  const [tapSource, setTapSource] = useState<{ sourceGameId: number; sourcePlayerIdx: number } | null>(null);
+
   useEffect(() => {
     if (preselectDate) return;
     const sessions = getSessions();
@@ -288,7 +291,7 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
         {result && (
           <div className="rounded-lg p-3 mt-4 flex items-center gap-2 text-sm font-body" style={{ background: 'rgba(212,175,55,0.06)', border: '1px solid rgba(212,175,55,0.2)', color: '#B8942E' }}>
             <span>↕</span>
-            <span>Drag and drop player names between game slots to manually adjust the lineup.</span>
+            <span>Drag player names between game slots, or tap a name then tap another slot to swap them.</span>
           </div>
         )}
 
@@ -386,13 +389,34 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
                             : String(p.compositeScore);
                         const isDragging = dragState?.sourceGameId === game.id && dragState?.sourcePlayerIdx === i;
                         const isOverThis = dragOverGameId === game.id && dragOverPlayerIdx === i;
+                        const isTapSource = tapSource?.sourceGameId === game.id && tapSource?.sourcePlayerIdx === i;
+
+                        const handleTap = () => {
+                          if (!tapSource) {
+                            setTapSource({ sourceGameId: game.id, sourcePlayerIdx: i });
+                            return;
+                          }
+                          if (tapSource.sourceGameId === game.id && tapSource.sourcePlayerIdx === i) {
+                            setTapSource(null);
+                            return;
+                          }
+                          handleMovePlayer(
+                            tapSource.sourceGameId,
+                            tapSource.sourcePlayerIdx,
+                            game.id,
+                            i,
+                          );
+                          setTapSource(null);
+                        };
 
                         return (
                           <div
                             key={p.player.id}
                             draggable
+                            onClick={handleTap}
                             onDragStart={e => {
                               e.dataTransfer.effectAllowed = 'move';
+                              e.dataTransfer.setData('text/plain', '');
                               setDragState({ sourceGameId: game.id, sourcePlayerIdx: i });
                             }}
                             onDragOver={e => {
@@ -423,8 +447,8 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
                               isDragging ? 'opacity-40' : ''
                             }`}
                             style={{
-                              background: isOverThis ? 'rgba(212,175,55,0.10)' : 'transparent',
-                              outline: isOverThis ? '2px dashed rgba(212,175,55,0.5)' : 'none',
+                              background: isTapSource ? 'rgba(212,175,55,0.12)' : (isOverThis ? 'rgba(212,175,55,0.10)' : 'transparent'),
+                              outline: isTapSource ? '2px solid rgba(212,175,55,0.6)' : (isOverThis ? '2px dashed rgba(212,175,55,0.5)' : 'none'),
                             }}
                           >
                             <div className="flex items-center gap-2 min-w-0">
