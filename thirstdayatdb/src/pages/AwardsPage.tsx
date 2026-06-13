@@ -134,6 +134,67 @@ export default function AwardsPage() {
         </table>
       </div>
 
+      {/* Player awards summary */}
+      {hasData && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8 overflow-x-auto">
+          <h2 className="text-lg font-semibold text-gray-700 mb-4">Awards Clocked by Player</h2>
+          <p className="text-xs text-gray-500 mb-4">
+            Number of award pins each player can pursue at their current rating bracket.
+          </p>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-200 text-gray-500">
+                <th className="pb-3 font-medium text-left">Player</th>
+                <th className="pb-3 font-medium text-center">DartsLive Rt.</th>
+                <th className="pb-3 font-medium text-center">Bracket</th>
+                {AWARD_PINS.map(pin => (
+                  <th key={pin.name} className="pb-3 font-medium text-center">{pin.icon}</th>
+                ))}
+                <th className="pb-3 font-medium text-center">Clocked</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[...players]
+                .filter(p => p.liveRating > 0)
+                .sort((a, b) => b.liveRating - a.liveRating)
+                .map(p => {
+                  const bracketIdx = estimateBracketIndex(p.liveRating);
+                  return (
+                    <tr key={p.player.id} className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="py-2.5 font-medium text-gray-800">{p.player.name}</td>
+                      <td className="py-2.5 text-center font-mono text-gray-700">{p.liveRating.toFixed(2)}</td>
+                      <td className="py-2.5 text-center">
+                        <span className={`text-xs font-bold px-2 py-1 rounded-full ${BRACKET_COLORS[bracketIdx]} text-gray-700`}>
+                          {RATING_BRACKETS[bracketIdx].label}
+                        </span>
+                      </td>
+                      {AWARD_PINS.map(pin => {
+                        const threshold = pin.thresholds[bracketIdx];
+                        return (
+                          <td key={pin.name} className="py-2.5 text-center">
+                            <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded ${
+                              threshold > 0
+                                ? 'text-emerald-600 bg-emerald-50'
+                                : 'text-gray-300'
+                            }`}>
+                              {threshold > 0 ? threshold : '—'}
+                            </span>
+                          </td>
+                        );
+                      })}
+                      <td className="py-2.5 text-center">
+                        <span className="text-sm font-bold text-indigo-600">
+                          {AWARD_PINS.filter(pin => pin.thresholds[bracketIdx] > 0).length}/{AWARD_PINS.length}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
       {/* Player performance context */}
       {hasData && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 overflow-x-auto">
