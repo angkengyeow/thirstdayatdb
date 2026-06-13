@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { generateFullLineup, getSessions, updateFromLiveData } from '../store';
 import { fetchLiveData } from '../scraper';
-import type { MatchGame, FullLineup, SkippedGame, UnavailablePlayer } from '../types';
+import type { MatchGame, FullLineup } from '../types';
 
 const SUPER_LEAGUE_FORMAT: MatchGame[] = [
   { id: 1, type: 'singles', label: 'Singles 701 x3', legs: '701·701·701', playerCount: 1 },

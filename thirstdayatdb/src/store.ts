@@ -1,4 +1,4 @@
-import type { Player, Session, AttendanceRecord, AttendanceStatus, MatchPerformance, PlayerWithStats, LineupSlot, MatchGame, GameAssignment, FullLineup, PlayerResponse, GamePerformance, PlayerGameStats, PartnerStats, GameFormat, GameFormatCategory } from './types';
+import type { Player, Session, AttendanceRecord, AttendanceStatus, MatchPerformance, PlayerWithStats, LineupSlot, MatchGame, GameAssignment, FullLineup, PlayerResponse, GamePerformance, PlayerGameStats, PartnerStats, GameFormat, GameFormatCategory, SkippedGame, UnavailablePlayer } from './types';
 import { loadAllFromServer, saveAllToServer } from './api';
 
 const STORAGE_KEYS = {
@@ -612,7 +612,7 @@ export function generateFullLineup(
   const part3Games = games.filter(g => g.id >= 8 && g.id <= 9);
 
   // --- Part 1 (G1-G3): no repeats (each player at most once across G1-G3) ---
-  const firstThreeResult = optimizeFirstThreeBlock(part1Games, availablePlayers, gameCount);
+  const firstThreeResult = optimizeFirstThreeBlock(part1Games, availablePlayers);
 
   for (const a of firstThreeResult.assignments) {
     assignments.push(a);
@@ -647,8 +647,7 @@ export function generateFullLineup(
  */
 function optimizeFirstThreeBlock(
   games: MatchGame[],
-  availablePlayers: PlayerWithStats[],
-  gameCount: Map<string, number>
+  availablePlayers: PlayerWithStats[]
 ): { assignments: GameAssignment[]; skipped: SkippedGame[] } {
   const totalPlayers = availablePlayers.length;
 
