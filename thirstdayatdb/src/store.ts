@@ -337,12 +337,14 @@ export function getPlayerGameStats(playerId: string): PlayerGameStats {
   const losses = totalGames - wins;
   const winPct = totalGames > 0 ? Math.round((wins / totalGames) * 100) : 0;
 
-  // By format — games with 01 stats count as 01 (includes mixed format),
-  // games with cricket stats count as cricket (includes mixed format),
-  // half-it games are their own category
-  const format01 = games.filter(g => g.stats01 !== undefined);
-  const cricket = games.filter(g => g.statsCricket !== undefined);
+  // By format — filter by actual game format
+  const format01Games = games.filter(g => g.format === '01');
+  const cricketGames = games.filter(g => g.format === 'cricket');
   const halfItGames = games.filter(g => g.format === 'half-it');
+  const format01LegsWon = format01Games.reduce((sum, g) => sum + g.legsWon, 0);
+  const format01LegsLost = format01Games.reduce((sum, g) => sum + g.legsLost, 0);
+  const cricketLegsWon = cricketGames.reduce((sum, g) => sum + g.legsWon, 0);
+  const cricketLegsLost = cricketGames.reduce((sum, g) => sum + g.legsLost, 0);
   const halfItLegsWon = halfItGames.reduce((sum, g) => sum + g.legsWon, 0);
   const halfItLegsLost = halfItGames.reduce((sum, g) => sum + g.legsLost, 0);
 
@@ -386,8 +388,8 @@ export function getPlayerGameStats(playerId: string): PlayerGameStats {
     legsWon,
     legsLost,
     legsWinPct,
-    format01: fmtStats(format01),
-    cricket: fmtStats(cricket),
+    format01: { ...fmtStats(format01Games), legsWon: format01LegsWon, legsLost: format01LegsLost },
+    cricket: { ...fmtStats(cricketGames), legsWon: cricketLegsWon, legsLost: cricketLegsLost },
     halfIt: { ...fmtStats(halfItGames), legsWon: halfItLegsWon, legsLost: halfItLegsLost },
     byGameType,
     stats01Avg,

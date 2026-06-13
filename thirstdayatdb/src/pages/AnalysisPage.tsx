@@ -97,6 +97,88 @@ export default function AnalysisPage() {
         {selectedPlayer && <PlayerChartCard playerId={selectedPlayer} />}
       </div>
 
+      {/* 01 Analysis */}
+      <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-6 mb-6 hover:border-[#252544] transition-colors duration-200">
+        <h2 className="text-lg font-semibold text-[#eeeef4] mb-4">01</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-[#1c1c34] text-[#6b6b8a]">
+                <th className="pb-3 font-medium">Player</th>
+                <th className="pb-3 font-medium text-center">W</th>
+                <th className="pb-3 font-medium text-center">L</th>
+                <th className="pb-3 font-medium text-center">Win%</th>
+                <th className="pb-3 font-medium text-center">LegsW</th>
+                <th className="pb-3 font-medium text-center">LegsL</th>
+                <th className="pb-3 font-medium text-center">Leg%</th>
+              </tr>
+            </thead>
+            <tbody>
+              {playerStats.filter(ps => ps.format01.games > 0).map(ps => {
+                const legPct = (ps.format01.legsWon + ps.format01.legsLost) > 0
+                  ? Math.round((ps.format01.legsWon / (ps.format01.legsWon + ps.format01.legsLost)) * 100)
+                  : 0;
+                return (
+                  <tr key={ps.playerId} className="border-b border-[#1c1c34] hover:bg-[#16162a]">
+                    <td className="py-3 font-medium text-[#eeeef4]">{ps.playerName}</td>
+                    <td className="py-3 text-center text-dart-green font-medium">{ps.format01.wins}</td>
+                    <td className="py-3 text-center text-dart-red font-medium">{ps.format01.games - ps.format01.wins}</td>
+                    <td className="py-3 text-center"><WinBadge pct={ps.format01.winPct} /></td>
+                    <td className="py-3 text-center text-dart-green font-medium">{ps.format01.legsWon}</td>
+                    <td className="py-3 text-center text-dart-red font-medium">{ps.format01.legsLost}</td>
+                    <td className="py-3 text-center"><WinBadge pct={legPct} /></td>
+                  </tr>
+                );
+              })}
+              {playerStats.filter(ps => ps.format01.games > 0).length === 0 && (
+                <tr><td colSpan={7} className="py-6 text-center text-[#6b6b8a] text-sm">No 01 data yet</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Cricket Analysis */}
+      <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-6 mb-6 hover:border-[#252544] transition-colors duration-200">
+        <h2 className="text-lg font-semibold text-[#eeeef4] mb-4">Cricket</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-[#1c1c34] text-[#6b6b8a]">
+                <th className="pb-3 font-medium">Player</th>
+                <th className="pb-3 font-medium text-center">W</th>
+                <th className="pb-3 font-medium text-center">L</th>
+                <th className="pb-3 font-medium text-center">Win%</th>
+                <th className="pb-3 font-medium text-center">LegsW</th>
+                <th className="pb-3 font-medium text-center">LegsL</th>
+                <th className="pb-3 font-medium text-center">Leg%</th>
+              </tr>
+            </thead>
+            <tbody>
+              {playerStats.filter(ps => ps.cricket.games > 0).map(ps => {
+                const legPct = (ps.cricket.legsWon + ps.cricket.legsLost) > 0
+                  ? Math.round((ps.cricket.legsWon / (ps.cricket.legsWon + ps.cricket.legsLost)) * 100)
+                  : 0;
+                return (
+                  <tr key={ps.playerId} className="border-b border-[#1c1c34] hover:bg-[#16162a]">
+                    <td className="py-3 font-medium text-[#eeeef4]">{ps.playerName}</td>
+                    <td className="py-3 text-center text-dart-green font-medium">{ps.cricket.wins}</td>
+                    <td className="py-3 text-center text-dart-red font-medium">{ps.cricket.games - ps.cricket.wins}</td>
+                    <td className="py-3 text-center"><WinBadge pct={ps.cricket.winPct} /></td>
+                    <td className="py-3 text-center text-dart-green font-medium">{ps.cricket.legsWon}</td>
+                    <td className="py-3 text-center text-dart-red font-medium">{ps.cricket.legsLost}</td>
+                    <td className="py-3 text-center"><WinBadge pct={legPct} /></td>
+                  </tr>
+                );
+              })}
+              {playerStats.filter(ps => ps.cricket.games > 0).length === 0 && (
+                <tr><td colSpan={7} className="py-6 text-center text-[#6b6b8a] text-sm">No Cricket data yet</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       {/* Half-It Analysis */}
       <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-6 mb-6 hover:border-[#252544] transition-colors duration-200">
         <h2 className="text-lg font-semibold text-[#eeeef4] mb-4">Half-It</h2>

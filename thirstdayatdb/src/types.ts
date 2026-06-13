@@ -117,8 +117,8 @@ export interface PlayerGameStats {
   winPct: number;
   legsWon: number;
   legsLost: number;
-  format01: { games: number; wins: number; winPct: number };
-  cricket: { games: number; wins: number; winPct: number };
+  format01: { games: number; wins: number; winPct: number; legsWon: number; legsLost: number };
+  cricket: { games: number; wins: number; winPct: number; legsWon: number; legsLost: number };
   halfIt: { games: number; wins: number; winPct: number; legsWon: number; legsLost: number };
   legsWinPct: number;
   byGameType: Record<GameFormat, { games: number; wins: number; winPct: number }>;
