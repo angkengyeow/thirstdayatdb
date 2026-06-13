@@ -337,9 +337,9 @@ export function getPlayerGameStats(playerId: string): PlayerGameStats {
   const losses = totalGames - wins;
   const winPct = totalGames > 0 ? Math.round((wins / totalGames) * 100) : 0;
 
-  // By format — filter by actual game format
-  const format01Games = games.filter(g => g.format === '01');
-  const cricketGames = games.filter(g => g.format === 'cricket');
+  // By format — include mixed games in 01 and cricket (they contain legs from both)
+  const format01Games = games.filter(g => g.format === '01' || g.format === 'mixed');
+  const cricketGames = games.filter(g => g.format === 'cricket' || g.format === 'mixed');
   const halfItGames = games.filter(g => g.format === 'half-it');
   const format01LegsWon = format01Games.reduce((sum, g) => sum + g.legsWon, 0);
   const format01LegsLost = format01Games.reduce((sum, g) => sum + g.legsLost, 0);
