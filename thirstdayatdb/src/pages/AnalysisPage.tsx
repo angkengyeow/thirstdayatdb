@@ -110,6 +110,25 @@ export default function AnalysisPage() {
         </div>
       </div>
 
+      {/* Game-Type Breakdown */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <h2 className="text-lg font-semibold text-gray-700 mb-4">By Game Type</h2>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          {(['singles', 'doubles', 'trios', 'team', 'half-it'] as const).map(gt => {
+            const gs = playerStats.reduce((sum, ps) => sum + ps.byGameType[gt].games, 0);
+            const ws = playerStats.reduce((sum, ps) => sum + ps.byGameType[gt].wins, 0);
+            const pct = gs > 0 ? Math.round((ws / gs) * 100) : 0;
+            return (
+              <div key={gt} className="text-center p-4 rounded-lg border border-gray-200">
+                <p className="text-lg font-bold text-gray-800 capitalize">{gt}</p>
+                <p className="text-2xl font-bold text-indigo-600 mt-1">{pct}%</p>
+                <p className="text-xs text-gray-400">{ws}/{gs} games won</p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Player Performance Table */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6 overflow-x-auto">
         <h2 className="text-lg font-semibold text-gray-700 mb-4">Player Performance</h2>
@@ -168,25 +187,6 @@ export default function AnalysisPage() {
 
         {/* Player match history chart */}
         {selectedPlayer && <PlayerChartCard playerId={selectedPlayer} />}
-      </div>
-
-      {/* Game-Type Breakdown */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-        <h2 className="text-lg font-semibold text-gray-700 mb-4">By Game Type</h2>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          {(['singles', 'doubles', 'trios', 'team', 'half-it'] as const).map(gt => {
-            const gs = playerStats.reduce((sum, ps) => sum + ps.byGameType[gt].games, 0);
-            const ws = playerStats.reduce((sum, ps) => sum + ps.byGameType[gt].wins, 0);
-            const pct = gs > 0 ? Math.round((ws / gs) * 100) : 0;
-            return (
-              <div key={gt} className="text-center p-4 rounded-lg border border-gray-200">
-                <p className="text-lg font-bold text-gray-800 capitalize">{gt}</p>
-                <p className="text-2xl font-bold text-indigo-600 mt-1">{pct}%</p>
-                <p className="text-xs text-gray-400">{ws}/{gs} games won</p>
-              </div>
-            );
-          })}
-        </div>
       </div>
 
       {/* Half-It Analysis */}
