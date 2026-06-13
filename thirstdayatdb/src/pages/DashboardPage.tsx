@@ -3,7 +3,7 @@ import {
   getPlayerDashboardStats, getSessions,
   populateFromLiveData, updateFromLiveData, getTeamStanding,
   getUpcomingSessions, buildResponseLink, getGamePerformancesForSession,
-  getAllPlayersGameStats,
+  getAllPlayersGameStats, shouldSkipAutoUpdate, saveLastUpdated,
 } from '../store';
 import { seedDemoData } from '../seed';
 import { fetchLiveData } from '../scraper';
@@ -28,10 +28,20 @@ export default function DashboardPage() {
     setPlayerStats(getAllPlayersGameStats());
   }, []);
 
-  // Auto-fetch live data on every page mount; falls back to seed data on failure
+  // Auto-fetch live data on page mount; skip if already up-to-date
   useEffect(() => {
     let cancelled = false;
     async function autoLoad() {
+      // If data exists and was last updated after the most recent match, skip
+      if (shouldSkipAutoUpdate()) {
+        // Still ensure seed data is present as a baseline
+        seedDemoData();
+        if (!cancelled) {
+          setRefreshKey(k => k + 1);
+        }
+        return;
+      }
+
       setLoading(true);
       setStatusMessage('Loading data...');
       try {
@@ -39,6 +49,7 @@ export default function DashboardPage() {
         if (cancelled) return;
         populateFromLiveData(liveData);
         const added = updateFromLiveData(liveData);
+        saveLastUpdated();
         const msg = added > 0
           ? `Updated — ${added} new match${added > 1 ? 'es' : ''}`
           : 'Up to date';

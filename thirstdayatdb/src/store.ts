@@ -9,6 +9,7 @@ const STORAGE_KEYS = {
   gamePerformances: 'darts_game_performances',
   responses: 'darts_responses',
   awards: 'darts_awards',
+  lastUpdated: 'darts_last_updated',
 } as const;
 
 // Debounced server sync — batches writes and syncs every 2 seconds
@@ -895,6 +896,23 @@ export function getTeamStanding() {
 export function clearAllData(): void {
   Object.values(STORAGE_KEYS).forEach(key => localStorage.removeItem(key));
   localStorage.removeItem('darts_game_performances');
+}
+
+/** Save the current time as the last successful API update timestamp. */
+export function saveLastUpdated(): void {
+  localStorage.setItem(STORAGE_KEYS.lastUpdated, new Date().toISOString());
+}
+
+/** Return true if data was last updated after the most recent match — skip auto-fetch. */
+export function shouldSkipAutoUpdate(): boolean {
+  const lastUpdated = localStorage.getItem(STORAGE_KEYS.lastUpdated);
+  if (!lastUpdated) return false;
+  const sessions = getSessions();
+  const matchDates = sessions.filter(s => s.type === 'match').map(s => s.date);
+  if (matchDates.length === 0) return false;
+  const latestMatch = matchDates.sort().pop()!;
+  // Date-only comparison: skip if the last update happened on or after the latest match
+  return lastUpdated.slice(0, 10) >= latestMatch;
 }
 
 export function hasData(): boolean {
