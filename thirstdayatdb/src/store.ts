@@ -611,8 +611,34 @@ export function generateFullLineup(
   const part2Games = games.filter(g => g.id >= 4 && g.id <= 7);
   const part3Games = games.filter(g => g.id >= 8 && g.id <= 9);
 
-  // --- Part 1 (G1-G3): repeat once (max 2 appearances per player) ---
-  assignRepeatOnceBlock(part1Games, availablePlayers, gameCount, 'G1-G3', assignments, skippedGames);
+  // --- Part 1 (G1-G3): no repeat restrictions ---
+  for (const game of part1Games) {
+    const needed = game.playerCount;
+
+    if (availablePlayers.length < needed) {
+      skippedGames.push({
+        game,
+        reason: `Need ${needed} players, only ${availablePlayers.length} available`,
+      });
+      continue;
+    }
+
+    const assigned: PlayerWithStats[] = [];
+
+    const ranked = [...availablePlayers].sort((a, b) => {
+      const aScore = formatScore(a, game.legs) - (gameCount.get(a.player.id) || 0) * 10;
+      const bScore = formatScore(b, game.legs) - (gameCount.get(b.player.id) || 0) * 10;
+      return bScore - aScore;
+    });
+
+    for (let i = 0; i < needed; i++) {
+      const p = ranked[i];
+      assigned.push(p);
+      gameCount.set(p.player.id, (gameCount.get(p.player.id) || 0) + 1);
+    }
+
+    assignments.push({ game, players: assigned });
+  }
 
   // --- Part 2 (G4-G7): repeat once (max 2 appearances per player in this block) ---
   assignRepeatOnceBlock(part2Games, availablePlayers, gameCount, 'G4-G7', assignments, skippedGames);
