@@ -800,6 +800,16 @@ export interface LiveMatchPlayer {
   winRate: string;
 }
 
+export interface LiveMatchGameResultData {
+  gameId: number;
+  gameName: string;
+  homeLegs: number;
+  awayLegs: number;
+  homePlayers: string[];
+  awayPlayers: string[];
+  thirstdayWon: boolean;
+}
+
 export interface LiveMatchResultData {
   matchNo: string;
   matchDate: string;
@@ -812,6 +822,7 @@ export interface LiveMatchResultData {
   isThirstdayHome: boolean;
   completed: boolean;
   players: LiveMatchPlayer[];
+  games: LiveMatchGameResultData[];
 }
 
 export interface LiveDataInput {
@@ -841,6 +852,13 @@ function distributeGameTypes(totalGames: number, matchOffset: number = 0) {
     result.push(SUPER_LEAGUE_GAMES[(i + matchOffset) % SUPER_LEAGUE_GAMES.length]);
   }
   return result;
+}
+
+function lookupGameFormat(gameId: number): { gameType: GameFormat; format: GameFormatCategory } | null {
+  if (gameId >= 1 && gameId <= SUPER_LEAGUE_GAMES.length) {
+    return SUPER_LEAGUE_GAMES[gameId - 1];
+  }
+  return null;
 }
 
 export function populateFromLiveData(liveData: LiveDataInput) {
@@ -887,30 +905,85 @@ export function populateFromLiveData(liveData: LiveDataInput) {
     const sessionId = sessions[matchIdx]?.id;
     if (!sessionId) return;
 
-    m.players.forEach(p => {
-      const player = players.find(pl => pl.name === p.name);
-      if (!player) return;
-      const totalGames = p.winCount + p.loseCount;
-      if (totalGames === 0) return;
+    const playerNameToId = new Map(players.map(p => [p.name, p.id]));
 
-      const types = distributeGameTypes(totalGames, matchIdx);
-      for (let i = 0; i < totalGames; i++) {
-        gamePerformances.push({
-          id: generateId(),
-          playerId: player.id,
-          sessionId,
-          gameId: i + 1,
-          gameType: types[i].gameType,
-          format: types[i].format,
-          partnerIds: [],
-          won: i < p.winCount,
-          legsWon: i < p.winCount ? 1 : 0,
-          legsLost: i < p.winCount ? 0 : 1,
-          stats01: p.stats01,
-          statsCricket: p.statsCricket,
-        });
+    // Build player stats lookup per match
+    const playerStatsMap = new Map<string, { stats01: number; statsCricket: number }>();
+    for (const p of m.players) {
+      playerStatsMap.set(p.name, {
+        stats01: p.stats01,
+        statsCricket: p.statsCricket,
+      });
+    }
+
+    // Check if we have actual per-game data
+    if (m.games && m.games.length > 0) {
+      // Use real per-game data from the API
+      for (const game of m.games) {
+        const thirstdayPlayers = m.isThirstdayHome
+          ? game.homePlayers
+          : game.awayPlayers;
+
+        // Thirstday's leg count
+        const ourLegs = m.isThirstdayHome ? game.homeLegs : game.awayLegs;
+        const oppLegs = m.isThirstdayHome ? game.awayLegs : game.homeLegs;
+
+        for (const playerName of thirstdayPlayers) {
+          const playerId = playerNameToId.get(playerName);
+          if (!playerId) continue;
+
+          const gf = lookupGameFormat(game.gameId);
+          const stats = playerStatsMap.get(playerName);
+
+          // Partner IDs: other Thirstday players in the same game
+          const partnerIds = thirstdayPlayers
+            .filter(n => n !== playerName)
+            .map(n => playerNameToId.get(n))
+            .filter((id): id is string => !!id);
+
+          gamePerformances.push({
+            id: generateId(),
+            playerId,
+            sessionId,
+            gameId: game.gameId,
+            gameType: gf?.gameType || 'doubles',
+            format: gf?.format || 'mixed',
+            partnerIds,
+            won: game.thirstdayWon,
+            legsWon: ourLegs,
+            legsLost: oppLegs,
+            stats01: stats?.stats01 || 0,
+            statsCricket: stats?.statsCricket || 0,
+          });
+        }
       }
-    });
+    } else {
+      // Fallback: distribute game types round-robin (old behavior)
+      m.players.forEach(p => {
+        const playerId = playerNameToId.get(p.name);
+        if (!playerId) return;
+        const totalGames = p.winCount + p.loseCount;
+        if (totalGames === 0) return;
+
+        const types = distributeGameTypes(totalGames, matchIdx);
+        for (let i = 0; i < totalGames; i++) {
+          gamePerformances.push({
+            id: generateId(),
+            playerId,
+            sessionId,
+            gameId: i + 1,
+            gameType: types[i].gameType,
+            format: types[i].format,
+            partnerIds: [],
+            won: i < p.winCount,
+            legsWon: i < p.winCount ? 1 : 0,
+            legsLost: i < p.winCount ? 0 : 1,
+            stats01: p.stats01,
+            statsCricket: p.statsCricket,
+          });
+        }
+      });
+    }
   });
 
   localStorage.setItem('darts_game_performances', JSON.stringify(gamePerformances));
@@ -985,13 +1058,59 @@ export function updateFromLiveData(liveData: LiveDataInput): number {
     allSessions.push(newSession);
 
     if (m.players.length > 0) {
+      // Build player stats lookup per match
+      const playerStatsMap = new Map<string, { stats01: number; statsCricket: number }>();
       for (const p of m.players) {
-        const player = playerMap.get(p.name);
-        if (!player) continue;
-        const totalGames = p.winCount + p.loseCount;
-        if (totalGames === 0) continue;
+        playerStatsMap.set(p.name, { stats01: p.stats01, statsCricket: p.statsCricket });
+      }
 
-        const types = distributeGameTypes(totalGames, matchOffset);
+      // Check if we have actual per-game data
+      if (m.games && m.games.length > 0) {
+        for (const game of m.games) {
+          const thirstdayPlayers = m.isThirstdayHome
+            ? game.homePlayers
+            : game.awayPlayers;
+
+          const ourLegs = m.isThirstdayHome ? game.homeLegs : game.awayLegs;
+          const oppLegs = m.isThirstdayHome ? game.awayLegs : game.homeLegs;
+
+          for (const playerName of thirstdayPlayers) {
+            const player = playerMap.get(playerName);
+            if (!player) continue;
+
+            const gf = lookupGameFormat(game.gameId);
+            const stats = playerStatsMap.get(playerName);
+
+            const partnerIds = thirstdayPlayers
+              .filter(n => n !== playerName)
+              .map(n => playerMap.get(n)?.id)
+              .filter((id): id is string => !!id);
+
+            newGamePerformances.push({
+              id: generateId(),
+              playerId: player.id,
+              sessionId: newSession.id,
+              gameId: game.gameId,
+              gameType: gf?.gameType || 'doubles',
+              format: gf?.format || 'mixed',
+              partnerIds,
+              won: game.thirstdayWon,
+              legsWon: ourLegs,
+              legsLost: oppLegs,
+              stats01: stats?.stats01 || 0,
+              statsCricket: stats?.statsCricket || 0,
+            });
+          }
+        }
+      } else {
+        // Fallback: round-robin distribution (no per-game data)
+        for (const p of m.players) {
+          const player = playerMap.get(p.name);
+          if (!player) continue;
+          const totalGames = p.winCount + p.loseCount;
+          if (totalGames === 0) continue;
+
+          const types = distributeGameTypes(totalGames, matchOffset);
           for (let i = 0; i < totalGames; i++) {
             newGamePerformances.push({
               id: generateId(),
@@ -1008,6 +1127,7 @@ export function updateFromLiveData(liveData: LiveDataInput): number {
               statsCricket: p.statsCricket,
             });
           }
+        }
       }
     }
     addedCount++;

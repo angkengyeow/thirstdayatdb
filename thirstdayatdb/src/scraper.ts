@@ -23,6 +23,27 @@ interface ApiPlayer {
   winRate: string;
 }
 
+interface ApiGameDetailLegInfo {
+  playerName: string;
+}
+
+interface ApiGameDetailTeamInfo {
+  legInfoList: ApiGameDetailLegInfo[];
+  legResult?: string;
+  setScore?: string;
+}
+
+interface ApiGameDetailEntry {
+  homeTeamLegInfo: ApiGameDetailTeamInfo;
+  awayTeamLegInfo: ApiGameDetailTeamInfo;
+}
+
+interface ApiGameResult {
+  gameName: string;
+  gameResultDetailInfoList: ApiGameDetailEntry[];
+  gameType?: string;
+}
+
 interface ApiMatchData {
   gameMatch: {
     matchDate: string;
@@ -33,6 +54,7 @@ interface ApiMatchData {
   homeTeamInfo: { teamName: string; point: number; bonusPoint: number };
   awayTeamInfo: { teamName: string; point: number; bonusPoint: number };
   gamePlayerPerformanceRrankList: ApiPlayer[];
+  gameResultInfoList?: ApiGameResult[];
 }
 
 interface ScheduleWeek {
@@ -51,6 +73,16 @@ async function fetchJson<T>(url: string): Promise<T> {
   const text = await response.text();
   if (text.startsWith('<!DOCTYPE')) throw new Error('Received HTML instead of JSON');
   return JSON.parse(text);
+}
+
+export interface LiveMatchGameResult {
+  gameId: number;
+  gameName: string;
+  homeLegs: number;
+  awayLegs: number;
+  homePlayers: string[];
+  awayPlayers: string[];
+  thirstdayWon: boolean;
 }
 
 export interface LiveMatchResult {
@@ -73,6 +105,7 @@ export interface LiveMatchResult {
     loseCount: number;
     winRate: string;
   }[];
+  games: LiveMatchGameResult[];
 }
 
 export interface LiveData {
@@ -155,6 +188,48 @@ export async function fetchLiveData(): Promise<LiveData> {
       const isThirstdayAway = isOurTeam(data.awayTeamInfo?.teamName);
       if (!isThirstdayHome && !isThirstdayAway) continue;
 
+      // Parse per-game results from gameResultInfoList
+      const games: LiveMatchGameResult[] = [];
+      const gameResultList = data.gameResultInfoList || [];
+      for (const g of gameResultList) {
+        const details = g.gameResultDetailInfoList || [];
+        let homeLegsWon = 0;
+        let awayLegsWon = 0;
+        let homePlayers: string[] = [];
+        let awayPlayers: string[] = [];
+
+        for (const d of details) {
+          const hi = d.homeTeamLegInfo || {};
+          const ai = d.awayTeamLegInfo || {};
+          const hp = (hi.legInfoList || [])
+            .map(p => p.playerName)
+            .filter(Boolean);
+          const ap = (ai.legInfoList || [])
+            .map(p => p.playerName)
+            .filter(Boolean);
+          if (hp.length > 0) homePlayers = hp;
+          if (ap.length > 0) awayPlayers = ap;
+          if (hi.legResult === 'WIN') homeLegsWon++;
+          if (ai.legResult === 'WIN') awayLegsWon++;
+        }
+
+        const gameNumMatch = g.gameName?.match(/(\d+)/);
+        const gameId = gameNumMatch ? parseInt(gameNumMatch[1], 10) : games.length + 1;
+        const thirstdayWon = isThirstdayHome
+          ? homeLegsWon > awayLegsWon
+          : awayLegsWon > homeLegsWon;
+
+        games.push({
+          gameId,
+          gameName: g.gameName || '',
+          homeLegs: homeLegsWon,
+          awayLegs: awayLegsWon,
+          homePlayers,
+          awayPlayers,
+          thirstdayWon,
+        });
+      }
+
       matchResults.push({
         matchNo: mn,
         matchDate: data.gameMatch?.matchDate || '',
@@ -177,6 +252,7 @@ export async function fetchLiveData(): Promise<LiveData> {
             loseCount: p.loseCount,
             winRate: p.winRate,
           })),
+        games,
       });
     } catch {
       // skip failed match fetches
