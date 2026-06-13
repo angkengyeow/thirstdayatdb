@@ -28,11 +28,9 @@ export default function DashboardPage() {
     setUpcoming(getUpcomingSessions());
   }, []);
 
-  // Auto-load seed data on first visit if no data exists
+  // Auto-load seed data on mount
   useEffect(() => {
-    if (!hasData()) {
-      seedDemoData();
-    }
+    seedDemoData();
     refresh();
   }, [refreshKey, refresh]);
 
