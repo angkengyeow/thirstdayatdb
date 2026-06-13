@@ -334,10 +334,11 @@ export function getPlayerGameStats(playerId: string): PlayerGameStats {
   const losses = totalGames - wins;
   const winPct = totalGames > 0 ? Math.round((wins / totalGames) * 100) : 0;
 
-  // By format — each game goes into exactly one bucket based on its format field
-  const format01 = games.filter(g => g.format === '01');
-  const mixed = games.filter(g => g.format === 'mixed');
-  const cricket = games.filter(g => g.format === 'cricket');
+  // By format — games with 01 stats count as 01 (includes mixed format),
+  // games with cricket stats count as cricket (includes mixed format),
+  // half-it games are their own category
+  const format01 = games.filter(g => g.stats01 !== undefined);
+  const cricket = games.filter(g => g.statsCricket !== undefined);
   const halfIt = games.filter(g => g.format === 'half-it');
 
   const fmtStats = (gs: GamePerformance[]) => {
@@ -381,7 +382,6 @@ export function getPlayerGameStats(playerId: string): PlayerGameStats {
     format01: fmtStats(format01),
     cricket: fmtStats(cricket),
     halfIt: fmtStats(halfIt),
-    mixed: fmtStats(mixed),
     byGameType,
     stats01Avg,
     statsCricketAvg,

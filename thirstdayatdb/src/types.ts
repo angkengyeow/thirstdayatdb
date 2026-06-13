@@ -119,7 +119,6 @@ export interface PlayerGameStats {
   format01: { games: number; wins: number; winPct: number };
   cricket: { games: number; wins: number; winPct: number };
   halfIt: { games: number; wins: number; winPct: number };
-  mixed: { games: number; wins: number; winPct: number };
   byGameType: Record<GameFormat, { games: number; wins: number; winPct: number }>;
   stats01Avg: number;
   statsCricketAvg: number;
