@@ -505,10 +505,10 @@ function GameFormatTotals({ players, matchSessions }: { players: any[]; matchSes
               {formatOrder.map(f => (
                 <th key={f} className="pb-2 font-medium text-center" title={f}>{formatLabels[f]}</th>
               ))}
+              <th className="pb-2 font-medium text-center" title="Half-It leg win percentage">½It Leg%</th>
               <th className="pb-2 font-medium text-center" title="Half-It games">½It G</th>
               <th className="pb-2 font-medium text-center" title="Half-It legs won">½It LegW</th>
               <th className="pb-2 font-medium text-center" title="Half-It legs lost">½It LegL</th>
-              <th className="pb-2 font-medium text-center" title="Half-It leg win percentage">½It Leg%</th>
               <th className="pb-2 font-medium text-center">Total</th>
             </tr>
           </thead>
@@ -524,10 +524,10 @@ function GameFormatTotals({ players, matchSessions }: { players: any[]; matchSes
                   {formatOrder.map(f => (
                     <td key={f} className="py-1.5 text-center font-mono text-gray-700">{formatCounts[f] || 0}</td>
                   ))}
+                  <td className="py-1.5 text-center"><WinBadge pct={halfItLegPct} /></td>
                   <td className="py-1.5 text-center font-mono font-semibold text-amber-600">{halfItGames}</td>
                   <td className="py-1.5 text-center font-mono text-green-600">{halfItLegsWon}</td>
                   <td className="py-1.5 text-center font-mono text-red-500">{halfItLegsLost}</td>
-                  <td className="py-1.5 text-center"><WinBadge pct={halfItLegPct} /></td>
                   <td className="py-1.5 text-center font-mono font-bold text-gray-800">{total}</td>
                 </tr>
               );
@@ -538,14 +538,15 @@ function GameFormatTotals({ players, matchSessions }: { players: any[]; matchSes
               {formatOrder.map(f => (
                 <td key={f} className="py-1.5 text-center font-mono text-gray-700">{formatTotals[f] || 0}</td>
               ))}
-              <td className="py-1.5 text-center font-mono font-bold text-amber-700">{totalHalfItGames}</td>
-              <td className="py-1.5 text-center font-mono font-bold text-green-700">{totalHalfItLegsWon}</td>
-              <td className="py-1.5 text-center font-mono font-bold text-red-600">{totalHalfItLegsLost}</td>
               <td className="py-1.5 text-center font-bold">
                 <WinBadge pct={(totalHalfItLegsWon + totalHalfItLegsLost) > 0
                   ? Math.round((totalHalfItLegsWon / (totalHalfItLegsWon + totalHalfItLegsLost)) * 100)
                   : 0} />
               </td>
+              <td className="py-1.5 text-center font-mono font-bold text-amber-700">{totalHalfItGames}</td>
+              <td className="py-1.5 text-center font-mono font-bold text-green-700">{totalHalfItLegsWon}</td>
+              <td className="py-1.5 text-center font-mono font-bold text-red-600">{totalHalfItLegsLost}</td>
+              <td className="py-1.5 text-center font-mono font-bold text-gray-800">{allFormatTotal}</td>
               <td className="py-1.5 text-center font-mono font-bold text-gray-800">{allFormatTotal}</td>
             </tr>
           </tbody>
