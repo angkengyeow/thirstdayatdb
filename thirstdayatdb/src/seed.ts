@@ -71,16 +71,18 @@ const GAME_DEFS: { gameId: number; gameType: GameFormat; format: GameFormatCateg
  * Higher-rated players get more games.
  * Returns [playerIndex][] for games G1-G9 (flat list, 19 entries).
  */
-function getGameLineup(): number[] {
+function getGameLineup(matchIndex: number): number[] {
   // Player indices 0-6 (Clarence=0, Melvin=1, Tan Li Ting=2, etc.)
   // Balanced rotation giving top players more appearances
+  // G6 varies: default is Tan Li Ting + Jack Li, but Keng Yeow subbed in once
+  const g6: number[] = matchIndex === 6 ? [3, 6] : [2, 6]; // match 7 (Yeti) has Keng Yeow
   const assignments: number[][] = [
     [0],          // G1: Clarence
     [1],          // G2: Melvin
     [0, 2],      // G3: Clarence + Tan Li Ting
     [1, 3],      // G4: Melvin + Ang Keng Yeow
     [0, 4],      // G5: Clarence + Wang GuanFei
-    [2, 6],      // G6: Tan Li Ting + Jack Li (half-it)
+    g6,           // G6: half-it (rotated)
     [3, 5],      // G7: Ang Keng Yeow + Marcus Tan (mixed)
     [1, 2, 4],   // G8: Melvin + Tan Li Ting + Wang GuanFei
     [2, 3, 5, 6], // G9: Tan Li Ting + Ang Keng Yeow + Jack Li + Marcus Tan
@@ -139,7 +141,7 @@ export function seedDemoData(): void {
     const gamesWonByThirstday = m.isHome ? m.homeScore : m.awayScore; // 0-9
 
     // Skill-weighted win distribution — stronger players are more likely to win
-    const lineup = getGameLineup();
+    const lineup = getGameLineup(mi);
     // Compute weight per game based on average player skill (deriveRating from 01 avg)
     const gameWeights = GAME_DEFS.map((def, gi) => {
       let totalSkill = 0;
