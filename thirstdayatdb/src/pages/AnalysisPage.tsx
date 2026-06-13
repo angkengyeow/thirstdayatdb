@@ -359,7 +359,6 @@ export default function AnalysisPage() {
                       const formatLabel: Record<string, string> = {
                         '01': '01', cricket: 'Cr', 'half-it': '½', mixed: 'Mx',
                       };
-                      const gameTypeOrder = ['singles', 'doubles', 'trios', 'team'];
                       const sortedGames = [...gameData.entries()].sort(([a], [b]) => a - b);
 
                       return sortedGames.map(([gameId, data]) => {
