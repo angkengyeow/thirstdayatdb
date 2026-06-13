@@ -1,4 +1,4 @@
-import type { Player, Session, AttendanceRecord, AttendanceStatus, MatchPerformance, PlayerWithStats, LineupSlot, MatchGame, GameAssignment, FullLineup, PlayerResponse, GamePerformance, PlayerGameStats, PartnerStats, GameFormat, GameFormatCategory, SkippedGame, UnavailablePlayer } from './types';
+import type { Player, Session, AttendanceRecord, AttendanceStatus, MatchPerformance, PlayerWithStats, LineupSlot, MatchGame, GameAssignment, FullLineup, PlayerResponse, GamePerformance, PlayerGameStats, PartnerStats, GameFormat, GameFormatCategory, SkippedGame, UnavailablePlayer, OpponentPlayerRecord, OpponentTeamProfile, OpponentGameSlotProfile } from './types';
 import { loadAllFromServer, saveAllToServer } from './api';
 
 const STORAGE_KEYS = {
@@ -9,6 +9,7 @@ const STORAGE_KEYS = {
   gamePerformances: 'darts_game_performances',
   responses: 'darts_responses',
   awards: 'darts_awards',
+  opponentPlayers: 'darts_opponent_players',
   lastUpdated: 'darts_last_updated',
 } as const;
 
@@ -642,6 +643,9 @@ export function generateFullLineup(
     }
   }
 
+  // Load opponent profile for strategy-based lineup optimization
+  const opponentProfile = getOpponentTeamProfile(matchDate);
+
   const gameCount = new Map<string, number>();
   availablePlayers.forEach(p => gameCount.set(p.player.id, 0));
 
@@ -654,7 +658,7 @@ export function generateFullLineup(
   const part3Games = games.filter(g => g.id >= 8 && g.id <= 9);
 
   // --- Part 1 (G1-G3): no repeats (each player at most once across G1-G3) ---
-  const firstThreeResult = optimizeFirstThreeBlock(part1Games, availablePlayers);
+  const firstThreeResult = optimizeFirstThreeBlock(part1Games, availablePlayers, opponentProfile);
 
   for (const a of firstThreeResult.assignments) {
     assignments.push(a);
@@ -667,10 +671,10 @@ export function generateFullLineup(
   }
 
   // --- Part 2 (G4-G7): repeat once (max 2 appearances per player in this block) ---
-  assignRepeatOnceBlock(part2Games, availablePlayers, gameCount, 'G4-G7', assignments, skippedGames);
+  assignRepeatOnceBlock(part2Games, availablePlayers, gameCount, 'G4-G7', assignments, skippedGames, opponentProfile);
 
   // --- Part 3 (G8-G9): repeat once (max 2 appearances per player in this block) ---
-  assignRepeatOnceBlock(part3Games, availablePlayers, gameCount, 'G8-G9', assignments, skippedGames);
+  assignRepeatOnceBlock(part3Games, availablePlayers, gameCount, 'G8-G9', assignments, skippedGames, opponentProfile);
 
   const playerGameCount = Array.from(gameCount.entries())
     .map(([id, count]) => ({
@@ -689,9 +693,14 @@ export function generateFullLineup(
  */
 function optimizeFirstThreeBlock(
   games: MatchGame[],
-  availablePlayers: PlayerWithStats[]
+  availablePlayers: PlayerWithStats[],
+  opponentProfile: OpponentTeamProfile | null = null
 ): { assignments: GameAssignment[]; skipped: SkippedGame[] } {
   const totalPlayers = availablePlayers.length;
+
+  // Ranker that includes matchup bonus
+  const rankForGame = (player: PlayerWithStats, game: MatchGame) =>
+    formatScore(player, game.legs) + matchupBonus(player, game.id, opponentProfile);
 
   const subsets: number[][] = [];
   for (let mask = 1; mask < (1 << 3); mask++) {
@@ -715,14 +724,14 @@ function optimizeFirstThreeBlock(
     for (const idx of subset) {
       const game = games[idx];
       const pool = availablePlayers.filter(p => !used.has(p.player.id));
-      const ranked = [...pool].sort((a, b) => formatScore(b, game.legs) - formatScore(a, game.legs));
+      const ranked = [...pool].sort((a, b) => rankForGame(b, game) - rankForGame(a, game));
 
       if (ranked.length < game.playerCount) { valid = false; break; }
 
       const players = ranked.slice(0, game.playerCount);
       for (const p of players) {
         used.add(p.player.id);
-        totalScore += formatScore(p, game.legs);
+        totalScore += rankForGame(p, game);
       }
       subsetAssignments.push({ game, players });
     }
@@ -764,7 +773,8 @@ function assignRepeatOnceBlock(
   gameCount: Map<string, number>,
   blockLabel: string,
   assignments: GameAssignment[],
-  skippedGames: SkippedGame[]
+  skippedGames: SkippedGame[],
+  opponentProfile: OpponentTeamProfile | null = null
 ): void {
   const blockCounts = new Map<string, number>();
 
@@ -792,8 +802,8 @@ function assignRepeatOnceBlock(
     const assigned: PlayerWithStats[] = [];
 
     const ranked = [...pool].sort((a, b) => {
-      const aScore = formatScore(a, game.legs) - (gameCount.get(a.player.id) || 0) * 10;
-      const bScore = formatScore(b, game.legs) - (gameCount.get(b.player.id) || 0) * 10;
+      const aScore = formatScore(a, game.legs) + matchupBonus(a, game.id, opponentProfile) - (gameCount.get(a.player.id) || 0) * 10;
+      const bScore = formatScore(b, game.legs) + matchupBonus(b, game.id, opponentProfile) - (gameCount.get(b.player.id) || 0) * 10;
       return bScore - aScore;
     });
 
@@ -809,7 +819,7 @@ function assignRepeatOnceBlock(
 }
 
 /** Returns a 0-100 skill score tailored to the game format (01 vs cricket vs half-it vs mixed). */
-function formatScore(player: PlayerWithStats, legs: string): number {
+export function formatScore(player: PlayerWithStats, legs: string): number {
   const isOnly01 = !legs.includes('Cricket') && !legs.includes('Choice') && !legs.includes('Half-It');
   const isOnlyCricket = !legs.includes('701') && !legs.includes('901') && !legs.includes('1101') && !legs.includes('Choice') && !legs.includes('Half-It');
   const isHalfIt = legs.includes('Half-It');
@@ -964,6 +974,98 @@ export function generateId(): string {
   return crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
 }
 
+// --- Opponent Data (for lineup strategy) ---
+
+export function getOpponentPlayers(): OpponentPlayerRecord[] {
+  return load<OpponentPlayerRecord[]>(STORAGE_KEYS.opponentPlayers, []);
+}
+
+export function saveOpponentPlayers(records: OpponentPlayerRecord[]): void {
+  save(STORAGE_KEYS.opponentPlayers, records);
+}
+
+export function getOpponentTeamProfile(matchDate: string): OpponentTeamProfile | null {
+  const opponents = getOpponentPlayers();
+  const sessions = getSessions();
+  const matchSession = sessions.find(s => s.date === matchDate && s.type === 'match');
+  if (!matchSession) return null;
+
+  // Determine opponent team name from the session notes
+  const noteMatch = matchSession.notes?.match(/(?:vs|@)\s+(.+?)\s+\(/);
+  if (!noteMatch) return null;
+  const opponentTeam = noteMatch[1].trim();
+
+  // Get all records for this opponent (past matches)
+  const pastMatches = opponents.filter(o => o.opponentTeam === opponentTeam);
+  if (pastMatches.length === 0) return null;
+
+  // Aggregate by game slot
+  const slotMap = new Map<number, { playersFaced: string[]; stats01: number[]; statsCricket: number[] }>();
+  for (const rec of pastMatches) {
+    for (const gameId of rec.gameIds) {
+      if (!slotMap.has(gameId)) {
+        slotMap.set(gameId, { playersFaced: [], stats01: [], statsCricket: [] });
+      }
+      const slot = slotMap.get(gameId)!;
+      slot.playersFaced.push(rec.playerName);
+      if (rec.stats01 > 0) slot.stats01.push(rec.stats01);
+      if (rec.statsCricket > 0) slot.statsCricket.push(rec.statsCricket);
+    }
+  }
+
+  const gameSlots: OpponentGameSlotProfile[] = Array.from(slotMap.entries())
+    .map(([slotGameId, data]) => ({
+      slotGameId,
+      playersFaced: [...new Set(data.playersFaced)],
+      avg01: data.stats01.length > 0
+        ? Math.round((data.stats01.reduce((a, b) => a + b, 0) / data.stats01.length) * 100) / 100
+        : 0,
+      avgCricket: data.statsCricket.length > 0
+        ? Math.round((data.statsCricket.reduce((a, b) => a + b, 0) / data.statsCricket.length) * 100) / 100
+        : 0,
+      sampleSize: data.stats01.length,
+    }))
+    .sort((a, b) => a.slotGameId - b.slotGameId);
+
+  const lastPlayed = [...pastMatches].sort((a, b) => b.matchDate.localeCompare(a.matchDate))[0]?.matchDate || '';
+
+  return { teamName: opponentTeam, lastPlayed, gameSlots };
+}
+
+/**
+ * Compute a matchup score bonus for putting a player in a specific game slot
+ * against the opponent. Positive = our player is strong vs this opponent slot.
+ */
+export function matchupBonus(player: PlayerWithStats, gameId: number, opponentProfile: OpponentTeamProfile | null): number {
+  if (!opponentProfile) return 0;
+
+  const slot = opponentProfile.gameSlots.find(s => s.slotGameId === gameId);
+  if (!slot || slot.sampleSize === 0) return 0;
+
+  // Get format info from known Super League structure
+  const gameInfo = SUPER_LEAGUE_GAMES[gameId - 1];
+  if (!gameInfo) return 0;
+
+  let ourScore: number;
+  let oppScore: number;
+
+  if (gameInfo.format === '01' && slot.avg01 > 0 && player.stats01Avg > 0) {
+    ourScore = Math.min(100, Math.max(0, player.stats01Avg));
+    oppScore = Math.min(100, Math.max(0, slot.avg01));
+  } else if (gameInfo.format === 'cricket' && slot.avgCricket > 0 && player.statsCricketAvg > 0) {
+    ourScore = Math.min(100, Math.max(0, (player.statsCricketAvg - 1) * 14));
+    oppScore = Math.min(100, Math.max(0, (slot.avgCricket - 1) * 14));
+  } else {
+    // Use composite for mixed games / when we lack opponent data
+    ourScore = player.compositeScore;
+    oppScore = 50; // neutral baseline
+  }
+
+  // Return bonus proportional to advantage (max ±15 points)
+  const advantage = ourScore - oppScore;
+  return Math.round(Math.max(-15, Math.min(15, advantage * 0.3)));
+}
+
 /** Derive a 1-10 skill rating from DartsLive's 0-100 stats01 average. */
 export function deriveRating(stats01Avg: number): number {
   if (stats01Avg <= 0) return 5;
@@ -990,6 +1092,12 @@ export interface LiveMatchPlayer {
   winCount: number;
   loseCount: number;
   winRate: string;
+}
+
+export interface LiveMatchOpponentPlayer {
+  name: string;
+  stats01: number;
+  statsCricket: number;
 }
 
 export interface LiveMatchGameResultData {
@@ -1025,6 +1133,7 @@ export interface LiveMatchResultData {
   isThirstdayHome: boolean;
   completed: boolean;
   players: LiveMatchPlayer[];
+  opponentPlayers: LiveMatchOpponentPlayer[];
   games: LiveMatchGameResultData[];
   awards: LiveMatchAwardData[];
 }
@@ -1153,6 +1262,7 @@ export function populateFromLiveData(liveData: LiveDataInput) {
   localStorage.setItem('darts_sessions', JSON.stringify(sessions));
 
   const gamePerformances: any[] = [];
+  const opponentRecords: OpponentPlayerRecord[] = [];
   liveData.matches.forEach((m, matchIdx) => {
     if (m.players.length === 0) return;
     const sessionId = sessions[matchIdx]?.id;
@@ -1169,6 +1279,16 @@ export function populateFromLiveData(liveData: LiveDataInput) {
       });
     }
 
+    // Build opponent player stats lookup
+    const oppStatsMap = new Map<string, { stats01: number; statsCricket: number }>();
+    for (const p of m.opponentPlayers || []) {
+      oppStatsMap.set(p.name, { stats01: p.stats01, statsCricket: p.statsCricket });
+    }
+
+    // Collect per-game opponent player slot data
+    const oppGameMap = new Map<string, number[]>();
+    const opponentTeam = m.isThirstdayHome ? m.awayTeamName : m.homeTeamName;
+
     // Check if we have actual per-game data
     if (m.games && m.games.length > 0) {
       // Use real per-game data from the API
@@ -1176,6 +1296,19 @@ export function populateFromLiveData(liveData: LiveDataInput) {
         const thirstdayPlayers = m.isThirstdayHome
           ? game.homePlayers
           : game.awayPlayers;
+        const opponentPlayers = m.isThirstdayHome
+          ? game.awayPlayers
+          : game.homePlayers;
+
+        // Track opponent players for this game slot
+        for (const oppName of opponentPlayers) {
+          if (!oppName) continue;
+          const existing = oppGameMap.get(oppName) || [];
+          if (!existing.includes(game.gameId)) {
+            existing.push(game.gameId);
+          }
+          oppGameMap.set(oppName, existing);
+        }
 
         // Thirstday's leg count
         const ourLegs = m.isThirstdayHome ? game.homeLegs : game.awayLegs;
@@ -1237,9 +1370,24 @@ export function populateFromLiveData(liveData: LiveDataInput) {
         }
       });
     }
+
+    // Save opponent player records for this match
+    for (const [oppName, gameIds] of oppGameMap) {
+      const stats = oppStatsMap.get(oppName);
+      opponentRecords.push({
+        id: generateId(),
+        matchDate: m.matchDate,
+        opponentTeam,
+        playerName: oppName,
+        stats01: stats?.stats01 || 0,
+        statsCricket: stats?.statsCricket || 0,
+        gameIds,
+      });
+    }
   });
 
   localStorage.setItem('darts_game_performances', JSON.stringify(gamePerformances));
+  localStorage.setItem(STORAGE_KEYS.opponentPlayers, JSON.stringify(opponentRecords));
 
   computeAwardTotals(liveData.matches);
 }
@@ -1293,6 +1441,7 @@ export function updateFromLiveData(liveData: LiveDataInput): number {
   // Create sessions and game performances only for new matches
   const allSessions = [...existingSessions];
   const newGamePerformances: any[] = [];
+  const newOpponentRecords: OpponentPlayerRecord[] = [];
   let addedCount = 0;
   let matchOffset = existingSessions.filter(s => s.type === 'match').length;
 
@@ -1312,6 +1461,13 @@ export function updateFromLiveData(liveData: LiveDataInput): number {
     };
     allSessions.push(newSession);
 
+    // Build opponent player stats lookup (used outside the players check)
+    const oppStatsMap = new Map<string, { stats01: number; statsCricket: number }>();
+    for (const p of m.opponentPlayers || []) {
+      oppStatsMap.set(p.name, { stats01: p.stats01, statsCricket: p.statsCricket });
+    }
+    const oppGameMap = new Map<string, number[]>();
+
     if (m.players.length > 0) {
       // Build player stats lookup per match
       const playerStatsMap = new Map<string, { stats01: number; statsCricket: number }>();
@@ -1325,6 +1481,17 @@ export function updateFromLiveData(liveData: LiveDataInput): number {
           const thirstdayPlayers = m.isThirstdayHome
             ? game.homePlayers
             : game.awayPlayers;
+          const opponentPlayers = m.isThirstdayHome
+            ? game.awayPlayers
+            : game.homePlayers;
+
+          // Track opponent players for this game slot
+          for (const oppName of opponentPlayers) {
+            if (!oppName) continue;
+            const existing = oppGameMap.get(oppName) || [];
+            if (!existing.includes(game.gameId)) existing.push(game.gameId);
+            oppGameMap.set(oppName, existing);
+          }
 
           const ourLegs = m.isThirstdayHome ? game.homeLegs : game.awayLegs;
           const oppLegs = m.isThirstdayHome ? game.awayLegs : game.homeLegs;
@@ -1385,12 +1552,31 @@ export function updateFromLiveData(liveData: LiveDataInput): number {
         }
       }
     }
+
+    // Save opponent player records for this match
+    for (const [oppName, gameIds] of oppGameMap) {
+      const stats = oppStatsMap.get(oppName);
+      newOpponentRecords.push({
+        id: generateId(),
+        matchDate: m.matchDate,
+        opponentTeam: opponent,
+        playerName: oppName,
+        stats01: stats?.stats01 || 0,
+        statsCricket: stats?.statsCricket || 0,
+        gameIds,
+      });
+    }
+
     addedCount++;
     matchOffset++;
   }
 
   localStorage.setItem('darts_sessions', JSON.stringify(allSessions));
   localStorage.setItem('darts_game_performances', JSON.stringify([...existingGamePerformances, ...newGamePerformances]));
+
+  // Save opponent player records
+  const existingOpponents = getOpponentPlayers();
+  localStorage.setItem(STORAGE_KEYS.opponentPlayers, JSON.stringify([...existingOpponents, ...newOpponentRecords]));
 
   computeAwardTotals(liveData.matches);
   return addedCount;

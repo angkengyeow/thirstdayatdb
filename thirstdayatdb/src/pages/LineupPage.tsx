@@ -3,9 +3,10 @@ import {
   generateFullLineup, getSessions, updateFromLiveData,
   getMatchSessionForDate, getGameResultsForSession, getMatchScore,
   saveLiveLineup, loadLiveLineup, getAllPlayersWithStats,
+  getOpponentTeamProfile, matchupBonus, formatScore,
 } from '../store';
 import { fetchLiveData } from '../scraper';
-import type { MatchGame, FullLineup } from '../types';
+import type { MatchGame, FullLineup, OpponentTeamProfile } from '../types';
 
 const SUPER_LEAGUE_FORMAT: MatchGame[] = [
   { id: 1, type: 'singles', label: 'Singles 701 x3', legs: '701·701·701', playerCount: 1 },
@@ -501,6 +502,11 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
         </>
       )}
 
+      {/* Opponent Scouting */}
+      {matchSessionId && (
+        <OpponentScouting matchDate={matchDate} result={result} />
+      )}
+
       {!result && (
         <div className="text-center py-16">
           <p className="text-lg text-[#94A3B8] mb-2 font-body">Select a match date and generate a Super League lineup</p>
@@ -527,6 +533,92 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function OpponentScouting({ matchDate, result }: { matchDate: string; result: FullLineup | null }) {
+  const [profile, setProfile] = useState<OpponentTeamProfile | null>(null);
+  const [bestMatchups, setBestMatchups] = useState<Map<number, { name: string; score: number }[]>>(new Map());
+
+  useEffect(() => {
+    const prof = getOpponentTeamProfile(matchDate);
+    setProfile(prof);
+    if (prof && result) {
+      const players = getAllPlayersWithStats();
+      const matchups = new Map<number, { name: string; score: number }[]>();
+      for (const slot of prof.gameSlots) {
+        const game = SUPER_LEAGUE_FORMAT.find(g => g.id === slot.slotGameId);
+        if (!game) continue;
+        const ranked = [...players]
+          .map(pl => ({
+            name: pl.player.name,
+            score: formatScore(pl, game.legs) + matchupBonus(pl, game.id, prof),
+          }))
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 3);
+        matchups.set(slot.slotGameId, ranked);
+      }
+      setBestMatchups(matchups);
+    }
+  }, [matchDate, result]);
+
+  if (!profile || profile.gameSlots.length === 0) return null;
+
+  return (
+    <div className="mb-8">
+      <div className="glass-card rounded-xl p-5">
+        <div className="flex items-center gap-3 mb-4">
+          <span className="text-sm font-semibold font-body" style={{ color: '#B8942E' }}>📋 Opponent Scouting</span>
+          <span className="text-xs text-[#94A3B8] font-body">vs {profile.teamName}</span>
+          {profile.lastPlayed && (
+            <span className="text-xs text-[#94A3B8] ml-auto font-body">Last met: {profile.lastPlayed}</span>
+          )}
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs font-body">
+            <thead>
+              <tr className="text-[10px] text-[#94A3B8] uppercase tracking-[0.08em]" style={{ borderBottom: '1px solid #E2E8F0' }}>
+                <th className="pb-2 font-semibold text-left font-body">Game</th>
+                <th className="pb-2 font-semibold text-center font-body">Players Faced</th>
+                <th className="pb-2 font-semibold text-center font-body">Avg 01</th>
+                <th className="pb-2 font-semibold text-center font-body">Avg Cricket</th>
+                <th className="pb-2 font-semibold text-center font-body">Data Points</th>
+                <th className="pb-2 font-semibold text-center font-body">Best Match (us)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {profile.gameSlots.map(slot => {
+                const best = bestMatchups.get(slot.slotGameId) || [];
+                return (
+                  <tr key={slot.slotGameId} className="transition-colors" style={{ borderBottom: '1px solid #F1F5F9' }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                    <td className="py-2 font-medium text-[#1E293B] font-body">G{slot.slotGameId}</td>
+                    <td className="py-2 text-center text-[#64748B] font-body max-w-[120px] truncate" title={slot.playersFaced.join(', ')}>
+                      {slot.playersFaced.join(', ')}
+                    </td>
+                    <td className="py-2 text-center font-mono font-body" style={{ color: slot.avg01 > 0 ? '#B8942E' : '#CBD5E1' }}>
+                      {slot.avg01 > 0 ? slot.avg01.toFixed(1) : '-'}
+                    </td>
+                    <td className="py-2 text-center font-mono font-body" style={{ color: slot.avgCricket > 0 ? '#B8942E' : '#CBD5E1' }}>
+                      {slot.avgCricket > 0 ? slot.avgCricket.toFixed(1) : '-'}
+                    </td>
+                    <td className="py-2 text-center text-[#94A3B8] font-body">{slot.sampleSize}</td>
+                    <td className="py-2 text-center">
+                      <span className="text-[#1E293B] font-medium font-body">
+                        {best.map(b => b.name).join(', ') || '-'}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <p className="text-xs text-[#94A3B8] mt-3 font-body">
+          Opponent data is collected from past matches. Lineup optimizer uses matchup scores to pair our strongest players against opponent weaknesses per game slot.
+        </p>
+      </div>
     </div>
   );
 }

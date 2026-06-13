@@ -116,6 +116,11 @@ export interface LiveMatchResult {
     loseCount: number;
     winRate: string;
   }[];
+  opponentPlayers: {
+    name: string;
+    stats01: number;
+    statsCricket: number;
+  }[];
   games: LiveMatchGameResult[];
   awards: LiveMatchAward[];
 }
@@ -263,6 +268,13 @@ export async function fetchLiveData(): Promise<LiveData> {
             winCount: p.winCount,
             loseCount: p.loseCount,
             winRate: p.winRate,
+          })),
+        opponentPlayers: (data.gamePlayerPerformanceRrankList || [])
+          .filter(p => !isOurTeam(p.teamName))
+          .map(p => ({
+            name: p.playerName,
+            stats01: parseFloat(p.stats01) || 0,
+            statsCricket: parseFloat(p.statsCricket) || 0,
           })),
         games,
         awards: (data.awardAccomplisherList || []).map(a => ({

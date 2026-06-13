@@ -148,3 +148,29 @@ export interface PartnerStats {
   wins: number;
   winPct: number;
 }
+
+// --- Opponent tracking for strategy ---
+
+export interface OpponentPlayerRecord {
+  id: string;
+  matchDate: string;
+  opponentTeam: string;
+  playerName: string;
+  stats01: number;
+  statsCricket: number;
+  gameIds: number[];
+}
+
+export interface OpponentGameSlotProfile {
+  slotGameId: number;
+  playersFaced: string[];
+  avg01: number;
+  avgCricket: number;
+  sampleSize: number;
+}
+
+export interface OpponentTeamProfile {
+  teamName: string;
+  lastPlayed: string;
+  gameSlots: OpponentGameSlotProfile[];
+}
