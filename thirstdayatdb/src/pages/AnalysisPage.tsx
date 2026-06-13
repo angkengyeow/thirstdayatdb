@@ -273,14 +273,6 @@ function GameFormatTotals({ matchSessions }: { matchSessions: { id: string }[] }
     halfItGames: number;
     seenGames: Set<string>;
   }>();
-  const formatTotals: Record<string, number> = {};
-  for (const fmt of formatOrder) formatTotals[fmt] = 0;
-  let totalHalfItGames = 0;
-
-  // Track unique games per format for the total row
-  const seenFormatGames = new Map<string, Set<string>>();
-  for (const fmt of formatOrder) seenFormatGames.set(fmt, new Set());
-  const seenHalfItGames = new Set<string>();
 
   const playerStats = getAllPlayersGameStats();
   const idToName = new Map(playerStats.map(ps => [ps.playerId, ps.playerName]));
@@ -300,27 +292,13 @@ function GameFormatTotals({ matchSessions }: { matchSessions: { id: string }[] }
       const pd = playerData.get(pName)!;
       const gameKey = `${s.id}:${g.gameId}`;
 
-      // Per-player: count each unique game once (one entry per game per player)
+      // Count each unique game once per player
       if (!pd.seenGames.has(gameKey)) {
         pd.seenGames.add(gameKey);
         if (g.format === 'half-it') {
           pd.halfItGames++;
         } else {
           pd.formatCounts[g.gameType] = (pd.formatCounts[g.gameType] || 0) + 1;
-        }
-      }
-
-      // Total row: count each unique game instance once across all players
-      if (g.format === 'half-it') {
-        if (!seenHalfItGames.has(gameKey)) {
-          seenHalfItGames.add(gameKey);
-          totalHalfItGames++;
-        }
-      } else {
-        const seen = seenFormatGames.get(g.gameType);
-        if (seen && !seen.has(gameKey)) {
-          seen.add(gameKey);
-          formatTotals[g.gameType] = (formatTotals[g.gameType] || 0) + 1;
         }
       }
     }
@@ -335,7 +313,6 @@ function GameFormatTotals({ matchSessions }: { matchSessions: { id: string }[] }
     });
 
   if (sortedPlayers.length === 0) return null;
-  const allFormatTotal = formatOrder.reduce((s, f) => s + (formatTotals[f] || 0), 0) + totalHalfItGames;
 
   return (
     <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-6 mb-6">
@@ -364,12 +341,6 @@ function GameFormatTotals({ matchSessions }: { matchSessions: { id: string }[] }
                 </tr>
               );
             })}
-            <tr className="border-t-2 border-[#2e2e52] bg-[#0d0d1a]/80 font-semibold">
-              <td className="py-1.5 text-[#6b6b8a]">Total</td>
-              {formatOrder.map(f => (<td key={f} className="py-1.5 text-center font-mono text-[#c8c8d8]">{formatTotals[f] || 0}</td>))}
-              <td className="py-1.5 text-center font-mono font-bold text-gold-400">{totalHalfItGames}</td>
-              <td className="py-1.5 text-center font-mono font-bold text-[#eeeef4]">{allFormatTotal}</td>
-            </tr>
           </tbody>
         </table>
       </div>
