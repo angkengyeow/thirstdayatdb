@@ -606,23 +606,13 @@ export function generateFullLineup(
   const assignments: GameAssignment[] = [];
   const skippedGames: SkippedGame[] = [];
 
-  // Split games into three blocks with different repeat rules
-  const firstThreeGames = games.filter(g => g.id >= 1 && g.id <= 3);
+  // Split games into three blocks
+  const part1Games = games.filter(g => g.id >= 1 && g.id <= 3);
   const part2Games = games.filter(g => g.id >= 4 && g.id <= 7);
   const part3Games = games.filter(g => g.id >= 8 && g.id <= 9);
 
-  // --- Optimize G1-G3 block (no-repeat rule) ---
-  const firstThreeResult = optimizeFirstThreeBlock(firstThreeGames, availablePlayers, gameCount);
-
-  for (const a of firstThreeResult.assignments) {
-    assignments.push(a);
-    for (const p of a.players) {
-      gameCount.set(p.player.id, (gameCount.get(p.player.id) || 0) + 1);
-    }
-  }
-  for (const s of firstThreeResult.skipped) {
-    skippedGames.push(s);
-  }
+  // --- Part 1 (G1-G3): repeat once (max 2 appearances per player) ---
+  assignRepeatOnceBlock(part1Games, availablePlayers, gameCount, 'G1-G3', assignments, skippedGames);
 
   // --- Part 2 (G4-G7): repeat once (max 2 appearances per player in this block) ---
   assignRepeatOnceBlock(part2Games, availablePlayers, gameCount, 'G4-G7', assignments, skippedGames);
@@ -639,87 +629,6 @@ export function generateFullLineup(
     .sort((a, b) => b.count - a.count);
 
   return { assignments, playerGameCount, skippedGames, unavailablePlayers };
-}
-
-/**
- * Optimizes the G1-G3 block when not enough unique players exist for all 3 games.
- * Evaluates every valid subset of games (respecting the no-repeat rule) and picks
- * the combination with the highest total format score to maximize winning chance.
- */
-function optimizeFirstThreeBlock(
-  games: MatchGame[],
-  availablePlayers: PlayerWithStats[],
-  gameCount: Map<string, number>
-): { assignments: GameAssignment[]; skipped: SkippedGame[] } {
-  const totalPlayers = availablePlayers.length;
-
-  // Generate all non-empty subsets of [0, 1, 2] → [G1, G2, G3] as bitmask indices
-  const subsets: number[][] = [];
-  for (let mask = 1; mask < (1 << 3); mask++) {
-    const subset: number[] = [];
-    for (let i = 0; i < 3; i++) {
-      if (mask & (1 << i)) subset.push(i);
-    }
-    subsets.push(subset);
-  }
-
-  let bestScore = -1;
-  let bestResult: { assignments: GameAssignment[]; skipped: SkippedGame[] } | null = null;
-  const allGames = games;
-
-  for (const subset of subsets) {
-    const used = new Set<string>();
-    const subsetAssignments: GameAssignment[] = [];
-    let valid = true;
-    let totalScore = 0;
-
-    for (const idx of subset) {
-      const game = games[idx];
-      const pool = availablePlayers.filter(p => !used.has(p.player.id));
-      const ranked = [...pool].sort((a, b) => {
-        // No game count penalty within first 3 (no-repeat rule makes it moot)
-        return formatScore(b, game.legs) - formatScore(a, game.legs);
-      });
-
-      if (ranked.length < game.playerCount) {
-        valid = false;
-        break;
-      }
-
-      const players = ranked.slice(0, game.playerCount);
-      for (const p of players) {
-        used.add(p.player.id);
-        totalScore += formatScore(p, game.legs);
-      }
-      subsetAssignments.push({ game, players });
-    }
-
-    if (!valid) continue;
-
-    if (totalScore > bestScore) {
-      bestScore = totalScore;
-      const skipped = allGames.filter((_, i) => !subset.includes(i)).map(g => {
-        const reason = g.playerCount <= totalPlayers
-          ? `Forfeited — fielding higher-win-probability combination`
-          : `G1-G3 no-repeat rule: need ${g.playerCount} unique player${g.playerCount > 1 ? 's' : ''}, only ${totalPlayers} available`;
-        return { game: g, reason };
-      });
-      bestResult = { assignments: subsetAssignments, skipped };
-    }
-  }
-
-  // Fallback: all 3 games could be played normally with enough unique players
-  if (!bestResult) {
-    return {
-      assignments: [],
-      skipped: games.map(g => ({
-        game: g,
-        reason: `Not enough unique players for G1-G3 no-repeat rule`,
-      })),
-    };
-  }
-
-  return bestResult;
 }
 
 /**
