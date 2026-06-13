@@ -1,14 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  getPlayerDashboardStats, getSessions, hasData, clearAllData,
+  getPlayerDashboardStats, getSessions,
   populateFromLiveData, updateFromLiveData, getTeamStanding,
   getUpcomingSessions, buildResponseLink, getGamePerformancesForSession,
   getAllPlayersGameStats,
 } from '../store';
 import { seedDemoData } from '../seed';
 import { fetchLiveData } from '../scraper';
-
-type LoadStatus = 'idle' | 'loading' | 'success' | 'fallback' | 'error';
 
 export default function DashboardPage() {
   const [refreshKey, setRefreshKey] = useState(0);
@@ -18,7 +16,6 @@ export default function DashboardPage() {
   const [upcoming, setUpcoming] = useState(getUpcomingSessions);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [loadStatus, setLoadStatus] = useState<LoadStatus>('idle');
   const [statusMessage, setStatusMessage] = useState('');
   const [playerStats, setPlayerStats] = useState(getAllPlayersGameStats());
   const matchSessions = sessions.filter(s => s.type === 'match');
@@ -31,58 +28,39 @@ export default function DashboardPage() {
     setPlayerStats(getAllPlayersGameStats());
   }, []);
 
+  // Auto-fetch live data on every page mount; falls back to seed data on failure
   useEffect(() => {
-    seedDemoData();
-    refresh();
-  }, [refreshKey, refresh]);
-
-  async function loadFromApi() {
-    setLoading(true);
-    setLoadStatus('loading');
-
-    const isFirstLoad = !hasData();
-
-    try {
-      const liveData = await fetchLiveData();
-      if (isFirstLoad) {
-        populateFromLiveData(liveData);
-        setStatusMessage(`Loaded live data — ${liveData.players.length} players, ${liveData.matches.length} matches`);
-      } else {
-        const added = updateFromLiveData(liveData);
-        if (added > 0) {
-          setStatusMessage(`Added ${added} new match${added > 1 ? 'es' : ''} from DartsLive`);
-        } else {
-          setStatusMessage('All matches already up to date');
-        }
-      }
-      setLoadStatus('success');
-    } catch {
-      setStatusMessage('DartsLive API unavailable — loading static seed data instead');
+    let cancelled = false;
+    async function autoLoad() {
+      setLoading(true);
+      setStatusMessage('Loading data...');
       try {
-        seedDemoData();
-        setLoadStatus('fallback');
-        setStatusMessage('Static seed data loaded (API was unavailable)');
+        const liveData = await fetchLiveData();
+        if (cancelled) return;
+        populateFromLiveData(liveData);
+        const added = updateFromLiveData(liveData);
+        const msg = added > 0
+          ? `Updated — ${added} new match${added > 1 ? 'es' : ''}`
+          : 'Up to date';
+        setStatusMessage(msg);
       } catch {
-        setLoadStatus('error');
-        setStatusMessage('Failed to load data from both API and static seed');
+        if (cancelled) return;
+        seedDemoData();
+        setStatusMessage('Seed data loaded');
+      }
+      if (!cancelled) {
+        setLoading(false);
+        setRefreshKey(k => k + 1);
       }
     }
-    setLoading(false);
-    setRefreshKey(k => k + 1);
-  }
+    autoLoad();
+    return () => { cancelled = true; };
+  }, []);
 
-  function handleLoadData() {
-    if (hasData() && !confirm('This will replace all existing data. Continue?')) return;
-    loadFromApi();
-  }
-
-  function handleClearData() {
-    if (!confirm('Delete all data?')) return;
-    clearAllData();
-    setLoadStatus('idle');
-    setStatusMessage('');
-    setRefreshKey(k => k + 1);
-  }
+  // Refresh view whenever underlying data changes
+  useEffect(() => {
+    refresh();
+  }, [refreshKey, refresh]);
 
   function handleCopyLink(sessionId: string) {
     const link = buildResponseLink(sessionId);
@@ -173,57 +151,23 @@ export default function DashboardPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 animate-fade-in">
       {/* Page Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-start justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-[#e8e0f4] font-display tracking-wider">Dashboard</h1>
           <p className="text-sm text-[#5a4a8a] mt-0.5">Team overview and match history</p>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={handleLoadData}
-            disabled={loading}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              loading
-                ? 'bg-[#150d40] text-[#5a4a8a] cursor-not-allowed'
-                : 'bg-cyan-400 text-[#0a0520] hover:bg-cyan-500 shadow-lg shadow-cyan-400/20 active:scale-95 transition-all duration-150'
-            }`}
-          >
-            {loading ? 'Loading...' : 'Load Live Data'}
-          </button>
-          <button
-            onClick={handleClearData}
-            className="px-4 py-2 bg-dart-red/15 text-dart-red rounded-lg hover:bg-dart-red/25 transition-colors text-sm font-medium"
-          >
-            Clear Data
-          </button>
-        </div>
+        {loading && (
+          <div className="flex items-center gap-2 text-xs text-[#5a4a8a] bg-[#0d0830]/80 px-3 py-1.5 rounded-full border border-[#1a2a5a]">
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_4px_rgba(0,229,255,0.5)]" />
+            Loading...
+          </div>
+        )}
+        {!loading && statusMessage && (
+          <div className="text-[11px] text-[#3a2a6a] bg-[#0d0830]/60 px-3 py-1.5 rounded-full border border-[#1a2a5a]">
+            {statusMessage}
+          </div>
+        )}
       </div>
-
-      {/* Load Status Banners */}
-      {loadStatus === 'loading' && (
-        <div className="glass-card rounded-xl p-4 mb-6 flex items-center gap-3 animate-fade-in">
-          <div className="w-4 h-4 rounded-full border-2 border-cyan-400 border-t-transparent animate-spin shadow-[0_0_8px_rgba(0,229,255,0.3)]" />
-          <span className="text-sm text-[#b8aad8]">{statusMessage}</span>
-        </div>
-      )}
-      {loadStatus === 'success' && (
-        <div className="bg-dart-green/[0.06] border border-dart-green/30 rounded-xl p-4 mb-6 flex items-center gap-2 animate-fade-in">
-          <span className="text-dart-green text-lg">✓</span>
-          <span className="text-sm text-dart-green">{statusMessage}</span>
-        </div>
-      )}
-      {loadStatus === 'fallback' && (
-        <div className="bg-cyan-400/[0.06] border border-cyan-400/30 rounded-xl p-4 mb-6 flex items-center gap-2 animate-fade-in">
-          <span className="text-cyan-400 text-lg">⚠</span>
-          <span className="text-sm text-cyan-400">{statusMessage}</span>
-        </div>
-      )}
-      {loadStatus === 'error' && (
-        <div className="bg-dart-red/[0.06] border border-dart-red/30 rounded-xl p-4 mb-6 flex items-center gap-2 animate-fade-in">
-          <span className="text-dart-red text-lg">✗</span>
-          <span className="text-sm text-dart-red">{statusMessage}</span>
-        </div>
-      )}
 
       {/* Team Standing */}
       <Section animate>
