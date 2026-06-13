@@ -1,0 +1,1952 @@
+[
+  {
+    "matchNo": "b5e4eb75b130c163",
+    "date": "2026/02/12",
+    "homeTeam": "GOTTaWinThemAllAgain",
+    "awayTeam": "Thirstday@DB",
+    "isThirstdayHome": false,
+    "homeScore": 4,
+    "awayScore": 5,
+    "homeBonus": 0,
+    "awayBonus": 1,
+    "games": [
+      {
+        "gameId": 1,
+        "gameName": "GAME1",
+        "homeLegs": 2,
+        "awayLegs": 0,
+        "homePlayers": [
+          "Henry Tan WL"
+        ],
+        "awayPlayers": [
+          "Tan Li Ting"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 2,
+        "gameName": "GAME2",
+        "homeLegs": 2,
+        "awayLegs": 1,
+        "homePlayers": [
+          "Gavier Yee JT"
+        ],
+        "awayPlayers": [
+          "Clarence Yeo WG"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 3,
+        "gameName": "GAME3",
+        "homeLegs": 1,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Ricxon Lim JS",
+          "Aiken Choo HY"
+        ],
+        "awayPlayers": [
+          "Ang Keng Yeow",
+          "Wang GuanFei"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 4,
+        "gameName": "GAME4",
+        "homeLegs": 1,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Gavier Yee JT",
+          "Ricxon Lim JS"
+        ],
+        "awayPlayers": [
+          "Tan Li Ting",
+          "Jack Li"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 5,
+        "gameName": "GAME5",
+        "homeLegs": 0,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Henry Tan WL",
+          "Aiken Choo HY"
+        ],
+        "awayPlayers": [
+          "Clarence Yeo WG",
+          "Wang GuanFei"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 6,
+        "gameName": "GAME6",
+        "homeLegs": 2,
+        "awayLegs": 1,
+        "homePlayers": [
+          "Gavier Yee JT",
+          "Ricxon Lim JS"
+        ],
+        "awayPlayers": [
+          "Tan Li Ting",
+          "Wang GuanFei"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 7,
+        "gameName": "GAME7",
+        "homeLegs": 0,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Henry Tan WL",
+          "Hosen Gan CC"
+        ],
+        "awayPlayers": [
+          "Clarence Yeo WG",
+          "Ang Keng Yeow"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 8,
+        "gameName": "GAME8",
+        "homeLegs": 2,
+        "awayLegs": 1,
+        "homePlayers": [
+          "Gavier Yee JT",
+          "Henry Tan WL",
+          "Ricxon Lim JS"
+        ],
+        "awayPlayers": [
+          "Clarence Yeo WG",
+          "Ang Keng Yeow",
+          "Jack Li"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 9,
+        "gameName": "GAME9",
+        "homeLegs": 0,
+        "awayLegs": 1,
+        "homePlayers": [
+          "Gavier Yee JT",
+          "Ricxon Lim JS",
+          "Aiken Choo HY",
+          "Hosen Gan CC"
+        ],
+        "awayPlayers": [
+          "Clarence Yeo WG",
+          "Ang Keng Yeow",
+          "Jack Li",
+          "Wang GuanFei"
+        ],
+        "thirstdayWon": true
+      }
+    ]
+  },
+  {
+    "matchNo": "93bfacdc24c690b4",
+    "date": "2026/02/26",
+    "homeTeam": "Thirstday@DB",
+    "awayTeam": "Heng @ G.U.T.S",
+    "isThirstdayHome": true,
+    "homeScore": 9,
+    "awayScore": 0,
+    "homeBonus": 1,
+    "awayBonus": 0,
+    "games": [
+      {
+        "gameId": 1,
+        "gameName": "GAME1",
+        "homeLegs": 2,
+        "awayLegs": 1,
+        "homePlayers": [
+          "Ang Keng Yeow"
+        ],
+        "awayPlayers": [
+          "Addis Chan HL"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 2,
+        "gameName": "GAME2",
+        "homeLegs": 2,
+        "awayLegs": 1,
+        "homePlayers": [
+          "Clarence Yeo WG"
+        ],
+        "awayPlayers": [
+          "Gerry Choo CY"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 3,
+        "gameName": "GAME3",
+        "homeLegs": 2,
+        "awayLegs": 0,
+        "homePlayers": [
+          "Tan Li Ting",
+          "Jack Li"
+        ],
+        "awayPlayers": [
+          "Shawn Chu MX",
+          "Jason Seah YS"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 4,
+        "gameName": "GAME4",
+        "homeLegs": 2,
+        "awayLegs": 0,
+        "homePlayers": [
+          "Ang Keng Yeow",
+          "Jack Li"
+        ],
+        "awayPlayers": [
+          "Addis Chan HL",
+          "Lin Yao Xin"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 5,
+        "gameName": "GAME5",
+        "homeLegs": 2,
+        "awayLegs": 1,
+        "homePlayers": [
+          "Clarence Yeo WG",
+          "Wang GuanFei"
+        ],
+        "awayPlayers": [
+          "Gerry Choo CY",
+          "Shawn Chu MX"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 6,
+        "gameName": "GAME6",
+        "homeLegs": 2,
+        "awayLegs": 1,
+        "homePlayers": [
+          "Melvin Lee XC",
+          "Wang GuanFei"
+        ],
+        "awayPlayers": [
+          "Addis Chan HL",
+          "Gerry Choo CY"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 7,
+        "gameName": "GAME7",
+        "homeLegs": 2,
+        "awayLegs": 1,
+        "homePlayers": [
+          "Melvin Lee XC",
+          "Tan Li Ting"
+        ],
+        "awayPlayers": [
+          "Jason Seah YS",
+          "Shawn Chu MX"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 8,
+        "gameName": "GAME8",
+        "homeLegs": 2,
+        "awayLegs": 1,
+        "homePlayers": [
+          "Clarence Yeo WG",
+          "Melvin Lee XC",
+          "Ang Keng Yeow"
+        ],
+        "awayPlayers": [
+          "Gerry Choo CY",
+          "Jason Seah YS",
+          "Addis Chan HL"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 9,
+        "gameName": "GAME9",
+        "homeLegs": 1,
+        "awayLegs": 0,
+        "homePlayers": [
+          "Clarence Yeo WG",
+          "Melvin Lee XC",
+          "Wang GuanFei",
+          "Jack Li"
+        ],
+        "awayPlayers": [
+          "Addis Chan HL",
+          "Lin Yao Xin",
+          "Shawn Chu MX",
+          "Jason Seah YS"
+        ],
+        "thirstdayWon": true
+      }
+    ]
+  },
+  {
+    "matchNo": "853d0e8bfeb3c6a3",
+    "date": "2026/03/05",
+    "homeTeam": "OBar - Alpha",
+    "awayTeam": "Thirstday@DB",
+    "isThirstdayHome": false,
+    "homeScore": 1,
+    "awayScore": 8,
+    "homeBonus": 0,
+    "awayBonus": 1,
+    "games": [
+      {
+        "gameId": 1,
+        "gameName": "GAME1",
+        "homeLegs": 0,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Ken Lee CL"
+        ],
+        "awayPlayers": [
+          "Melvin Lee XC"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 2,
+        "gameName": "GAME2",
+        "homeLegs": 1,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Komin Chow KM"
+        ],
+        "awayPlayers": [
+          "Clarence Yeo WG"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 3,
+        "gameName": "GAME3",
+        "homeLegs": 1,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Lim Dixson",
+          "Koh Chin Kia"
+        ],
+        "awayPlayers": [
+          "Wang GuanFei",
+          "-"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 4,
+        "gameName": "GAME4",
+        "homeLegs": 0,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Lim Dixson",
+          "Flik Fok"
+        ],
+        "awayPlayers": [
+          "Clarence Yeo WG",
+          "Jack Li"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 5,
+        "gameName": "GAME5",
+        "homeLegs": 0,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Komin Chow KM",
+          "Ken Lee CL"
+        ],
+        "awayPlayers": [
+          "Clarence Yeo WG",
+          "Melvin Lee XC"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 6,
+        "gameName": "GAME6",
+        "homeLegs": 2,
+        "awayLegs": 1,
+        "homePlayers": [
+          "Komin Chow KM",
+          "Ken Lee CL"
+        ],
+        "awayPlayers": [
+          "Tan Li Ting",
+          "-"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 7,
+        "gameName": "GAME7",
+        "homeLegs": 0,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Lim Dixson",
+          "Koh Chin Kia"
+        ],
+        "awayPlayers": [
+          "Wang GuanFei",
+          "Melvin Lee XC"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 8,
+        "gameName": "GAME8",
+        "homeLegs": 0,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Lim Dixson",
+          "Ken Lee CL",
+          "Flik Fok"
+        ],
+        "awayPlayers": [
+          "Wang GuanFei",
+          "-",
+          "Tan Li Ting"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 9,
+        "gameName": "GAME9",
+        "homeLegs": 0,
+        "awayLegs": 1,
+        "homePlayers": [
+          "Lim Dixson",
+          "Ken Lee CL",
+          "Flik Fok",
+          "Koh Chin Kia"
+        ],
+        "awayPlayers": [
+          "Wang GuanFei",
+          "-",
+          "Tan Li Ting",
+          "Jack Li"
+        ],
+        "thirstdayWon": true
+      }
+    ]
+  },
+  {
+    "matchNo": "1d6f09a3c593151b",
+    "date": "2026/03/12",
+    "homeTeam": "Thirstday@DB",
+    "awayTeam": "Divinities.\u795e\u5c07 @GVC",
+    "isThirstdayHome": true,
+    "homeScore": 1,
+    "awayScore": 8,
+    "homeBonus": 0,
+    "awayBonus": 1,
+    "games": [
+      {
+        "gameId": 1,
+        "gameName": "GAME1",
+        "homeLegs": 1,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Melvin Lee XC"
+        ],
+        "awayPlayers": [
+          "Francis Goh WT"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 2,
+        "gameName": "GAME2",
+        "homeLegs": 0,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Clarence Yeo WG"
+        ],
+        "awayPlayers": [
+          "William K. Ten"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 3,
+        "gameName": "GAME3",
+        "homeLegs": 0,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Ang Keng Yeow",
+          "Jack Li"
+        ],
+        "awayPlayers": [
+          "Tan Yi Jie",
+          "Soo Meng Choy"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 4,
+        "gameName": "GAME4",
+        "homeLegs": 2,
+        "awayLegs": 0,
+        "homePlayers": [
+          "Tan Li Ting",
+          "-"
+        ],
+        "awayPlayers": [
+          "William K. Ten",
+          "Eric Low AH"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 5,
+        "gameName": "GAME5",
+        "homeLegs": 0,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Clarence Yeo WG",
+          "-"
+        ],
+        "awayPlayers": [
+          "Tan Yi Jie",
+          "Soo Meng Choy"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 6,
+        "gameName": "GAME6",
+        "homeLegs": 0,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Melvin Lee XC",
+          "Wang GuanFei"
+        ],
+        "awayPlayers": [
+          "William K. Ten",
+          "Joel See ZE"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 7,
+        "gameName": "GAME7",
+        "homeLegs": 1,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Clarence Yeo WG",
+          "Tan Li Ting"
+        ],
+        "awayPlayers": [
+          "Tan Yi Jie",
+          "Soo Meng Choy"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 8,
+        "gameName": "GAME8",
+        "homeLegs": 1,
+        "awayLegs": 2,
+        "homePlayers": [
+          "-",
+          "Wang GuanFei",
+          "Jack Li"
+        ],
+        "awayPlayers": [
+          "Tan Yi Jie",
+          "Joel See ZE",
+          "Soo Meng Choy"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 9,
+        "gameName": "GAME9",
+        "homeLegs": 0,
+        "awayLegs": 1,
+        "homePlayers": [
+          "Tan Li Ting",
+          "Melvin Lee XC",
+          "Wang GuanFei",
+          "Jack Li"
+        ],
+        "awayPlayers": [
+          "Tan Yi Jie",
+          "Francis Goh WT",
+          "Chen Ming Wei",
+          "Joel See ZE"
+        ],
+        "thirstdayWon": false
+      }
+    ]
+  },
+  {
+    "matchNo": "1a020ba8362cd8f5",
+    "date": "2026/03/19",
+    "homeTeam": "CHAOS Primordial",
+    "awayTeam": "Thirstday@DB",
+    "isThirstdayHome": false,
+    "homeScore": 4,
+    "awayScore": 5,
+    "homeBonus": 0,
+    "awayBonus": 1,
+    "games": [
+      {
+        "gameId": 1,
+        "gameName": "GAME1",
+        "homeLegs": 2,
+        "awayLegs": 0,
+        "homePlayers": [
+          "Jay Quek"
+        ],
+        "awayPlayers": [
+          "Jack Li"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 2,
+        "gameName": "GAME2",
+        "homeLegs": 1,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Gabriel Tay WK"
+        ],
+        "awayPlayers": [
+          "Clarence Yeo WG"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 3,
+        "gameName": "GAME3",
+        "homeLegs": 1,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Jonathan Lim JR",
+          "Glenn Emmanuel"
+        ],
+        "awayPlayers": [
+          "Melvin Lee XC",
+          "Ang Keng Yeow"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 4,
+        "gameName": "GAME4",
+        "homeLegs": 2,
+        "awayLegs": 0,
+        "homePlayers": [
+          "Jonathan Lim JR",
+          "Jay Quek"
+        ],
+        "awayPlayers": [
+          "Clarence Yeo WG",
+          "Tan Li Ting"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 5,
+        "gameName": "GAME5",
+        "homeLegs": 2,
+        "awayLegs": 1,
+        "homePlayers": [
+          "Gabriel Tay WK",
+          "Jeremy Wong JH"
+        ],
+        "awayPlayers": [
+          "Clarence Yeo WG",
+          "Melvin Lee XC"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 6,
+        "gameName": "GAME6",
+        "homeLegs": 0,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Jay Quek",
+          "Jeremy Wong JH"
+        ],
+        "awayPlayers": [
+          "Ang Keng Yeow",
+          "Wang GuanFei"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 7,
+        "gameName": "GAME7",
+        "homeLegs": 2,
+        "awayLegs": 0,
+        "homePlayers": [
+          "Jonathan Lim JR",
+          "Gabriel Tay WK"
+        ],
+        "awayPlayers": [
+          "Ang Keng Yeow",
+          "Wang GuanFei"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 8,
+        "gameName": "GAME8",
+        "homeLegs": 0,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Gabriel Tay WK",
+          "Jay Quek",
+          "Jonathan Lim JR"
+        ],
+        "awayPlayers": [
+          "Melvin Lee XC",
+          "Tan Li Ting",
+          "Jack Li"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 9,
+        "gameName": "GAME9",
+        "homeLegs": 0,
+        "awayLegs": 1,
+        "homePlayers": [
+          "Jeremy Wong JH",
+          "Tan Su Sheng",
+          "Gabriel Tay WK",
+          "Rennie Er HX"
+        ],
+        "awayPlayers": [
+          "Melvin Lee XC",
+          "Tan Li Ting",
+          "Ang Keng Yeow",
+          "Wang GuanFei"
+        ],
+        "thirstdayWon": true
+      }
+    ]
+  },
+  {
+    "matchNo": "019a7fbce1b56260",
+    "date": "2026/04/09",
+    "homeTeam": "Thirstday@DB",
+    "awayTeam": "Katana Defenders @ F5",
+    "isThirstdayHome": true,
+    "homeScore": 2,
+    "awayScore": 7,
+    "homeBonus": 0,
+    "awayBonus": 1,
+    "games": [
+      {
+        "gameId": 1,
+        "gameName": "GAME1",
+        "homeLegs": 2,
+        "awayLegs": 0,
+        "homePlayers": [
+          "Melvin Lee XC"
+        ],
+        "awayPlayers": [
+          "Valerie Ong"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 2,
+        "gameName": "GAME2",
+        "homeLegs": 1,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Clarence Yeo WG"
+        ],
+        "awayPlayers": [
+          "Alex Tan XH"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 3,
+        "gameName": "GAME3",
+        "homeLegs": 2,
+        "awayLegs": 1,
+        "homePlayers": [
+          "Tan Li Ting",
+          "Ang Keng Yeow"
+        ],
+        "awayPlayers": [
+          "Aaron Choo ZW",
+          "Mohd Farid"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 4,
+        "gameName": "GAME4",
+        "homeLegs": 1,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Tan Li Ting",
+          "Jack Li"
+        ],
+        "awayPlayers": [
+          "Alex Tan XH",
+          "Sean Kwek SW"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 5,
+        "gameName": "GAME5",
+        "homeLegs": 1,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Clarence Yeo WG",
+          "Melvin Lee XC"
+        ],
+        "awayPlayers": [
+          "Alex Tan XH",
+          "Mohd Farid"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 6,
+        "gameName": "GAME6",
+        "homeLegs": 1,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Melvin Lee XC",
+          "Wang GuanFei"
+        ],
+        "awayPlayers": [
+          "Mohd Farid",
+          "Aaron Choo ZW"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 7,
+        "gameName": "GAME7",
+        "homeLegs": 1,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Clarence Yeo WG",
+          "Ang Keng Yeow"
+        ],
+        "awayPlayers": [
+          "Aaron Choo ZW",
+          "Valerie Ong"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 8,
+        "gameName": "GAME8",
+        "homeLegs": 1,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Melvin Lee XC",
+          "Tan Li Ting",
+          "Wang GuanFei"
+        ],
+        "awayPlayers": [
+          "Mohd Farid",
+          "Kelvin Kenji Tan",
+          "Alex Tan XH"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 9,
+        "gameName": "GAME9",
+        "homeLegs": 0,
+        "awayLegs": 1,
+        "homePlayers": [
+          "Tan Li Ting",
+          "Ang Keng Yeow",
+          "Wang GuanFei",
+          "Jack Li"
+        ],
+        "awayPlayers": [
+          "Aaron Choo ZW",
+          "Kelvin Kenji Tan",
+          "Sean Kwek SW",
+          "Mohd Farid"
+        ],
+        "thirstdayWon": false
+      }
+    ]
+  },
+  {
+    "matchNo": "ca87fad7ae9cbfe2",
+    "date": "2026/04/16",
+    "homeTeam": "Thirstday@DB",
+    "awayTeam": "Yeti @ Shinjyu",
+    "isThirstdayHome": true,
+    "homeScore": 5,
+    "awayScore": 4,
+    "homeBonus": 1,
+    "awayBonus": 0,
+    "games": [
+      {
+        "gameId": 1,
+        "gameName": "GAME1",
+        "homeLegs": 2,
+        "awayLegs": 1,
+        "homePlayers": [
+          "Melvin Lee XC"
+        ],
+        "awayPlayers": [
+          "Tan Ping Le"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 2,
+        "gameName": "GAME2",
+        "homeLegs": 2,
+        "awayLegs": 0,
+        "homePlayers": [
+          "Clarence Yeo WG"
+        ],
+        "awayPlayers": [
+          "Lionel Lee JW"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 3,
+        "gameName": "GAME3",
+        "homeLegs": 2,
+        "awayLegs": 0,
+        "homePlayers": [
+          "Tan Li Ting",
+          "Wang GuanFei"
+        ],
+        "awayPlayers": [
+          "Damien Sim",
+          "Billy Tye"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 4,
+        "gameName": "GAME4",
+        "homeLegs": 2,
+        "awayLegs": 0,
+        "homePlayers": [
+          "Clarence Yeo WG",
+          "Tan Li Ting"
+        ],
+        "awayPlayers": [
+          "Tan Ping Le",
+          "Billy Tye"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 5,
+        "gameName": "GAME5",
+        "homeLegs": 2,
+        "awayLegs": 1,
+        "homePlayers": [
+          "Clarence Yeo WG",
+          "Tan Li Ting"
+        ],
+        "awayPlayers": [
+          "Damien Sim",
+          "Lionel Lee JW"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 6,
+        "gameName": "GAME6",
+        "homeLegs": 0,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Melvin Lee XC",
+          "Wang GuanFei"
+        ],
+        "awayPlayers": [
+          "Lionel Lee JW",
+          "Damien Sim"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 7,
+        "gameName": "GAME7",
+        "homeLegs": 0,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Melvin Lee XC",
+          "Jack Li"
+        ],
+        "awayPlayers": [
+          "Tan Ping Le",
+          "Billy Tye"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 8,
+        "gameName": "GAME8",
+        "homeLegs": 1,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Clarence Yeo WG",
+          "Wang GuanFei",
+          "Jack Li"
+        ],
+        "awayPlayers": [
+          "Tan Ping Le",
+          "Damien Sim",
+          "Lionel Lee JW"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 9,
+        "gameName": "GAME9",
+        "homeLegs": 0,
+        "awayLegs": 1,
+        "homePlayers": [
+          "Clarence Yeo WG",
+          "Melvin Lee XC",
+          "Tan Li Ting",
+          "Jack Li"
+        ],
+        "awayPlayers": [
+          "Tan Ping Le",
+          "Damien Sim",
+          "Desmond Lee ZJ",
+          "Lionel Lee JW"
+        ],
+        "thirstdayWon": false
+      }
+    ]
+  },
+  {
+    "matchNo": "0ea618b6c63c4ebe",
+    "date": "2026/04/23",
+    "homeTeam": "Heng @ G.U.T.S",
+    "awayTeam": "Thirstday@DB",
+    "isThirstdayHome": false,
+    "homeScore": 5,
+    "awayScore": 4,
+    "homeBonus": 1,
+    "awayBonus": 0,
+    "games": [
+      {
+        "gameId": 1,
+        "gameName": "GAME1",
+        "homeLegs": 2,
+        "awayLegs": 1,
+        "homePlayers": [
+          "Gerry Choo CY"
+        ],
+        "awayPlayers": [
+          "Melvin Lee XC"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 2,
+        "gameName": "GAME2",
+        "homeLegs": 1,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Shawn Chu MX"
+        ],
+        "awayPlayers": [
+          "Clarence Yeo WG"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 3,
+        "gameName": "GAME3",
+        "homeLegs": 0,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Jeremy Lim WQ",
+          "Lin Yao Xin"
+        ],
+        "awayPlayers": [
+          "Marcus Tan",
+          "Ang Keng Yeow"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 4,
+        "gameName": "GAME4",
+        "homeLegs": 2,
+        "awayLegs": 0,
+        "homePlayers": [
+          "Shawn Chu MX",
+          "Addis Chan HL"
+        ],
+        "awayPlayers": [
+          "Tan Li Ting",
+          "Wang GuanFei"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 5,
+        "gameName": "GAME5",
+        "homeLegs": 1,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Gerry Choo CY",
+          "Shawn Chu MX"
+        ],
+        "awayPlayers": [
+          "Clarence Yeo WG",
+          "Marcus Tan"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 6,
+        "gameName": "GAME6",
+        "homeLegs": 1,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Addis Chan HL",
+          "Gerry Choo CY"
+        ],
+        "awayPlayers": [
+          "Marcus Tan",
+          "Tan Li Ting"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 7,
+        "gameName": "GAME7",
+        "homeLegs": 2,
+        "awayLegs": 0,
+        "homePlayers": [
+          "Lin Yao Xin",
+          "Jeremy Lim WQ"
+        ],
+        "awayPlayers": [
+          "Clarence Yeo WG",
+          "Melvin Lee XC"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 8,
+        "gameName": "GAME8",
+        "homeLegs": 2,
+        "awayLegs": 0,
+        "homePlayers": [
+          "Gerry Choo CY",
+          "Addis Chan HL",
+          "Shawn Chu MX"
+        ],
+        "awayPlayers": [
+          "Tan Li Ting",
+          "Ang Keng Yeow",
+          "Wang GuanFei"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 9,
+        "gameName": "GAME9",
+        "homeLegs": 1,
+        "awayLegs": 0,
+        "homePlayers": [
+          "Gerry Choo CY",
+          "Addis Chan HL",
+          "Shawn Chu MX",
+          "Jeremy Lim WQ"
+        ],
+        "awayPlayers": [
+          "Ang Keng Yeow",
+          "Melvin Lee XC",
+          "Wang GuanFei",
+          "Tan Li Ting"
+        ],
+        "thirstdayWon": false
+      }
+    ]
+  },
+  {
+    "matchNo": "452e4b419e4f3bfc",
+    "date": "2026/05/07",
+    "homeTeam": "Thirstday@DB",
+    "awayTeam": "GOTTaWinThemAllAgain",
+    "isThirstdayHome": true,
+    "homeScore": 2,
+    "awayScore": 7,
+    "homeBonus": 0,
+    "awayBonus": 1,
+    "games": [
+      {
+        "gameId": 1,
+        "gameName": "GAME1",
+        "homeLegs": 1,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Melvin Lee XC"
+        ],
+        "awayPlayers": [
+          "Ricxon Lim JS"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 2,
+        "gameName": "GAME2",
+        "homeLegs": 1,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Clarence Yeo WG"
+        ],
+        "awayPlayers": [
+          "Gavier Yee JT"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 3,
+        "gameName": "GAME3",
+        "homeLegs": 0,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Marcus Tan",
+          "Jack Li"
+        ],
+        "awayPlayers": [
+          "Nicklaus Wang WJ",
+          "Henry Tan WL"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 4,
+        "gameName": "GAME4",
+        "homeLegs": 2,
+        "awayLegs": 1,
+        "homePlayers": [
+          "Clarence Yeo WG",
+          "Ang Keng Yeow"
+        ],
+        "awayPlayers": [
+          "Nicklaus Wang WJ",
+          "Henry Tan WL"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 5,
+        "gameName": "GAME5",
+        "homeLegs": 1,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Clarence Yeo WG",
+          "Marcus Tan"
+        ],
+        "awayPlayers": [
+          "Gavier Yee JT",
+          "Nicklaus Wang WJ"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 6,
+        "gameName": "GAME6",
+        "homeLegs": 1,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Melvin Lee XC",
+          "Tan Li Ting"
+        ],
+        "awayPlayers": [
+          "Henry Tan WL",
+          "Teo Swee Meng"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 7,
+        "gameName": "GAME7",
+        "homeLegs": 2,
+        "awayLegs": 0,
+        "homePlayers": [
+          "Tan Li Ting",
+          "Wang GuanFei"
+        ],
+        "awayPlayers": [
+          "Gavier Yee JT",
+          "Ricxon Lim JS"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 8,
+        "gameName": "GAME8",
+        "homeLegs": 1,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Melvin Lee XC",
+          "Ang Keng Yeow",
+          "Wang GuanFei"
+        ],
+        "awayPlayers": [
+          "Henry Tan WL",
+          "Ricxon Lim JS",
+          "Teo Swee Meng"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 9,
+        "gameName": "GAME9",
+        "homeLegs": 0,
+        "awayLegs": 1,
+        "homePlayers": [
+          "Melvin Lee XC",
+          "Ang Keng Yeow",
+          "Jack Li",
+          "Wang GuanFei"
+        ],
+        "awayPlayers": [
+          "Gavier Yee JT",
+          "Nicklaus Wang WJ",
+          "Henry Tan WL",
+          "Ricxon Lim JS"
+        ],
+        "thirstdayWon": false
+      }
+    ]
+  },
+  {
+    "matchNo": "3ce6c240b979a13f",
+    "date": "2026/05/14",
+    "homeTeam": "Thirstday@DB",
+    "awayTeam": "OBar - Alpha",
+    "isThirstdayHome": true,
+    "homeScore": 7,
+    "awayScore": 2,
+    "homeBonus": 1,
+    "awayBonus": 0,
+    "games": [
+      {
+        "gameId": 1,
+        "gameName": "GAME1",
+        "homeLegs": 2,
+        "awayLegs": 0,
+        "homePlayers": [
+          "Melvin Lee XC"
+        ],
+        "awayPlayers": [
+          "Ken Lee CL"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 2,
+        "gameName": "GAME2",
+        "homeLegs": 1,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Clarence Yeo WG"
+        ],
+        "awayPlayers": [
+          "Lim Dixson"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 3,
+        "gameName": "GAME3",
+        "homeLegs": 2,
+        "awayLegs": 0,
+        "homePlayers": [
+          "Ang Keng Yeow",
+          "Marcus Tan"
+        ],
+        "awayPlayers": [
+          "Komin Chow KM",
+          "Tristen Chua MH"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 4,
+        "gameName": "GAME4",
+        "homeLegs": 2,
+        "awayLegs": 1,
+        "homePlayers": [
+          "Tan Li Ting",
+          "Jack Li"
+        ],
+        "awayPlayers": [
+          "Lim Dixson",
+          "Flik Fok"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 5,
+        "gameName": "GAME5",
+        "homeLegs": 2,
+        "awayLegs": 1,
+        "homePlayers": [
+          "Clarence Yeo WG",
+          "Melvin Lee XC"
+        ],
+        "awayPlayers": [
+          "Komin Chow KM",
+          "Ken Lee CL"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 6,
+        "gameName": "GAME6",
+        "homeLegs": 1,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Marcus Tan",
+          "Tan Li Ting"
+        ],
+        "awayPlayers": [
+          "Lim Dixson",
+          "Ken Lee CL"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 7,
+        "gameName": "GAME7",
+        "homeLegs": 2,
+        "awayLegs": 0,
+        "homePlayers": [
+          "Clarence Yeo WG",
+          "Ang Keng Yeow"
+        ],
+        "awayPlayers": [
+          "Komin Chow KM",
+          "Tristen Chua MH"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 8,
+        "gameName": "GAME8",
+        "homeLegs": 2,
+        "awayLegs": 0,
+        "homePlayers": [
+          "Melvin Lee XC",
+          "Marcus Tan",
+          "Jack Li"
+        ],
+        "awayPlayers": [
+          "Komin Chow KM",
+          "Lim Dixson",
+          "Flik Fok"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 9,
+        "gameName": "GAME9",
+        "homeLegs": 1,
+        "awayLegs": 0,
+        "homePlayers": [
+          "Melvin Lee XC",
+          "Tan Li Ting",
+          "Ang Keng Yeow",
+          "Jack Li"
+        ],
+        "awayPlayers": [
+          "Komin Chow KM",
+          "Lim Dixson",
+          "Ken Lee CL",
+          "Tristen Chua MH"
+        ],
+        "thirstdayWon": true
+      }
+    ]
+  },
+  {
+    "matchNo": "104f14c50232dbe3",
+    "date": "2026/05/28",
+    "homeTeam": "Divinities.\u795e\u5c07 @GVC",
+    "awayTeam": "Thirstday@DB",
+    "isThirstdayHome": false,
+    "homeScore": 5,
+    "awayScore": 4,
+    "homeBonus": 1,
+    "awayBonus": 0,
+    "games": [
+      {
+        "gameId": 1,
+        "gameName": "GAME1",
+        "homeLegs": 0,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Francis Goh WT"
+        ],
+        "awayPlayers": [
+          "Melvin Lee XC"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 2,
+        "gameName": "GAME2",
+        "homeLegs": 2,
+        "awayLegs": 0,
+        "homePlayers": [
+          "William K. Ten"
+        ],
+        "awayPlayers": [
+          "Clarence Yeo WG"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 3,
+        "gameName": "GAME3",
+        "homeLegs": 0,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Soo Meng Choy",
+          "Chen Ming Wei"
+        ],
+        "awayPlayers": [
+          "Wang GuanFei",
+          "Ang Keng Yeow"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 4,
+        "gameName": "GAME4",
+        "homeLegs": 2,
+        "awayLegs": 1,
+        "homePlayers": [
+          "Francis Goh WT",
+          "Joel See ZE"
+        ],
+        "awayPlayers": [
+          "Melvin Lee XC",
+          "Tan Li Ting"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 5,
+        "gameName": "GAME5",
+        "homeLegs": 1,
+        "awayLegs": 2,
+        "homePlayers": [
+          "William K. Ten",
+          "Soo Meng Choy"
+        ],
+        "awayPlayers": [
+          "Clarence Yeo WG",
+          "Melvin Lee XC"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 6,
+        "gameName": "GAME6",
+        "homeLegs": 2,
+        "awayLegs": 1,
+        "homePlayers": [
+          "Eric Low AH",
+          "Soo Meng Choy"
+        ],
+        "awayPlayers": [
+          "Tan Li Ting",
+          "Wang GuanFei"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 7,
+        "gameName": "GAME7",
+        "homeLegs": 2,
+        "awayLegs": 1,
+        "homePlayers": [
+          "William K. Ten",
+          "Eric Low AH"
+        ],
+        "awayPlayers": [
+          "Clarence Yeo WG",
+          "Ang Keng Yeow"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 8,
+        "gameName": "GAME8",
+        "homeLegs": 0,
+        "awayLegs": 2,
+        "homePlayers": [
+          "William K. Ten",
+          "Soo Meng Choy",
+          "Francis Goh WT"
+        ],
+        "awayPlayers": [
+          "Clarence Yeo WG",
+          "Melvin Lee XC",
+          "Ang Keng Yeow"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 9,
+        "gameName": "GAME9",
+        "homeLegs": 1,
+        "awayLegs": 0,
+        "homePlayers": [
+          "Joel See ZE",
+          "Eric Low AH",
+          "William K. Ten",
+          "Francis Goh WT"
+        ],
+        "awayPlayers": [
+          "Clarence Yeo WG",
+          "Melvin Lee XC",
+          "Tan Li Ting",
+          "Wang GuanFei"
+        ],
+        "thirstdayWon": false
+      }
+    ]
+  },
+  {
+    "matchNo": "5401efbd7dc5a725",
+    "date": "2026/06/04",
+    "homeTeam": "Thirstday@DB",
+    "awayTeam": "CHAOS Primordial",
+    "isThirstdayHome": true,
+    "homeScore": 3,
+    "awayScore": 6,
+    "homeBonus": 0,
+    "awayBonus": 1,
+    "games": [
+      {
+        "gameId": 1,
+        "gameName": "GAME1",
+        "homeLegs": 2,
+        "awayLegs": 1,
+        "homePlayers": [
+          "Melvin Lee XC"
+        ],
+        "awayPlayers": [
+          "Jonathan Lim JR"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 2,
+        "gameName": "GAME2",
+        "homeLegs": 0,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Clarence Yeo WG"
+        ],
+        "awayPlayers": [
+          "Gabriel Tay WK"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 3,
+        "gameName": "GAME3",
+        "homeLegs": 0,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Wang GuanFei",
+          "Ang Keng Yeow"
+        ],
+        "awayPlayers": [
+          "Jeremy Wong JH",
+          "Jay Quek"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 4,
+        "gameName": "GAME4",
+        "homeLegs": 1,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Melvin Lee XC",
+          "Jack Li"
+        ],
+        "awayPlayers": [
+          "Gabriel Tay WK",
+          "Jeremy Wong JH"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 5,
+        "gameName": "GAME5",
+        "homeLegs": 2,
+        "awayLegs": 1,
+        "homePlayers": [
+          "Clarence Yeo WG",
+          "Ang Keng Yeow"
+        ],
+        "awayPlayers": [
+          "Gabriel Tay WK",
+          "Jonathan Lim JR"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 6,
+        "gameName": "GAME6",
+        "homeLegs": 0,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Wang GuanFei",
+          "Marcus Tan"
+        ],
+        "awayPlayers": [
+          "Glenn Emmanuel",
+          "Rennie Er HX"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 7,
+        "gameName": "GAME7",
+        "homeLegs": 1,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Clarence Yeo WG",
+          "Tan Li Ting"
+        ],
+        "awayPlayers": [
+          "Jeremy Wong JH",
+          "Jay Quek"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 8,
+        "gameName": "GAME8",
+        "homeLegs": 1,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Melvin Lee XC",
+          "Marcus Tan",
+          "Jack Li"
+        ],
+        "awayPlayers": [
+          "Gabriel Tay WK",
+          "Jonathan Lim JR",
+          "Jeremy Wong JH"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 9,
+        "gameName": "GAME9",
+        "homeLegs": 1,
+        "awayLegs": 0,
+        "homePlayers": [
+          "Ang Keng Yeow",
+          "Tan Li Ting",
+          "Wang GuanFei",
+          "Jack Li"
+        ],
+        "awayPlayers": [
+          "Gabriel Tay WK",
+          "Glenn Emmanuel",
+          "Rennie Er HX",
+          "Tan Su Sheng"
+        ],
+        "thirstdayWon": true
+      }
+    ]
+  },
+  {
+    "matchNo": "ecfd169bd95ffb65",
+    "date": "2026/06/11",
+    "homeTeam": "Katana Defenders @ F5",
+    "awayTeam": "Thirstday@DB",
+    "isThirstdayHome": false,
+    "homeScore": 5,
+    "awayScore": 4,
+    "homeBonus": 1,
+    "awayBonus": 0,
+    "games": [
+      {
+        "gameId": 1,
+        "gameName": "GAME1",
+        "homeLegs": 1,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Sean Kwek SW"
+        ],
+        "awayPlayers": [
+          "Melvin Lee XC"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 2,
+        "gameName": "GAME2",
+        "homeLegs": 2,
+        "awayLegs": 1,
+        "homePlayers": [
+          "Mohd Farid"
+        ],
+        "awayPlayers": [
+          "Clarence Yeo WG"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 3,
+        "gameName": "GAME3",
+        "homeLegs": 0,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Valerie Ong",
+          "Kelvin Kenji Tan"
+        ],
+        "awayPlayers": [
+          "Tan Li Ting",
+          "Jack Li"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 4,
+        "gameName": "GAME4",
+        "homeLegs": 2,
+        "awayLegs": 1,
+        "homePlayers": [
+          "Mohd Farid",
+          "Alex Tan XH"
+        ],
+        "awayPlayers": [
+          "Melvin Lee XC",
+          "Ang Keng Yeow"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 5,
+        "gameName": "GAME5",
+        "homeLegs": 0,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Mohd Farid",
+          "Sean Kwek SW"
+        ],
+        "awayPlayers": [
+          "Clarence Yeo WG",
+          "Wang GuanFei"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 6,
+        "gameName": "GAME6",
+        "homeLegs": 2,
+        "awayLegs": 1,
+        "homePlayers": [
+          "Alex Tan XH",
+          "Kelvin Kenji Tan"
+        ],
+        "awayPlayers": [
+          "Melvin Lee XC",
+          "Tan Li Ting"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 7,
+        "gameName": "GAME7",
+        "homeLegs": 0,
+        "awayLegs": 2,
+        "homePlayers": [
+          "Sean Kwek SW",
+          "Valerie Ong"
+        ],
+        "awayPlayers": [
+          "Clarence Yeo WG",
+          "Ang Keng Yeow"
+        ],
+        "thirstdayWon": true
+      },
+      {
+        "gameId": 8,
+        "gameName": "GAME8",
+        "homeLegs": 2,
+        "awayLegs": 0,
+        "homePlayers": [
+          "Mohd Farid",
+          "Alex Tan XH",
+          "Sean Kwek SW"
+        ],
+        "awayPlayers": [
+          "Clarence Yeo WG",
+          "Melvin Lee XC",
+          "Wang GuanFei"
+        ],
+        "thirstdayWon": false
+      },
+      {
+        "gameId": 9,
+        "gameName": "GAME9",
+        "homeLegs": 1,
+        "awayLegs": 0,
+        "homePlayers": [
+          "Mohd Farid",
+          "Alex Tan XH",
+          "Valerie Ong",
+          "Kelvin Kenji Tan"
+        ],
+        "awayPlayers": [
+          "Melvin Lee XC",
+          "Wang GuanFei",
+          "Ang Keng Yeow",
+          "Jack Li"
+        ],
+        "thirstdayWon": false
+      }
+    ]
+  }
+]
