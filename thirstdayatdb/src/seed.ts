@@ -35,7 +35,7 @@ const matchSchedule: MatchInfo[] = [
   // First game: won 6-4 away against GOTTaWinThemAllAgain
   { date: '2026-02-12', opponent: 'GOTTaWinThemAllAgain',  isHome: false, homeScore: 4, awayScore: 5, homeBonus: 0, awayBonus: 1 },
   // Remaining schedule from DartsLive match data
-  { date: '2026-02-26', opponent: 'iDarts(SAFRA YISHUN)',  isHome: true,  homeScore: 4, awayScore: 5, homeBonus: 0, awayBonus: 1 },
+  { date: '2026-02-26', opponent: 'GOTTaWinThemAllAgain',  isHome: true,  homeScore: 4, awayScore: 5, homeBonus: 0, awayBonus: 1 },  // at iDarts(SAFRA YISHUN)
   { date: '2026-03-05', opponent: 'Heng @ G.U.T.S',        isHome: false, homeScore: 9, awayScore: 0, homeBonus: 1, awayBonus: 0 },
   { date: '2026-03-12', opponent: 'OBar - Alpha',           isHome: true,  homeScore: 1, awayScore: 8, homeBonus: 0, awayBonus: 1 },
   { date: '2026-03-19', opponent: 'Divinities.神將 @GVC',   isHome: false, homeScore: 1, awayScore: 8, homeBonus: 0, awayBonus: 1 },
