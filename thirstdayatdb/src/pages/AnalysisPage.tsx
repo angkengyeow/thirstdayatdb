@@ -136,8 +136,8 @@ export default function AnalysisPage() {
       {/* Game-Type Breakdown */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
         <h2 className="text-lg font-semibold text-gray-700 mb-4">By Game Type</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {(['singles', 'doubles', 'trios', 'team'] as const).map(gt => {
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          {(['singles', 'doubles', 'trios', 'team', 'half-it'] as const).map(gt => {
             const gs = playerStats.reduce((sum, ps) => sum + ps.byGameType[gt].games, 0);
             const ws = playerStats.reduce((sum, ps) => sum + ps.byGameType[gt].wins, 0);
             const pct = gs > 0 ? Math.round((ws / gs) * 100) : 0;
@@ -281,7 +281,7 @@ function PlayerDetail({ playerId, playerStats }: { playerId: string; playerStats
     <div className="mt-4 pt-4 border-t border-gray-100">
       <h4 className="text-sm font-semibold text-gray-600 mb-3">Breakdown for {ps.playerName}</h4>
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        {(['singles', 'doubles', 'trios', 'team'] as const).map(gt => {
+        {(['singles', 'doubles', 'trios', 'team', 'half-it'] as const).map(gt => {
           const s = ps.byGameType[gt];
           return (
             <div key={gt} className="text-center p-3 rounded-lg bg-gray-50">
@@ -293,16 +293,7 @@ function PlayerDetail({ playerId, playerStats }: { playerId: string; playerStats
             </div>
           );
         })}
-        {ps.halfIt.games > 0 && (
-          <div className="text-center p-3 rounded-lg bg-purple-50">
-            <p className="text-xs text-gray-500 capitalize mb-1">half-it</p>
-            <p className={`text-lg font-bold ${ps.halfIt.winPct >= 60 ? 'text-green-600' : ps.halfIt.winPct >= 40 ? 'text-amber-600' : 'text-red-600'}`}>
-              {ps.halfIt.winPct}%
-            </p>
-            <p className="text-xs text-gray-400">{ps.halfIt.wins}/{ps.halfIt.games}</p>
-          </div>
-        )}
-      </div>
+              </div>
     </div>
   );
 }

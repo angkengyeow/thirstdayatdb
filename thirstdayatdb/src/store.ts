@@ -345,8 +345,10 @@ export function getPlayerGameStats(playerId: string): PlayerGameStats {
 
   // By game type
   const byGameType = {} as Record<GameFormat, { games: number; wins: number; winPct: number }>;
-  for (const gt of ['singles', 'doubles', 'trios', 'team'] as GameFormat[]) {
-    const gs = games.filter(g => g.gameType === gt);
+  for (const gt of ['singles', 'doubles', 'trios', 'team', 'half-it'] as GameFormat[]) {
+    const gs = gt === 'half-it'
+      ? games.filter(g => g.format === 'half-it')
+      : games.filter(g => g.gameType === gt && g.format !== 'half-it');
     const w = gs.filter(g => g.won).length;
     byGameType[gt] = { games: gs.length, wins: w, winPct: gs.length > 0 ? Math.round((w / gs.length) * 100) : 0 };
   }

@@ -56,7 +56,7 @@ export interface LineupSlot {
   position: number;
 }
 
-export type GameFormat = 'singles' | 'doubles' | 'trios' | 'team';
+export type GameFormat = 'singles' | 'doubles' | 'trios' | 'team' | 'half-it';
 
 export interface MatchGame {
   id: number;
