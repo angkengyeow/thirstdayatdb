@@ -311,14 +311,14 @@ export default function DashboardPage() {
             {/* Left: Identity */}
             <div className="flex items-center gap-4">
               <div
-                className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0"
+                className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden"
                 style={{
                   background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(232, 200, 114, 0.08))',
                   border: '1px solid rgba(212, 175, 55, 0.25)',
                   boxShadow: '0 2px 12px rgba(212, 175, 55, 0.12)',
                 }}
               >
-                <span className="text-xl font-display font-bold gold-gradient">TT</span>
+                <img src="/logo.jpg" alt="Thirstday@DB" className="w-10 h-10 object-contain" />
               </div>
               <div>
                 <h2 className="text-xl font-bold font-display tracking-tight text-[#1E293B]">
