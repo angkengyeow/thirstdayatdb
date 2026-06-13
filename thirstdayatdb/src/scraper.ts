@@ -55,6 +55,11 @@ interface ApiMatchData {
   awayTeamInfo: { teamName: string; point: number; bonusPoint: number };
   gamePlayerPerformanceRrankList: ApiPlayer[];
   gameResultInfoList?: ApiGameResult[];
+  awardAccomplisherList?: {
+    awardType: string;
+    displayName: string;
+    accomplisherList: { playerName: string; count: number }[];
+  }[];
 }
 
 interface ScheduleWeek {
@@ -85,6 +90,12 @@ export interface LiveMatchGameResult {
   thirstdayWon: boolean;
 }
 
+export interface LiveMatchAward {
+  awardType: string;
+  displayName: string;
+  counts: { playerName: string; count: number }[];
+}
+
 export interface LiveMatchResult {
   matchNo: string;
   matchDate: string;
@@ -106,6 +117,7 @@ export interface LiveMatchResult {
     winRate: string;
   }[];
   games: LiveMatchGameResult[];
+  awards: LiveMatchAward[];
 }
 
 export interface LiveData {
@@ -253,6 +265,14 @@ export async function fetchLiveData(): Promise<LiveData> {
             winRate: p.winRate,
           })),
         games,
+        awards: (data.awardAccomplisherList || []).map(a => ({
+          awardType: a.awardType,
+          displayName: a.displayName,
+          counts: (a.accomplisherList || []).map(c => ({
+            playerName: c.playerName,
+            count: c.count,
+          })),
+        })),
       });
     } catch {
       // skip failed match fetches
