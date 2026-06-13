@@ -1,6 +1,30 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getAllPlayersGameStats, getPartnerStats, getTeamGameStats, getSessions, getGamePerformancesForSession, getPlayerMatchHistory, getPlayerDashboardStats, getTeamStanding } from '../store';
+import { getAllPlayersGameStats, getPartnerStats, getTeamGameStats, getSessions, getGamePerformancesForSession, getPlayerMatchHistory, getPlayerDashboardStats, getTeamStanding, getPlayerAwardDisplayCounts } from '../store';
 import type { PlayerGameStats, PartnerStats } from '../types';
+
+const AWARD_PINS = [
+  { name: 'Hat Trick', thresholds: [2, 10, 23, 30] },
+  { name: 'High Ton', thresholds: [1, 1, 2, 3] },
+  { name: 'Ton 80', thresholds: [1, 2, 2, 2] },
+  { name: '3 in a Bed', thresholds: [1, 2, 3, 4] },
+  { name: 'White Horse', thresholds: [1, 1, 1, 3] },
+  { name: '3 in the Black', thresholds: [1, 1, 1, 1] },
+];
+
+const RATING_BRACKETS = [
+  { label: '1 – 5.99', min: 1, max: 5.99 },
+  { label: '6 – 9.99', min: 6, max: 9.99 },
+  { label: '10 – 14.99', min: 10, max: 14.99 },
+  { label: '15 – 18', min: 15, max: 18 },
+];
+
+function bracketIndex(liveRating: number): number {
+  if (liveRating <= 0) return -1;
+  if (liveRating < 6) return 0;
+  if (liveRating < 10) return 1;
+  if (liveRating < 15) return 2;
+  return 3;
+}
 
 export default function AnalysisPage() {
   const [refresh] = useState(0);
@@ -9,6 +33,8 @@ export default function AnalysisPage() {
   const [teamStats, setTeamStats] = useState({ totalGames: 0, wins: 0, losses: 0, winPct: 0 });
   const [matchRecord, setMatchRecord] = useState({ wins: 0, losses: 0, winPct: 0 });
   const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null);
+  const [awardData, setAwardData] = useState<{ playerName: string; awards: Record<string, number> }[]>([]);
+  const [dashboardStats, setDashboardStats] = useState<{ player: { id: string; name: string }; liveRating: number }[]>([]);
 
   const load = useCallback(() => {
     setPlayerStats(getAllPlayersGameStats());
@@ -16,6 +42,8 @@ export default function AnalysisPage() {
     setTeamStats(getTeamGameStats());
     const standing = getTeamStanding();
     setMatchRecord({ wins: standing.wins, losses: standing.losses, winPct: standing.winRate });
+    setAwardData(getPlayerAwardDisplayCounts());
+    setDashboardStats(getPlayerDashboardStats());
   }, []);
 
   useEffect(() => { load(); }, [refresh, load]);
@@ -101,6 +129,13 @@ export default function AnalysisPage() {
               <th className="pb-3 font-medium text-center">H-It Legs W</th>
               <th className="pb-3 font-medium text-center">H-It Legs L</th>
               <th className="pb-3 font-medium text-center">Half-It Win%</th>
+              <th className="pb-3 font-medium text-center text-indigo-600" title="Hat Trick">🎯HT</th>
+              <th className="pb-3 font-medium text-center text-indigo-600" title="High Ton">💯Ton</th>
+              <th className="pb-3 font-medium text-center text-indigo-600" title="Ton 80">T80</th>
+              <th className="pb-3 font-medium text-center text-indigo-600" title="3 in a Bed">3Bd</th>
+              <th className="pb-3 font-medium text-center text-indigo-600" title="White Horse">WH</th>
+              <th className="pb-3 font-medium text-center text-indigo-600" title="3 in the Black">3Blk</th>
+              <th className="pb-3 font-medium text-center text-indigo-600">Clocked</th>
             </tr>
           </thead>
           <tbody>
@@ -130,6 +165,35 @@ export default function AnalysisPage() {
                 <td className="py-3 text-center text-green-600 font-medium">{ps.halfIt.games > 0 ? ps.halfIt.legsWon : <span className="text-gray-300">-</span>}</td>
                 <td className="py-3 text-center text-red-600 font-medium">{ps.halfIt.games > 0 ? ps.halfIt.legsLost : <span className="text-gray-300">-</span>}</td>
                 <td className="py-3 text-center">{ps.halfIt.games > 0 ? <WinBadge pct={ps.halfIt.winPct} /> : <span className="text-gray-300">-</span>}</td>
+                {(() => {
+                  const playerAward = awardData.find(a => a.playerName === ps.playerName);
+                  const awards = playerAward?.awards || {};
+                  const ds = dashboardStats.find(d => d.player.id === ps.playerId);
+                  const bIdx = ds ? bracketIndex(ds.liveRating) : -1;
+                  const clocked = AWARD_PINS.filter(pin => (awards[pin.name] || 0) >= pin.thresholds[bIdx]).length;
+                  return AWARD_PINS.map(pin => {
+                    const count = awards[pin.name] || 0;
+                    return (
+                      <td key={pin.name} className="py-3 text-center">
+                        <span className={`text-xs font-mono font-bold ${
+                          count > 0 ? 'text-indigo-600' : 'text-gray-300'
+                        }`}>
+                          {count || '0'}
+                        </span>
+                      </td>
+                    );
+                  }).concat(
+                    <td key="clocked" className="py-3 text-center">
+                      <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${
+                        clocked >= 4 ? 'text-emerald-600 bg-emerald-50' :
+                        clocked >= 2 ? 'text-amber-600 bg-amber-50' :
+                        'text-gray-400'
+                      }`}>
+                        {clocked}/6
+                      </span>
+                    </td>
+                  );
+                })()}
               </tr>
             ))}
           </tbody>
@@ -334,6 +398,100 @@ export default function AnalysisPage() {
                 </table>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Award Analysis */}
+      {awardData.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+          <h2 className="text-lg font-semibold text-gray-700 mb-4">Awards Analysis</h2>
+          <p className="text-xs text-gray-500 mb-4">
+            Total award achievement counts across all matches. ✓ = meets bracket threshold.
+          </p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200 text-gray-500">
+                  <th className="pb-3 font-medium text-left">Player</th>
+                  <th className="pb-3 font-medium text-center">Rt.</th>
+                  <th className="pb-3 font-medium text-center">Bracket</th>
+                  <th className="pb-3 font-medium text-center">Games</th>
+                  {AWARD_PINS.map(pin => (
+                    <th key={pin.name} className="pb-3 font-medium text-center text-xs">{pin.name}</th>
+                  ))}
+                  <th className="pb-3 font-medium text-center">Clocked</th>
+                  <th className="pb-3 font-medium text-center">Avg/Game</th>
+                </tr>
+              </thead>
+              <tbody>
+                {playerStats
+                  .filter(ps => awardData.some(a => a.playerName === ps.playerName))
+                  .sort((a, b) => {
+                    const aAwd = awardData.find(x => x.playerName === a.playerName);
+                    const bAwd = awardData.find(x => x.playerName === b.playerName);
+                    const aTotal = aAwd ? Object.values(aAwd.awards).reduce((s, v) => s + v, 0) : 0;
+                    const bTotal = bAwd ? Object.values(bAwd.awards).reduce((s, v) => s + v, 0) : 0;
+                    return bTotal - aTotal;
+                  })
+                  .map(ps => {
+                    const playerAward = awardData.find(a => a.playerName === ps.playerName);
+                    const awards = playerAward?.awards || {};
+                    const ds = dashboardStats.find(d => d.player.id === ps.playerId);
+                    const bIdx = ds ? bracketIndex(ds.liveRating) : -1;
+                    const totalAwards = Object.values(awards).reduce((s, v) => s + v, 0);
+                    const avgPerGame = ps.totalGames > 0 ? (totalAwards / ps.totalGames).toFixed(2) : '-';
+                    const clocked = AWARD_PINS.filter(pin => (awards[pin.name] || 0) >= pin.thresholds[bIdx]).length;
+
+                    return (
+                      <tr key={ps.playerId} className="border-b border-gray-100 hover:bg-gray-50">
+                        <td className="py-2.5 font-medium text-gray-800">{ps.playerName}</td>
+                        <td className="py-2.5 text-center font-mono text-gray-700 text-xs">
+                          {ds?.liveRating ? ds.liveRating.toFixed(2) : '-'}
+                        </td>
+                        <td className="py-2.5 text-center">
+                          {bIdx >= 0 ? (
+                            <span className="text-xs font-bold px-2 py-0.5 rounded bg-indigo-100 text-indigo-700">
+                              {RATING_BRACKETS[bIdx].label}
+                            </span>
+                          ) : (
+                            <span className="text-gray-300">-</span>
+                          )}
+                        </td>
+                        <td className="py-2.5 text-center font-mono text-gray-600">{ps.totalGames}</td>
+                        {AWARD_PINS.map(pin => {
+                          const count = awards[pin.name] || 0;
+                          const threshold = pin.thresholds[bIdx];
+                          const achieved = count >= threshold;
+                          return (
+                            <td key={pin.name} className="py-2.5 text-center">
+                              <span className={`text-xs font-mono font-bold px-1 py-0.5 rounded ${
+                                achieved
+                                  ? 'text-emerald-600 bg-emerald-50'
+                                  : count > 0
+                                    ? 'text-amber-600 bg-amber-50'
+                                    : 'text-gray-300'
+                              }`}>
+                                {achieved ? `✓${count}` : count > 0 ? `${count}/${threshold}` : '0'}
+                              </span>
+                            </td>
+                          );
+                        })}
+                        <td className="py-2.5 text-center">
+                          <span className={`text-sm font-bold ${
+                            clocked >= 4 ? 'text-emerald-600' :
+                            clocked >= 2 ? 'text-amber-600' :
+                            'text-gray-400'
+                          }`}>
+                            {clocked}/{AWARD_PINS.length}
+                          </span>
+                        </td>
+                        <td className="py-2.5 text-center font-mono text-xs text-gray-500">{avgPerGame}</td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
