@@ -146,7 +146,7 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
             <li><strong className="text-[#eeeef4]">G6</strong> (Half-It) → ranked by <strong className="text-gold-400">Half-It Composite</strong> (50% Cricket Avg + 50% Half-It Leg Win Rate)</li>
           </ul>
           <p className="text-[#6b6b8a] mt-1">
-            <strong className="text-[#eeeef4]">Rules:</strong> G1–G3 = all unique (no repeats). G4–G6 = at most 2 appearances per player. G7–G9 = free.
+            <strong className="text-[#eeeef4]">Rules:</strong> Part 1 (G1–G3) = no repeats. Part 2 (G4–G7) &amp; Part 3 (G8–G9) = at most 2 appearances per player per block.
             Game count balancing spreads play across all games.
           </p>
         </div>
@@ -155,88 +155,108 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
       {/* Results */}
       {result && (
         <>
-          {/* Game Assignments — all 9 games in G1-G9 order */}
-          <div className="mb-8">
-            <h2 className="text-lg font-semibold text-[#eeeef4] mb-4">Game Assignments</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {(() => {
-                // Build lookup: gameId → assignment or skipped
-                const assignMap = new Map(result.assignments.map(a => [a.game.id, a]));
-                const skipMap = new Map(result.skippedGames.map(s => [s.game.id, s]));
-                // Render all 9 games in order
-                return SUPER_LEAGUE_FORMAT.map(game => {
-                  const assignment = assignMap.get(game.id);
-                  const skipped = skipMap.get(game.id);
-                  const styles = GAME_TYPE_STYLES[game.type];
+          {/* Game Assignments — 3 parts with headers */}
+          <div className="mb-8 space-y-8">
+            {(() => {
+              const assignMap = new Map(result.assignments.map(a => [a.game.id, a]));
+              const skipMap = new Map(result.skippedGames.map(s => [s.game.id, s]));
 
-                  if (skipped) {
-                    // Forfeited / skipped game card
-                    return (
-                      <div
-                        key={game.id}
-                        className="bg-[#111122] rounded-xl border border-dart-red/20 p-3"
-                      >
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-[10px] font-medium px-2 py-0.5 rounded-full border bg-dart-red/15 text-dart-red border-dart-red/30">
-                            FORFEITED
-                          </span>
-                          <span className="text-sm font-semibold text-[#6b6b8a] line-through">{game.label}</span>
-                          <span className="text-[10px] text-[#6b6b8a] ml-auto font-mono">G{game.id}</span>
-                        </div>
-                        {game.legs && (
-                          <p className="text-xs text-[#6b6b8a] mb-2">{game.legs}</p>
-                        )}
-                        <p className="text-xs text-dart-red/70">{skipped.reason}</p>
-                      </div>
-                    );
-                  }
+              const renderCard = (game: MatchGame) => {
+                const assignment = assignMap.get(game.id);
+                const skipped = skipMap.get(game.id);
+                const styles = GAME_TYPE_STYLES[game.type];
 
-                  if (!assignment) return null; // shouldn't happen
-
+                if (skipped) {
                   return (
-                    <div
-                      key={game.id}
-                      className={`bg-[#111122] rounded-xl shadow-lg border ${styles.border} p-3 hover:bg-[#16162a] hover:scale-[1.02] hover:shadow-xl transition-all duration-200`}
-                    >
+                    <div key={game.id} className="bg-[#111122] rounded-xl border border-dart-red/20 p-3">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${styles.badge}`}>
-                          {game.type.toUpperCase()}
-                        </span>
-                        <span className="text-sm font-semibold text-[#eeeef4]">{game.label}</span>
+                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full border bg-dart-red/15 text-dart-red border-dart-red/30">FORFEITED</span>
+                        <span className="text-sm font-semibold text-[#6b6b8a] line-through">{game.label}</span>
                         <span className="text-[10px] text-[#6b6b8a] ml-auto font-mono">G{game.id}</span>
                       </div>
-                      {game.legs && (
-                        <p className="text-xs text-[#6b6b8a] mb-2">{game.legs}</p>
-                      )}
-                      <div className="space-y-1.5">
-                        {assignment.players.map((p, i) => {
-                          const legs = game.legs;
-                          const isOnly01 = !legs.includes('Cricket') && !legs.includes('Choice') && !legs.includes('Half-It');
-                          const isOnlyCricket = !legs.includes('701') && !legs.includes('901') && !legs.includes('1101') && !legs.includes('Choice') && !legs.includes('Half-It');
-                          const statLabel = isOnly01 ? '01' : isOnlyCricket ? 'Cr' : 'Cmp';
-                          const statValue = isOnly01
-                            ? (p.stats01Avg > 0 ? p.stats01Avg.toFixed(1) : '-')
-                            : isOnlyCricket
-                              ? (p.statsCricketAvg > 0 ? p.statsCricketAvg.toFixed(1) : '-')
-                              : String(p.compositeScore);
-                          return (
-                            <div key={p.player.id} className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <span className={`w-5 h-5 rounded-full ${styles.dot} text-white flex items-center justify-center text-[10px] font-bold`}>
-                                  {i + 1}
-                                </span>
-                                <span className="text-sm font-medium text-[#eeeef4]">{p.player.name}</span>
-                              </div>
-                              <span className="text-xs font-semibold text-gold-400" title={`${statLabel}: ${statValue}`}>{statValue}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
+                      {game.legs && <p className="text-xs text-[#6b6b8a] mb-2">{game.legs}</p>}
+                      <p className="text-xs text-dart-red/70">{skipped.reason}</p>
                     </div>
                   );
-                });
-              })()}
-            </div>
+                }
+
+                if (!assignment) return null;
+
+                return (
+                  <div key={game.id} className={`bg-[#111122] rounded-xl shadow-lg border ${styles.border} p-3 hover:bg-[#16162a] hover:scale-[1.02] hover:shadow-xl transition-all duration-200`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${styles.badge}`}>
+                        {game.type.toUpperCase()}
+                      </span>
+                      <span className="text-sm font-semibold text-[#eeeef4]">{game.label}</span>
+                      <span className="text-[10px] text-[#6b6b8a] ml-auto font-mono">G{game.id}</span>
+                    </div>
+                    {game.legs && <p className="text-xs text-[#6b6b8a] mb-2">{game.legs}</p>}
+                    <div className="space-y-1.5">
+                      {assignment.players.map((p, i) => {
+                        const legs = game.legs;
+                        const isOnly01 = !legs.includes('Cricket') && !legs.includes('Choice') && !legs.includes('Half-It');
+                        const isOnlyCricket = !legs.includes('701') && !legs.includes('901') && !legs.includes('1101') && !legs.includes('Choice') && !legs.includes('Half-It');
+                        const statLabel = isOnly01 ? '01' : isOnlyCricket ? 'Cr' : 'Cmp';
+                        const statValue = isOnly01
+                          ? (p.stats01Avg > 0 ? p.stats01Avg.toFixed(1) : '-')
+                          : isOnlyCricket
+                            ? (p.statsCricketAvg > 0 ? p.statsCricketAvg.toFixed(1) : '-')
+                            : String(p.compositeScore);
+                        return (
+                          <div key={p.player.id} className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className={`w-5 h-5 rounded-full ${styles.dot} text-white flex items-center justify-center text-[10px] font-bold`}>{i + 1}</span>
+                              <span className="text-sm font-medium text-[#eeeef4]">{p.player.name}</span>
+                            </div>
+                            <span className="text-xs font-semibold text-gold-400" title={`${statLabel}: ${statValue}`}>{statValue}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              };
+
+              const g1_3 = SUPER_LEAGUE_FORMAT.filter(g => g.id >= 1 && g.id <= 3);
+              const g4_7 = SUPER_LEAGUE_FORMAT.filter(g => g.id >= 4 && g.id <= 7);
+              const g8_9 = SUPER_LEAGUE_FORMAT.filter(g => g.id >= 8 && g.id <= 9);
+
+              return (
+                <>
+                  {/* Part 1 */}
+                  <div>
+                    <h3 className="text-md font-semibold text-gold-400 mb-3 flex items-center gap-2">
+                      <span className="w-1.5 h-5 bg-gold-400 rounded-full inline-block" />
+                      Part 1 — No repeats
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {g1_3.map(renderCard)}
+                    </div>
+                  </div>
+                  {/* Part 2 */}
+                  <div>
+                    <h3 className="text-md font-semibold text-dart-green mb-3 flex items-center gap-2">
+                      <span className="w-1.5 h-5 bg-dart-green rounded-full inline-block" />
+                      Part 2 — Repeat once (max 2 per player)
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {g4_7.map(renderCard)}
+                    </div>
+                  </div>
+                  {/* Part 3 */}
+                  <div>
+                    <h3 className="text-md font-semibold text-[#6b6b8a] mb-3 flex items-center gap-2">
+                      <span className="w-1.5 h-5 bg-[#6b6b8a] rounded-full inline-block" />
+                      Part 3 — Repeat once (max 2 per player)
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {g8_9.map(renderCard)}
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
           </div>
 
           {/* Unavailable Players */}
@@ -324,12 +344,12 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
               <li>• G1: Singles 701/701/701 (1P)</li>
               <li>• G2: Singles 701/Cricket/701 (1P)</li>
               <li>• G3: Doubles 701/Cricket/Choice (2P)</li>
-              <li className="text-gold-400 font-medium mt-2">Part 2 — Max 2 appearances per player across G4-G6</li>
+              <li className="text-dart-green font-medium mt-2">Part 2 — Max 2 appearances per player across G4-G7</li>
               <li>• G4: Doubles 701/Cricket/701 (2P)</li>
               <li>• G5: Doubles Cricket/Cricket/Cricket (2P)</li>
               <li>• G6: Doubles Half-It x3 (2P)</li>
               <li>• G7: Doubles 701/Cricket/Choice (2P)</li>
-              <li className="text-gold-400 font-medium mt-2">Part 3</li>
+              <li className="text-[#6b6b8a] font-medium mt-2">Part 3 — Max 2 appearances per player across G8-G9</li>
               <li>• G8: Trios 901/Cricket/Choice (3P)</li>
               <li>• G9: Team 1101 (4P)</li>
             </ul>

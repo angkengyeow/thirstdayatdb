@@ -608,12 +608,10 @@ export function generateFullLineup(
 
   // Split games into three blocks with different repeat rules
   const firstThreeGames = games.filter(g => g.id >= 1 && g.id <= 3);
-  const repeatOnceGames = games.filter(g => g.id >= 4 && g.id <= 6);
-  const freeGames = games.filter(g => g.id > 6);
+  const part2Games = games.filter(g => g.id >= 4 && g.id <= 7);
+  const part3Games = games.filter(g => g.id >= 8 && g.id <= 9);
 
-  // --- Optimize G1-G3 block ---
-  // When we can't field all 3 (need 4 unique players), evaluate every valid
-  // subset of games and pick the combination with the highest total format score.
+  // --- Optimize G1-G3 block (no-repeat rule) ---
   const firstThreeResult = optimizeFirstThreeBlock(firstThreeGames, availablePlayers, gameCount);
 
   for (const a of firstThreeResult.assignments) {
@@ -626,78 +624,11 @@ export function generateFullLineup(
     skippedGames.push(s);
   }
 
-  // --- G4-G6: repeat once (each player at most 2 appearances across G4-G6) ---
-  const repeatOnceCounts = new Map<string, number>();
+  // --- Part 2 (G4-G7): repeat once (max 2 appearances per player in this block) ---
+  assignRepeatOnceBlock(part2Games, availablePlayers, gameCount, 'G4-G7', assignments, skippedGames);
 
-  for (const game of repeatOnceGames) {
-    const needed = game.playerCount;
-
-    if (availablePlayers.length < needed) {
-      skippedGames.push({
-        game,
-        reason: `Need ${needed} players, only ${availablePlayers.length} available`,
-      });
-      continue;
-    }
-
-    // Exclude players already used twice within G4-G6
-    const pool = availablePlayers.filter(p => (repeatOnceCounts.get(p.player.id) || 0) < 2);
-    if (pool.length < needed) {
-      skippedGames.push({
-        game,
-        reason: `G4-G6 repeat-once rule: need ${needed} player${needed > 1 ? 's' : ''} with <2 appearances, only ${pool.length} available`,
-      });
-      continue;
-    }
-
-    const assigned: PlayerWithStats[] = [];
-
-    // Rank by format score, penalize high game count
-    const ranked = [...pool].sort((a, b) => {
-      const aScore = formatScore(a, game.legs) - (gameCount.get(a.player.id) || 0) * 10;
-      const bScore = formatScore(b, game.legs) - (gameCount.get(b.player.id) || 0) * 10;
-      return bScore - aScore;
-    });
-
-    for (let i = 0; i < needed; i++) {
-      const p2 = ranked[i];
-      assigned.push(p2);
-      gameCount.set(p2.player.id, (gameCount.get(p2.player.id) || 0) + 1);
-      repeatOnceCounts.set(p2.player.id, (repeatOnceCounts.get(p2.player.id) || 0) + 1);
-    }
-
-    assignments.push({ game, players: assigned });
-  }
-
-  // --- G7-G9: no repeat restrictions ---
-  for (const game of freeGames) {
-    const needed = game.playerCount;
-
-    if (availablePlayers.length < needed) {
-      skippedGames.push({
-        game,
-        reason: `Need ${needed} players, only ${availablePlayers.length} available`,
-      });
-      continue;
-    }
-
-    const assigned: PlayerWithStats[] = [];
-
-    // Rank by format score, penalize high game count
-    const ranked = [...availablePlayers].sort((a, b) => {
-      const aScore = formatScore(a, game.legs) - (gameCount.get(a.player.id) || 0) * 10;
-      const bScore = formatScore(b, game.legs) - (gameCount.get(b.player.id) || 0) * 10;
-      return bScore - aScore;
-    });
-
-    for (let i = 0; i < needed; i++) {
-      const p2 = ranked[i];
-      assigned.push(p2);
-      gameCount.set(p2.player.id, (gameCount.get(p2.player.id) || 0) + 1);
-    }
-
-    assignments.push({ game, players: assigned });
-  }
+  // --- Part 3 (G8-G9): repeat once (max 2 appearances per player in this block) ---
+  assignRepeatOnceBlock(part3Games, availablePlayers, gameCount, 'G8-G9', assignments, skippedGames);
 
   const playerGameCount = Array.from(gameCount.entries())
     .map(([id, count]) => ({
@@ -789,6 +720,60 @@ function optimizeFirstThreeBlock(
   }
 
   return bestResult;
+}
+
+/**
+ * Assigns players to a block of games where each player can appear at most twice
+ * (repeat-once rule). Used for Part 2 (G4-G7) and Part 3 (G8-G9).
+ */
+function assignRepeatOnceBlock(
+  games: MatchGame[],
+  availablePlayers: PlayerWithStats[],
+  gameCount: Map<string, number>,
+  blockLabel: string,
+  assignments: GameAssignment[],
+  skippedGames: SkippedGame[]
+): void {
+  const blockCounts = new Map<string, number>();
+
+  for (const game of games) {
+    const needed = game.playerCount;
+
+    if (availablePlayers.length < needed) {
+      skippedGames.push({
+        game,
+        reason: `Need ${needed} players, only ${availablePlayers.length} available`,
+      });
+      continue;
+    }
+
+    // Exclude players already used twice within this block
+    const pool = availablePlayers.filter(p => (blockCounts.get(p.player.id) || 0) < 2);
+    if (pool.length < needed) {
+      skippedGames.push({
+        game,
+        reason: `${blockLabel} repeat-once rule: need ${needed} player${needed > 1 ? 's' : ''} with <2 appearances, only ${pool.length} available`,
+      });
+      continue;
+    }
+
+    const assigned: PlayerWithStats[] = [];
+
+    const ranked = [...pool].sort((a, b) => {
+      const aScore = formatScore(a, game.legs) - (gameCount.get(a.player.id) || 0) * 10;
+      const bScore = formatScore(b, game.legs) - (gameCount.get(b.player.id) || 0) * 10;
+      return bScore - aScore;
+    });
+
+    for (let i = 0; i < needed; i++) {
+      const p = ranked[i];
+      assigned.push(p);
+      gameCount.set(p.player.id, (gameCount.get(p.player.id) || 0) + 1);
+      blockCounts.set(p.player.id, (blockCounts.get(p.player.id) || 0) + 1);
+    }
+
+    assignments.push({ game, players: assigned });
+  }
 }
 
 /** Returns a 0-100 skill score tailored to the game format (01 vs cricket vs half-it vs mixed). */
