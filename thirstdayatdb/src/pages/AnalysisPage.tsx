@@ -271,10 +271,16 @@ function GameFormatTotals({ matchSessions }: { matchSessions: { id: string }[] }
   const playerData = new Map<string, {
     formatCounts: Record<string, number>;
     halfItGames: number;
+    seenGames: Set<string>;
   }>();
   const formatTotals: Record<string, number> = {};
   for (const fmt of formatOrder) formatTotals[fmt] = 0;
   let totalHalfItGames = 0;
+
+  // Track unique games per format for the total row
+  const seenFormatGames = new Map<string, Set<string>>();
+  for (const fmt of formatOrder) seenFormatGames.set(fmt, new Set());
+  const seenHalfItGames = new Set<string>();
 
   const playerStats = getAllPlayersGameStats();
   const idToName = new Map(playerStats.map(ps => [ps.playerId, ps.playerName]));
@@ -288,21 +294,40 @@ function GameFormatTotals({ matchSessions }: { matchSessions: { id: string }[] }
         playerData.set(pName, {
           formatCounts: Object.fromEntries(formatOrder.map(f => [f, 0])),
           halfItGames: 0,
+          seenGames: new Set(),
         });
       }
       const pd = playerData.get(pName)!;
+      const gameKey = `${s.id}:${g.gameId}`;
+
+      // Per-player: count each unique game once (one entry per game per player)
+      if (!pd.seenGames.has(gameKey)) {
+        pd.seenGames.add(gameKey);
+        if (g.format === 'half-it') {
+          pd.halfItGames++;
+        } else {
+          pd.formatCounts[g.gameType] = (pd.formatCounts[g.gameType] || 0) + 1;
+        }
+      }
+
+      // Total row: count each unique game instance once across all players
       if (g.format === 'half-it') {
-        pd.halfItGames++;
-        totalHalfItGames++;
+        if (!seenHalfItGames.has(gameKey)) {
+          seenHalfItGames.add(gameKey);
+          totalHalfItGames++;
+        }
       } else {
-        pd.formatCounts[g.gameType] = (pd.formatCounts[g.gameType] || 0) + 1;
-        formatTotals[g.gameType] = (formatTotals[g.gameType] || 0) + 1;
+        const seen = seenFormatGames.get(g.gameType);
+        if (seen && !seen.has(gameKey)) {
+          seen.add(gameKey);
+          formatTotals[g.gameType] = (formatTotals[g.gameType] || 0) + 1;
+        }
       }
     }
   }
 
   const sortedPlayers = [...playerData.entries()]
-    .map(([name, d]) => ({ name, ...d }))
+    .map(([name, d]) => ({ name, formatCounts: d.formatCounts, halfItGames: d.halfItGames }))
     .sort((a, b) => {
       const totalA = formatOrder.reduce((s, f) => s + (a.formatCounts[f] || 0), 0) + a.halfItGames;
       const totalB = formatOrder.reduce((s, f) => s + (b.formatCounts[f] || 0), 0) + b.halfItGames;
