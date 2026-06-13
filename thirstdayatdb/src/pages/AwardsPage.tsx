@@ -108,32 +108,6 @@ export default function AwardsPage() {
         ))}
       </div>
 
-      {/* Thresholds table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8 overflow-x-auto">
-        <h2 className="text-lg font-semibold text-gray-700 mb-4">Pin Requirements</h2>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-gray-200 text-gray-500">
-              <th className="pb-3 font-medium text-left">Award</th>
-              <th className="pb-3 font-medium text-center">1 – 5.99</th>
-              <th className="pb-3 font-medium text-center">6 – 9.99</th>
-              <th className="pb-3 font-medium text-center">10 – 14.99</th>
-              <th className="pb-3 font-medium text-center">15 – 18</th>
-            </tr>
-          </thead>
-          <tbody>
-            {AWARD_PINS.map(pin => (
-              <tr key={pin.name} className="border-b border-gray-100">
-                <td className="py-3 font-medium text-gray-800">{pin.name}</td>
-                {pin.thresholds.map((t, i) => (
-                  <td key={i} className="py-3 text-center font-mono text-gray-700">{t}</td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
       {/* Player awards summary */}
       {hasData && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8 overflow-x-auto">
@@ -190,61 +164,6 @@ export default function AwardsPage() {
                     </tr>
                   );
                 })}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Player performance context */}
-      {hasData && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 overflow-x-auto">
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">Player Performance Context</h2>
-          <p className="text-xs text-gray-500 mb-4">
-            Below is an estimated bracket based on each player's 01 average. Your actual DARTSLIVE Rating may differ — check your card.
-          </p>
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-200 text-gray-500">
-                <th className="pb-3 font-medium text-left">Player</th>
-                <th className="pb-3 font-medium text-center">01 Avg</th>
-                <th className="pb-3 font-medium text-center">Cricket Avg</th>
-                <th className="pb-3 font-medium text-center">DartsLive Rt.</th>
-                <th className="pb-3 font-medium text-center">Est. Rating Bracket</th>
-                <th className="pb-3 font-medium text-center">Hat Trick</th>
-                <th className="pb-3 font-medium text-center">High Ton</th>
-                <th className="pb-3 font-medium text-center">Ton 80</th>
-                <th className="pb-3 font-medium text-center">3 in a Bed</th>
-                <th className="pb-3 font-medium text-center">White Horse</th>
-                <th className="pb-3 font-medium text-center">3 in Black</th>
-              </tr>
-            </thead>
-            <tbody>
-              {players.map(p => {
-                const bracketIdx = estimateBracketIndex(p.liveRating);
-                const hasRating = bracketIdx >= 0;
-                return (
-                  <tr key={p.player.id} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="py-3 font-medium text-gray-800">{p.player.name}</td>
-                    <td className="py-3 text-center font-mono text-gray-700">{p.stats01Avg > 0 ? p.stats01Avg.toFixed(1) : '-'}</td>
-                    <td className="py-3 text-center font-mono text-gray-700">{p.statsCricketAvg > 0 ? p.statsCricketAvg.toFixed(1) : '-'}</td>
-                    <td className="py-3 text-center font-mono text-gray-700 font-semibold">{p.liveRating > 0 ? p.liveRating.toFixed(2) : '-'}</td>
-                    <td className="py-3 text-center">
-                      {hasRating ? (
-                        <span className={`text-xs font-bold px-2 py-1 rounded-full ${BRACKET_COLORS[bracketIdx]} text-gray-700`}>
-                          {RATING_BRACKETS[bracketIdx].label}
-                        </span>
-                      ) : (
-                        <span className="text-xs text-gray-300">—</span>
-                      )}
-                    </td>
-                    {AWARD_PINS.map(pin => (
-                      <td key={pin.name} className="py-3 text-center font-mono text-gray-600">
-                        {hasRating ? pin.thresholds[bracketIdx] : '-'}
-                      </td>
-                    ))}
-                  </tr>
-                );
-              })}
             </tbody>
           </table>
         </div>
