@@ -72,9 +72,21 @@ export interface GameAssignment {
   players: PlayerWithStats[];
 }
 
+export interface SkippedGame {
+  game: MatchGame;
+  reason: string;
+}
+
+export interface UnavailablePlayer {
+  name: string;
+  reason: string;
+}
+
 export interface FullLineup {
   assignments: GameAssignment[];
   playerGameCount: { playerName: string; count: number }[];
+  skippedGames: SkippedGame[];
+  unavailablePlayers: UnavailablePlayer[];
 }
 
 export interface PlayerResponse {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { generateFullLineup, getSessions, updateFromLiveData } from '../store';
 import { fetchLiveData } from '../scraper';
-import type { MatchGame, FullLineup } from '../types';
+import type { MatchGame, FullLineup, SkippedGame, UnavailablePlayer } from '../types';
 
 const SUPER_LEAGUE_FORMAT: MatchGame[] = [
   { id: 1, type: 'singles', label: 'Singles 701 x3', legs: '701·701·701', playerCount: 1 },
@@ -205,6 +205,45 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
               })}
             </div>
           </div>
+
+          {/* Skipped Games */}
+          {result.skippedGames.length > 0 && (
+            <div className="mb-6">
+              <h2 className="text-lg font-semibold text-[#eeeef4] mb-4">Skipped Games</h2>
+              <div className="bg-[#111122] rounded-xl border border-dart-red/30 p-5">
+                <p className="text-sm text-dart-red font-medium mb-3">
+                  Not enough available players — {result.skippedGames.length} game{result.skippedGames.length > 1 ? 's' : ''} skipped
+                </p>
+                <div className="space-y-2">
+                  {result.skippedGames.map(sg => (
+                    <div key={sg.game.id} className="flex items-center gap-3 p-2 rounded-lg bg-dart-red/[0.04] border border-dart-red/10">
+                      <span className="text-xs font-bold text-dart-red bg-dart-red/15 px-2 py-0.5 rounded">G{sg.game.id}</span>
+                      <span className="text-sm text-[#c8c8d8]">{sg.game.label}</span>
+                      <span className="text-xs text-[#6b6b8a] ml-auto">{sg.reason}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Unavailable Players */}
+          {result.unavailablePlayers.length > 0 && (
+            <div className="mb-6">
+              <h2 className="text-lg font-semibold text-[#eeeef4] mb-4">Unavailable Players</h2>
+              <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                  {result.unavailablePlayers.map(up => (
+                    <div key={up.name} className="flex items-center gap-2 p-2 rounded-lg bg-[#0d0d1a]/60 border border-[#1c1c34]">
+                      <span className="w-2 h-2 rounded-full bg-dart-red" />
+                      <span className="text-sm text-[#c8c8d8]">{up.name}</span>
+                      <span className="text-xs text-[#6b6b8a] ml-auto">{up.reason}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Player Rotation */}
           <div className="mb-8">

@@ -544,6 +544,9 @@ export function generateLineup(
  * Generates a SUPER LEAGUE lineup with game assignments.
  * Players can play multiple games — optimized by composite score.
  * Singles get priority for top players, rotation balances game count.
+ * When not enough available players for a game, that game is skipped
+ * and listed in skippedGames. Unavailable players (absent/excused/no response)
+ * are reported in unavailablePlayers.
  */
 export function generateFullLineup(
   matchDate: string,
@@ -554,29 +557,70 @@ export function generateFullLineup(
   const matchSession = matchSessions.length > 0 ? matchSessions[0] : null;
 
   let availablePlayers = allPlayers;
+  const unavailablePlayers: UnavailablePlayer[] = [];
 
   // Filter by attendance if match session exists
   if (matchSession) {
     const attendanceRecords = getAttendanceForSession(matchSession.id);
     const presentIds = new Set(
       attendanceRecords
-        .filter(a => a.status === 'on-time' || a.status === 'late' || a.status === 'excused')
+        .filter(a => a.status === 'on-time' || a.status === 'late')
         .map(a => a.playerId)
     );
     availablePlayers = allPlayers.filter(p => presentIds.has(p.player.id));
+
+    // Report who's unavailable and why
+    const absentIds = new Set(
+      attendanceRecords
+        .filter(a => a.status === 'absent')
+        .map(a => a.playerId)
+    );
+    const excusedIds = new Set(
+      attendanceRecords
+        .filter(a => a.status === 'excused')
+        .map(a => a.playerId)
+    );
+    const respondedIds = new Set(attendanceRecords.map(a => a.playerId));
+    // Players with no response record = no response yet
+    const noResponseIds = new Set(
+      getResponsesForSession(matchSession.id)
+        .map(r => r.playerId)
+    );
+    for (const p of allPlayers) {
+      if (presentIds.has(p.player.id)) continue;
+      if (absentIds.has(p.player.id)) {
+        unavailablePlayers.push({ name: p.player.name, reason: 'Absent' });
+      } else if (excusedIds.has(p.player.id)) {
+        unavailablePlayers.push({ name: p.player.name, reason: 'Excused' });
+      } else if (!respondedIds.has(p.player.id) && !noResponseIds.has(p.player.id)) {
+        unavailablePlayers.push({ name: p.player.name, reason: 'No response' });
+      } else {
+        unavailablePlayers.push({ name: p.player.name, reason: 'Not available' });
+      }
+    }
   }
 
   const gameCount = new Map<string, number>();
   availablePlayers.forEach(p => gameCount.set(p.player.id, 0));
 
   const assignments: GameAssignment[] = [];
+  const skippedGames: SkippedGame[] = [];
 
-  // Assign all games in sequence — no repeat restrictions.
+  // Assign games in sequence — skip any where there aren't enough available players.
   // Game count penalty in the ranking naturally balances distribution
   // so players with fewer games get priority for the next slot.
   for (const game of games) {
-    const assigned: PlayerWithStats[] = [];
     const needed = game.playerCount;
+
+    if (availablePlayers.length < needed) {
+      skippedGames.push({
+        game,
+        reason: `Need ${needed} players, only ${availablePlayers.length} available`,
+      });
+      continue;
+    }
+
+    const assigned: PlayerWithStats[] = [];
 
     // Rank by format score, penalize high game count
     const ranked = [...availablePlayers].sort((a, b) => {
@@ -585,7 +629,7 @@ export function generateFullLineup(
       return bScore - aScore;
     });
 
-    for (let i = 0; i < needed && i < ranked.length; i++) {
+    for (let i = 0; i < needed; i++) {
       const p2 = ranked[i];
       assigned.push(p2);
       gameCount.set(p2.player.id, (gameCount.get(p2.player.id) || 0) + 1);
@@ -602,7 +646,7 @@ export function generateFullLineup(
     .filter(p => p.count > 0)
     .sort((a, b) => b.count - a.count);
 
-  return { assignments, playerGameCount };
+  return { assignments, playerGameCount, skippedGames, unavailablePlayers };
 }
 
 /** Returns a 0-100 skill score tailored to the game format (01 vs cricket vs half-it vs mixed). */
