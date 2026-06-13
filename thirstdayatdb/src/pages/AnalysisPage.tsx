@@ -98,6 +98,7 @@ export default function AnalysisPage() {
               <th className="pb-3 font-medium text-center">01 Avg</th>
               <th className="pb-3 font-medium text-center">Cricket Avg</th>
               <th className="pb-3 font-medium text-center">01 Win%</th>
+              <th className="pb-3 font-medium text-center">Mixed Win%</th>
               <th className="pb-3 font-medium text-center">Cricket Win%</th>
               <th className="pb-3 font-medium text-center">Half-It Win%</th>
             </tr>
@@ -119,6 +120,7 @@ export default function AnalysisPage() {
                 <td className="py-3 text-center font-mono text-sm text-gray-700">{ps.stats01Avg > 0 ? ps.stats01Avg.toFixed(2) : '-'}</td>
                 <td className="py-3 text-center font-mono text-sm text-gray-700">{ps.statsCricketAvg > 0 ? ps.statsCricketAvg.toFixed(2) : '-'}</td>
                 <td className="py-3 text-center">{ps.format01.games > 0 ? <WinBadge pct={ps.format01.winPct} /> : <span className="text-gray-300">-</span>}</td>
+                <td className="py-3 text-center">{ps.mixed.games > 0 ? <WinBadge pct={ps.mixed.winPct} /> : <span className="text-gray-300">-</span>}</td>
                 <td className="py-3 text-center">{ps.cricket.games > 0 ? <WinBadge pct={ps.cricket.winPct} /> : <span className="text-gray-300">-</span>}</td>
                 <td className="py-3 text-center">{ps.halfIt.games > 0 ? <WinBadge pct={ps.halfIt.winPct} /> : <span className="text-gray-300">-</span>}</td>
               </tr>
