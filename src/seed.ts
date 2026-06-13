@@ -32,22 +32,21 @@ interface MatchInfo {
 }
 
 const matchSchedule: MatchInfo[] = [
-  // First game: won 6-4 away against GOTTaWinThemAllAgain
+  // All opponents play twice — once home, once away
+  // Data from DartsLive API (league.dartslive.com)
   { date: '2026-02-12', opponent: 'GOTTaWinThemAllAgain',  isHome: false, homeScore: 4, awayScore: 5, homeBonus: 0, awayBonus: 1 },
-  // Remaining schedule from DartsLive match data
-  { date: '2026-02-26', opponent: 'iDarts(SAFRA YISHUN)',  isHome: true,  homeScore: 4, awayScore: 5, homeBonus: 0, awayBonus: 1 },
-  { date: '2026-03-05', opponent: 'Heng @ G.U.T.S',        isHome: false, homeScore: 9, awayScore: 0, homeBonus: 1, awayBonus: 0 },
-  { date: '2026-03-12', opponent: 'OBar - Alpha',           isHome: true,  homeScore: 1, awayScore: 8, homeBonus: 0, awayBonus: 1 },
-  { date: '2026-03-19', opponent: 'Divinities.神將 @GVC',   isHome: false, homeScore: 1, awayScore: 8, homeBonus: 0, awayBonus: 1 },
-  { date: '2026-04-09', opponent: 'Good Cheer @ Stadium',   isHome: true,  homeScore: 4, awayScore: 5, homeBonus: 0, awayBonus: 1 },
-  { date: '2026-04-16', opponent: 'Katana Defenders @ F5',  isHome: false, homeScore: 2, awayScore: 7, homeBonus: 0, awayBonus: 1 },
-  { date: '2026-04-23', opponent: 'Yeti @ Shinjyu',         isHome: false, homeScore: 5, awayScore: 4, homeBonus: 1, awayBonus: 0 },
-  { date: '2026-05-07', opponent: 'Good Cheer @ Stadium',   isHome: true,  homeScore: 5, awayScore: 4, homeBonus: 1, awayBonus: 0 },
-  { date: '2026-05-14', opponent: 'GOTTaWinThemAllAgain',   isHome: false, homeScore: 2, awayScore: 7, homeBonus: 0, awayBonus: 1 },
-  { date: '2026-05-28', opponent: 'OBar - Alpha',           isHome: false, homeScore: 7, awayScore: 2, homeBonus: 1, awayBonus: 0 },
-  { date: '2026-06-04', opponent: 'Good Vibes Club',        isHome: true,  homeScore: 5, awayScore: 4, homeBonus: 1, awayBonus: 0 },
-  { date: '2026-06-11', opponent: 'CHAOS Primordial',       isHome: false, homeScore: 3, awayScore: 6, homeBonus: 0, awayBonus: 1 },
-  { date: '2026-06-18', opponent: 'Forest 5',               isHome: true,  homeScore: 5, awayScore: 4, homeBonus: 1, awayBonus: 0 },
+  { date: '2026-02-26', opponent: 'Heng @ G.U.T.S',        isHome: true,  homeScore: 9, awayScore: 0, homeBonus: 1, awayBonus: 0 },
+  { date: '2026-03-05', opponent: 'OBar - Alpha',           isHome: false, homeScore: 1, awayScore: 8, homeBonus: 0, awayBonus: 1 },
+  { date: '2026-03-12', opponent: 'Divinities.神將 @GVC',   isHome: true,  homeScore: 1, awayScore: 8, homeBonus: 0, awayBonus: 1 },
+  { date: '2026-03-19', opponent: 'CHAOS Primordial',       isHome: false, homeScore: 4, awayScore: 5, homeBonus: 0, awayBonus: 1 },
+  { date: '2026-04-09', opponent: 'Katana Defenders @ F5',  isHome: true,  homeScore: 2, awayScore: 7, homeBonus: 0, awayBonus: 1 },
+  { date: '2026-04-16', opponent: 'Yeti @ Shinjyu',         isHome: true,  homeScore: 5, awayScore: 4, homeBonus: 1, awayBonus: 0 },
+  { date: '2026-04-23', opponent: 'Heng @ G.U.T.S',        isHome: false, homeScore: 5, awayScore: 4, homeBonus: 1, awayBonus: 0 },
+  { date: '2026-05-07', opponent: 'GOTTaWinThemAllAgain',   isHome: true,  homeScore: 2, awayScore: 7, homeBonus: 0, awayBonus: 1 },
+  { date: '2026-05-14', opponent: 'OBar - Alpha',           isHome: true,  homeScore: 7, awayScore: 2, homeBonus: 1, awayBonus: 0 },
+  { date: '2026-05-28', opponent: 'Divinities.神將 @GVC',   isHome: false, homeScore: 5, awayScore: 4, homeBonus: 1, awayBonus: 0 },
+  { date: '2026-06-04', opponent: 'CHAOS Primordial',       isHome: true,  homeScore: 3, awayScore: 6, homeBonus: 0, awayBonus: 1 },
+  { date: '2026-06-11', opponent: 'Katana Defenders @ F5',  isHome: false, homeScore: 5, awayScore: 4, homeBonus: 1, awayBonus: 0 },
   { date: '2026-06-18', opponent: 'Yeti @ Shinjyu',         isHome: false, homeScore: 0, awayScore: 0, homeBonus: 0, awayBonus: 0 },
 ];
 
