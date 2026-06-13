@@ -1291,13 +1291,22 @@ export function populateFromLiveData(liveData: LiveDataInput) {
       });
     }
 
-    // Build opponent player stats lookup
+    // Helper to normalize player names for cross-source matching
+    const norm = (n: string) => n.trim().replace(/\s+/g, ' ');
+
+    // Build opponent player stats lookup — keyed by normalized name + original
     const oppStatsMap = new Map<string, { stats01: number; statsCricket: number }>();
+    const oppNameToNorm = new Map<string, string>(); // original → normalized
     for (const p of m.opponentPlayers || []) {
-      oppStatsMap.set(p.name, { stats01: p.stats01, statsCricket: p.statsCricket });
+      const normalized = norm(p.name);
+      oppNameToNorm.set(p.name, normalized);
+      // Keep the first occurrence if duplicates after normalization
+      if (!oppStatsMap.has(normalized)) {
+        oppStatsMap.set(normalized, { stats01: p.stats01, statsCricket: p.statsCricket });
+      }
     }
 
-    // Collect per-game opponent player slot data
+    // Collect per-game opponent player slot data — keyed by normalized name
     const oppGameMap = new Map<string, number[]>();
     const opponentTeam = m.isThirstdayHome ? m.awayTeamName : m.homeTeamName;
 
@@ -1312,14 +1321,15 @@ export function populateFromLiveData(liveData: LiveDataInput) {
           ? game.awayPlayers
           : game.homePlayers;
 
-        // Track opponent players for this game slot
+        // Track opponent players for this game slot — use normalized name
         for (const oppName of opponentPlayers) {
           if (!oppName) continue;
-          const existing = oppGameMap.get(oppName) || [];
+          const normalized = norm(oppName);
+          const existing = oppGameMap.get(normalized) || [];
           if (!existing.includes(game.gameId)) {
             existing.push(game.gameId);
           }
-          oppGameMap.set(oppName, existing);
+          oppGameMap.set(normalized, existing);
         }
 
         // Thirstday's leg count
@@ -1384,7 +1394,10 @@ export function populateFromLiveData(liveData: LiveDataInput) {
     }
 
     // Save opponent player records for this match
+    // First: players matched to specific game slots
+    const matchedOpponents = new Set<string>();
     for (const [oppName, gameIds] of oppGameMap) {
+      matchedOpponents.add(oppName);
       const stats = oppStatsMap.get(oppName);
       opponentRecords.push({
         id: generateId(),
@@ -1395,6 +1408,20 @@ export function populateFromLiveData(liveData: LiveDataInput) {
         statsCricket: stats?.statsCricket || 0,
         gameIds,
       });
+    }
+    // Second: unmatched players from rank list (name may differ from game slot data)
+    for (const [oppName, stats] of oppStatsMap) {
+      if (!matchedOpponents.has(oppName)) {
+        opponentRecords.push({
+          id: generateId(),
+          matchDate: m.matchDate,
+          opponentTeam,
+          playerName: oppName,
+          stats01: stats.stats01,
+          statsCricket: stats.statsCricket,
+          gameIds: [],
+        });
+      }
     }
   });
 
@@ -1473,10 +1500,15 @@ export function updateFromLiveData(liveData: LiveDataInput): number {
     };
     allSessions.push(newSession);
 
-    // Build opponent player stats lookup (used outside the players check)
+    const norm = (n: string) => n.trim().replace(/\s+/g, ' ');
+
+    // Build opponent player stats lookup — keyed by normalized name
     const oppStatsMap = new Map<string, { stats01: number; statsCricket: number }>();
     for (const p of m.opponentPlayers || []) {
-      oppStatsMap.set(p.name, { stats01: p.stats01, statsCricket: p.statsCricket });
+      const normalized = norm(p.name);
+      if (!oppStatsMap.has(normalized)) {
+        oppStatsMap.set(normalized, { stats01: p.stats01, statsCricket: p.statsCricket });
+      }
     }
     const oppGameMap = new Map<string, number[]>();
 
@@ -1497,12 +1529,13 @@ export function updateFromLiveData(liveData: LiveDataInput): number {
             ? game.awayPlayers
             : game.homePlayers;
 
-          // Track opponent players for this game slot
+          // Track opponent players for this game slot — use normalized name
           for (const oppName of opponentPlayers) {
             if (!oppName) continue;
-            const existing = oppGameMap.get(oppName) || [];
+            const normalized = norm(oppName);
+            const existing = oppGameMap.get(normalized) || [];
             if (!existing.includes(game.gameId)) existing.push(game.gameId);
-            oppGameMap.set(oppName, existing);
+            oppGameMap.set(normalized, existing);
           }
 
           const ourLegs = m.isThirstdayHome ? game.homeLegs : game.awayLegs;
@@ -1566,7 +1599,10 @@ export function updateFromLiveData(liveData: LiveDataInput): number {
     }
 
     // Save opponent player records for this match
+    // First: players matched to specific game slots
+    const matchedOpponents = new Set<string>();
     for (const [oppName, gameIds] of oppGameMap) {
+      matchedOpponents.add(oppName);
       const stats = oppStatsMap.get(oppName);
       newOpponentRecords.push({
         id: generateId(),
@@ -1577,6 +1613,20 @@ export function updateFromLiveData(liveData: LiveDataInput): number {
         statsCricket: stats?.statsCricket || 0,
         gameIds,
       });
+    }
+    // Second: unmatched players from rank list (name may differ from game slot data)
+    for (const [oppName, stats] of oppStatsMap) {
+      if (!matchedOpponents.has(oppName)) {
+        newOpponentRecords.push({
+          id: generateId(),
+          matchDate: m.matchDate,
+          opponentTeam: opponent,
+          playerName: oppName,
+          stats01: stats.stats01,
+          statsCricket: stats.statsCricket,
+          gameIds: [],
+        });
+      }
     }
 
     addedCount++;
