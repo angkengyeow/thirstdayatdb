@@ -93,11 +93,11 @@ export default function AnalysisPage() {
               <th className="pb-3 font-medium text-center">W</th>
               <th className="pb-3 font-medium text-center">L</th>
               <th className="pb-3 font-medium text-center">Win%</th>
+              <th className="pb-3 font-medium text-center">01 Win%</th>
+              <th className="pb-3 font-medium text-center">Cricket Win%</th>
               <th className="pb-3 font-medium text-center">Legs W</th>
               <th className="pb-3 font-medium text-center">Legs L</th>
               <th className="pb-3 font-medium text-center">Legs Win%</th>
-              <th className="pb-3 font-medium text-center">01 Win%</th>
-              <th className="pb-3 font-medium text-center">Cricket Win%</th>
               <th className="pb-3 font-medium text-center">Half-It Win%</th>
             </tr>
           </thead>
@@ -120,11 +120,11 @@ export default function AnalysisPage() {
                 <td className="py-3 text-center text-green-600 font-medium">{ps.wins}</td>
                 <td className="py-3 text-center text-red-600 font-medium">{ps.losses}</td>
                 <td className="py-3 text-center"><WinBadge pct={ps.winPct} /></td>
+                <td className="py-3 text-center">{ps.format01.games > 0 ? <WinBadge pct={ps.format01.winPct} /> : <span className="text-gray-300">-</span>}</td>
+                <td className="py-3 text-center">{ps.cricket.games > 0 ? <WinBadge pct={ps.cricket.winPct} /> : <span className="text-gray-300">-</span>}</td>
                 <td className="py-3 text-center text-green-600 font-medium">{ps.legsWon}</td>
                 <td className="py-3 text-center text-red-600 font-medium">{ps.legsLost}</td>
                 <td className="py-3 text-center"><WinBadge pct={ps.legsWinPct} /></td>
-                <td className="py-3 text-center">{ps.format01.games > 0 ? <WinBadge pct={ps.format01.winPct} /> : <span className="text-gray-300">-</span>}</td>
-                <td className="py-3 text-center">{ps.cricket.games > 0 ? <WinBadge pct={ps.cricket.winPct} /> : <span className="text-gray-300">-</span>}</td>
                 <td className="py-3 text-center">{ps.halfIt.games > 0 ? <WinBadge pct={ps.halfIt.winPct} /> : <span className="text-gray-300">-</span>}</td>
               </tr>
             ))}
