@@ -699,9 +699,16 @@ function optimizeFirstThreeBlock(
 ): { assignments: GameAssignment[]; skipped: SkippedGame[] } {
   const totalPlayers = availablePlayers.length;
 
-  // Ranker that includes matchup bonus
+  // Ranker that includes matchup bonus + rotation jitter
+  // Per-player jitter (±8 points) ensures the same player doesn't always get G1,
+  // creating natural rotation among similarly-skilled players.
+  // Range is wide enough to rotate even when one player has a clear skill advantage.
+  const jitter = new Map<string, number>();
+  for (const p of availablePlayers) {
+    jitter.set(p.player.id, Math.random() * 16 - 8);
+  }
   const rankForGame = (player: PlayerWithStats, game: MatchGame) =>
-    formatScore(player, game.legs) + matchupBonus(player, game.id, opponentProfile);
+    formatScore(player, game.legs) + matchupBonus(player, game.id, opponentProfile) + (jitter.get(player.player.id) || 0);
 
   const subsets: number[][] = [];
   for (let mask = 1; mask < (1 << 3); mask++) {
