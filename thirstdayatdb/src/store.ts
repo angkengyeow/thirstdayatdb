@@ -852,7 +852,7 @@ const AWARD_TYPE_MAP: Record<string, string> = {
   TON_80: 'Ton 80',
   THREE_IN_A_BED: '3 in a Bed',
   WHITE_HORSE: 'White Horse',
-  THREE_IN_BLACK: '3 in the Black',
+  THREE_IN_THE_BLACK: '3 in the Black',
 };
 
 /** Computes per-player award totals from all match data and stores them */
