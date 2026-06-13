@@ -20,10 +20,10 @@ const SUPER_LEAGUE_FORMAT: MatchGame[] = [
 ];
 
 const GAME_TYPE_STYLES: Record<string, { border: string; badge: string; dot: string }> = {
-  singles: { border: 'border-cyan-400/20', badge: 'bg-cyan-400/15 text-cyan-400 border-cyan-400/30', dot: 'bg-cyan-400' },
-  doubles: { border: 'border-dart-green/20', badge: 'bg-dart-green/15 text-dart-green border-dart-green/30', dot: 'bg-dart-green' },
-  trios: { border: 'border-[#5a4a8a]/20', badge: 'bg-[#5a4a8a]/15 text-[#5a4a8a] border-[#5a4a8a]/30', dot: 'bg-[#5a4a8a]' },
-  team: { border: 'border-cyan-400/20', badge: 'bg-cyan-400/15 text-cyan-400 border-cyan-400/30', dot: 'bg-cyan-400' },
+  singles: { border: 'rgba(212,175,55,0.15)', badge: '#B8942E', dot: '#D4AF37' },
+  doubles: { border: 'rgba(5,150,105,0.15)', badge: '#059669', dot: '#059669' },
+  trios: { border: 'rgba(100,116,139,0.15)', badge: '#64748B', dot: '#64748B' },
+  team: { border: 'rgba(212,175,55,0.15)', badge: '#B8942E', dot: '#D4AF37' },
 };
 
 interface LineupPageProps {
@@ -55,13 +55,11 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
     }
   }, [preselectDate]);
 
-  // Match day detection and saved lineup restore
   useEffect(() => {
     const session = getMatchSessionForDate(matchDate);
     if (session) {
       setIsMatchDay(true);
       setMatchSessionId(session.id);
-      // Restore saved live lineup if exists
       const saved = loadLiveLineup(session.id);
       if (saved) {
         setResult(saved);
@@ -72,7 +70,6 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
     }
   }, [matchDate]);
 
-  // Auto-refresh live data on match day
   useEffect(() => {
     if (preselectDate) return;
     const today = new Date().toISOString().split('T')[0];
@@ -100,7 +97,6 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
     return () => clearInterval(interval);
   }, [matchDate, preselectDate]);
 
-  // Refresh game results / score periodically on match day
   useEffect(() => {
     if (!matchSessionId) return;
     const updateResults = () => {
@@ -112,7 +108,6 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
     return () => clearInterval(interval);
   }, [matchSessionId]);
 
-  // Persist lineup on match day whenever it changes
   useEffect(() => {
     if (matchSessionId && result) {
       saveLiveLineup(matchSessionId, result);
@@ -145,7 +140,6 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
     const newPlayers = [...assignment.players];
     newPlayers[playerIdx] = replacement;
 
-    // Recalculate game count
     const countMap = new Map<string, number>();
     const newAssignments = result.assignments.map((a, i) => {
       if (i !== idx) {
@@ -171,34 +165,39 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
     setSwapTarget(null);
   }
 
+  const anPill = (c: string) => ({ background: `${c}12`, color: c, border: `1px solid ${c}25` });
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 animate-fade-in">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[#e8e0f4]">Lineup Generator</h1>
-        <p className="text-sm text-[#5a4a8a] mt-0.5">Optimize player assignments across all 9 Super League games</p>
+        <h1 className="text-xl font-bold font-display tracking-tight text-[#1E293B]">Lineup Generator</h1>
+        <p className="text-sm text-[#94A3B8] mt-0.5 font-body">Optimize player assignments across all 9 Super League games</p>
       </div>
 
       {/* Live Match Banner */}
       {isMatchDay && matchSessionId && (
-        <div className="glass-card rounded-xl p-5 mb-8 border border-cyan-400/30 shadow-[0_0_20px_rgba(0,229,255,0.08)]">
+        <div className="glass-card rounded-xl p-5 mb-8" style={{ borderColor: 'rgba(212, 175, 55, 0.25)' }}>
           <div className="flex items-center gap-3 mb-3">
-            <span className="flex items-center gap-1.5 text-xs font-semibold text-cyan-400 bg-cyan-400/10 px-3 py-1 rounded-full border border-cyan-400/25">
-              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_6px_rgba(0,229,255,0.6)]" />
+            <span
+              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full font-body"
+              style={{ background: 'rgba(212, 175, 55, 0.10)', color: '#B8942E', border: '1px solid rgba(212, 175, 55, 0.25)' }}
+            >
+              <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#D4AF37' }} />
               LIVE
             </span>
-            <span className="text-sm text-[#b8aad8]">
+            <span className="text-sm text-[#64748B] font-body">
               Match on {matchDate}
             </span>
             {score.total > 0 && (
-              <span className="ml-auto text-lg font-bold text-[#e8e0f4] tabular-nums">
-                <span className={score.thirstday > score.opponent ? 'text-dart-green' : 'text-dart-red'}>
+              <span className="ml-auto text-lg font-bold font-display tracking-tight tabular-nums">
+                <span style={{ color: score.thirstday > score.opponent ? '#059669' : '#DC2626' }}>
                   {score.thirstday}
                 </span>
-                <span className="text-[#5a4a8a] mx-1">-</span>
-                <span className={score.opponent > score.thirstday ? 'text-dart-green' : 'text-dart-red'}>
+                <span className="text-[#CBD5E1] mx-1">-</span>
+                <span style={{ color: score.opponent > score.thirstday ? '#059669' : '#DC2626' }}>
                   {score.opponent}
                 </span>
-                <span className="text-xs text-[#5a4a8a] ml-1.5">/ {score.total}</span>
+                <span className="text-xs text-[#94A3B8] ml-1.5">/ {score.total}</span>
               </span>
             )}
           </div>
@@ -209,13 +208,8 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
               return (
                 <span
                   key={g.id}
-                  className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                    isCompleted
-                      ? r!.won
-                        ? 'bg-dart-green/15 text-dart-green border border-dart-green/30'
-                        : 'bg-dart-red/15 text-dart-red border border-dart-red/30'
-                      : 'bg-[#0d0830] text-[#5a4a8a] border border-[#1a2a5a]'
-                  }`}
+                  className="text-[10px] px-2 py-0.5 rounded-full font-medium font-body"
+                  style={isCompleted ? anPill(r!.won ? '#059669' : '#DC2626') : { background: '#F1F5F9', color: '#94A3B8', border: '1px solid #E2E8F0' }}
                 >
                   G{g.id} {isCompleted ? (r!.won ? 'W' : 'L') : '-'}
                 </span>
@@ -223,16 +217,16 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
             })}
           </div>
           {score.total > 0 && score.total < 9 && (
-            <p className="text-xs text-cyan-400/70 mt-2">Results auto-refresh every 15s — swap players on pending games below</p>
+            <p className="text-xs mt-2 font-body" style={{ color: 'rgba(212,175,55,0.7)' }}>Results auto-refresh every 15s — swap players on pending games below</p>
           )}
         </div>
       )}
 
       {/* Controls */}
-      <div className="glass-card rounded-xl p-6 mb-8">
+      <div className="glass-card p-6 mb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
           <div>
-            <label className="block text-sm font-medium text-[#8a7aaa] mb-1">Match Date</label>
+            <label className="block text-sm font-medium text-[#64748B] mb-1 font-body">Match Date</label>
             <input
               type="date"
               value={matchDate}
@@ -243,7 +237,7 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
           <div>
             <button
               onClick={handleGenerate}
-              className="w-full px-4 py-2 bg-cyan-400 text-[#0a0520] rounded-lg hover:bg-gold-300 transition-colors font-medium shadow-lg shadow-cyan-400/20"
+              className="btn-gold w-full"
             >
               {isMatchDay ? 'Generate / Reset Lineup' : 'Generate Lineup'}
             </button>
@@ -251,54 +245,54 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
         </div>
 
         {refreshStatus === 'loading' && (
-          <div className="bg-[#1a1050] border border-[#3a2a6a] rounded-lg p-3 mt-4 flex items-center gap-2 text-sm text-[#b8aad8]">
-            <div className="w-4 h-4 rounded-full border-2 border-cyan-400 border-t-transparent animate-spin" />
+          <div className="rounded-lg p-3 mt-4 flex items-center gap-2 text-sm font-body" style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', color: '#64748B' }}>
+            <div className="w-4 h-4 rounded-full animate-spin" style={{ border: '2px solid rgba(212,175,55,0.2)', borderTopColor: '#D4AF37' }} />
             Refreshing game stats from DartsLive...
           </div>
         )}
         {refreshStatus === 'done' && (
-          <div className="bg-dart-green/[0.06] border border-dart-green/30 rounded-lg p-3 mt-4 flex items-center gap-2 text-sm text-dart-green">
+          <div className="rounded-lg p-3 mt-4 flex items-center gap-2 text-sm font-body" style={{ background: 'rgba(5,150,105,0.06)', border: '1px solid rgba(5,150,105,0.2)', color: '#059669' }}>
             ✓ Latest game stats loaded for match day
           </div>
         )}
         {refreshStatus === 'uptodate' && (
-          <div className="bg-cyan-400/[0.06] border border-cyan-400/30 rounded-lg p-3 mt-4 flex items-center gap-2 text-sm text-cyan-400">
+          <div className="rounded-lg p-3 mt-4 flex items-center gap-2 text-sm font-body" style={{ background: 'rgba(212,175,55,0.06)', border: '1px solid rgba(212,175,55,0.2)', color: '#B8942E' }}>
             ✓ All match data already up to date
           </div>
         )}
         {refreshStatus === 'error' && (
-          <div className="bg-dart-red/[0.06] border border-dart-red/30 rounded-lg p-3 mt-4 flex items-center gap-2 text-sm text-dart-red">
+          <div className="rounded-lg p-3 mt-4 flex items-center gap-2 text-sm font-body" style={{ background: 'rgba(220,38,38,0.06)', border: '1px solid rgba(220,38,38,0.2)', color: '#DC2626' }}>
             ⚠ Could not refresh stats — using existing data
           </div>
         )}
 
         {preselectDate && (
-          <div className="bg-[#1a1050] border border-[#3a2a6a] rounded-lg p-3 mt-4 flex items-center gap-2 text-sm text-[#b8aad8]">
+          <div className="rounded-lg p-3 mt-4 flex items-center gap-2 text-sm font-body" style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', color: '#64748B' }}>
             <span>📋</span>
             <span>Lineup planned from Attendance — only responding players (on-time/late) are available</span>
           </div>
         )}
 
         {isMatchDay && !preselectDate && (
-          <div className="bg-cyan-400/[0.06] border border-cyan-400/25 rounded-lg p-3 mt-4 flex items-center gap-2 text-sm text-cyan-400">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+          <div className="rounded-lg p-3 mt-4 flex items-center gap-2 text-sm font-body" style={{ background: 'rgba(212,175,55,0.06)', border: '1px solid rgba(212,175,55,0.2)', color: '#B8942E' }}>
+            <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#D4AF37' }} />
             <span>Match day — lineups are auto-saved. Click a player to swap if someone's not in their prime.</span>
           </div>
         )}
 
-        <div className="mt-4 p-4 bg-[#0a0520]/80 rounded-lg border border-[#150d40] text-sm">
-          <p className="text-cyan-400 font-medium mb-1">S1 Division — 64 Credits (No Handicap, OI/MO)</p>
-          <p className="mt-1 text-[#8a7aaa]">
-            <span className="font-medium text-[#e8e0f4]">Ranking by game type:</span>
+        <div className="mt-4 p-4 rounded-lg text-sm font-body" style={{ background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+          <p className="font-medium mb-1" style={{ color: '#B8942E' }}>S1 Division — 64 Credits (No Handicap, OI/MO)</p>
+          <p className="mt-1 text-[#64748B]">
+            <span className="font-medium text-[#1E293B]">Ranking by game type:</span>
           </p>
-          <ul className="mt-1 space-y-0.5 list-disc list-inside text-[#8a7aaa]">
-            <li><strong className="text-[#e8e0f4]">G1, G9</strong> (pure 01) → ranked by <strong className="text-cyan-400">01 Avg</strong></li>
-            <li><strong className="text-[#e8e0f4]">G5</strong> (pure Cricket) → ranked by <strong className="text-cyan-400">Cricket Avg</strong></li>
-            <li><strong className="text-[#e8e0f4]">G2–G4, G7, G8</strong> (mixed) → ranked by <strong className="text-cyan-400">Composite</strong> (01 Avg + Cricket Avg + Win Rate + Partner Chemistry — weightage TBD)</li>
-            <li><strong className="text-[#e8e0f4]">G6</strong> (Half-It) → ranked by <strong className="text-cyan-400">Half-It Composite</strong> (50% Cricket Avg + 50% Half-It Leg Win Rate)</li>
+          <ul className="mt-1 space-y-0.5 list-disc list-inside text-[#64748B]">
+            <li><strong className="text-[#1E293B]">G1, G9</strong> (pure 01) → ranked by <strong style={{ color: '#B8942E' }}>01 Avg</strong></li>
+            <li><strong className="text-[#1E293B]">G5</strong> (pure Cricket) → ranked by <strong style={{ color: '#B8942E' }}>Cricket Avg</strong></li>
+            <li><strong className="text-[#1E293B]">G2–G4, G7, G8</strong> (mixed) → ranked by <strong style={{ color: '#B8942E' }}>Composite</strong> (01 Avg + Cricket Avg + Win Rate + Partner Chemistry — weightage TBD)</li>
+            <li><strong className="text-[#1E293B]">G6</strong> (Half-It) → ranked by <strong style={{ color: '#B8942E' }}>Half-It Composite</strong> (50% Cricket Avg + 50% Half-It Leg Win Rate)</li>
           </ul>
-          <p className="text-[#5a4a8a] mt-1">
-            <strong className="text-[#e8e0f4]">Rules:</strong> Part 1 = no repeats. Part 2 &amp; Part 3 = at most 2 appearances per player per block.
+          <p className="text-[#94A3B8] mt-1">
+            <strong className="text-[#1E293B]">Rules:</strong> Part 1 = no repeats. Part 2 &amp; Part 3 = at most 2 appearances per player per block.
             Game count balancing spreads play across all games.
           </p>
         </div>
@@ -307,7 +301,6 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
       {/* Results */}
       {result && (
         <>
-          {/* Game Assignments — 3 parts with headers */}
           <div className="mb-8 space-y-8">
             {(() => {
               const assignMap = new Map(result.assignments.map(a => [a.game.id, a]));
@@ -321,14 +314,14 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
 
                 if (skipped) {
                   return (
-                    <div key={game.id} className="bg-[#0d0830] rounded-xl border border-dart-red/20 p-3">
+                    <div key={game.id} className="rounded-xl p-3 font-body" style={{ background: '#FEF2F2', border: '1px solid rgba(220,38,38,0.15)' }}>
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full border bg-dart-red/15 text-dart-red border-dart-red/30">FORFEITED</span>
-                        <span className="text-sm font-semibold text-[#5a4a8a] line-through">{game.label}</span>
-                        <span className="text-[10px] text-[#5a4a8a] ml-auto font-mono">G{game.id}</span>
+                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full font-body" style={{ background: 'rgba(220,38,38,0.10)', color: '#DC2626', border: '1px solid rgba(220,38,38,0.2)' }}>FORFEITED</span>
+                        <span className="text-sm font-semibold text-[#94A3B8] line-through font-body">{game.label}</span>
+                        <span className="text-[10px] text-[#94A3B8] ml-auto font-mono font-body">G{game.id}</span>
                       </div>
-                      {game.legs && <p className="text-xs text-[#5a4a8a] mb-2">{game.legs}</p>}
-                      <p className="text-xs text-dart-red/70">{skipped.reason}</p>
+                      {game.legs && <p className="text-xs text-[#94A3B8] mb-2 font-body">{game.legs}</p>}
+                      <p className="text-xs font-body" style={{ color: 'rgba(220,38,38,0.7)' }}>{skipped.reason}</p>
                     </div>
                   );
                 }
@@ -336,24 +329,28 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
                 if (!assignment) return null;
 
                 return (
-                  <div key={game.id} className={`bg-[#0d0830] rounded-xl shadow-lg border ${styles.border} p-3 transition-all duration-200 ${completed ? '' : 'hover:bg-[#100a30] hover:shadow-xl'}`}>
+                  <div key={game.id} className="rounded-xl p-3 transition-all duration-200 font-body" style={{
+                    background: '#FFFFFF',
+                    border: `1px solid ${completed ? (completed.won ? 'rgba(5,150,105,0.2)' : 'rgba(220,38,38,0.2)') : styles.border}`,
+                    boxShadow: '0 2px 8px rgba(212,175,55,0.06), 0 1px 2px rgba(0,0,0,0.03)',
+                  }}>
                     <div className="flex items-center gap-2 mb-2">
                       {completed ? (
-                        <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${completed.won ? 'bg-dart-green/15 text-dart-green border-dart-green/30' : 'bg-dart-red/15 text-dart-red border-dart-red/30'}`}>
+                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full font-body" style={completed.won ? { background: 'rgba(5,150,105,0.10)', color: '#059669', border: '1px solid rgba(5,150,105,0.2)' } : { background: 'rgba(220,38,38,0.10)', color: '#DC2626', border: '1px solid rgba(220,38,38,0.2)' }}>
                           {completed.won ? 'W' : 'L'} {completed.legsWon}-{completed.legsLost}
                         </span>
                       ) : (
-                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full border bg-[#0a0520]/60 text-[#5a4a8a] border-[#1a2a5a]">
+                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full font-body" style={{ background: '#F1F5F9', color: '#94A3B8', border: '1px solid #E2E8F0' }}>
                           PENDING
                         </span>
                       )}
-                      <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${styles.badge}`}>
+                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-full font-body" style={{ background: `${styles.badge}15`, color: styles.badge, border: `1px solid ${styles.badge}30` }}>
                         {game.type.toUpperCase()}
                       </span>
-                      <span className="text-sm font-semibold text-[#e8e0f4]">{game.label}</span>
-                      <span className="text-[10px] text-[#5a4a8a] ml-auto font-mono">G{game.id}</span>
+                      <span className="text-sm font-semibold text-[#1E293B] font-body">{game.label}</span>
+                      <span className="text-[10px] text-[#94A3B8] ml-auto font-mono font-body">G{game.id}</span>
                     </div>
-                    {game.legs && <p className="text-xs text-[#5a4a8a] mb-2">{game.legs}</p>}
+                    {game.legs && <p className="text-xs text-[#94A3B8] mb-2 font-body">{game.legs}</p>}
                     <div className="space-y-1.5">
                       {assignment.players.map((p, i) => {
                         const legs = game.legs;
@@ -369,15 +366,18 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
                         return (
                           <div key={p.player.id} className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2 min-w-0">
-                              <span className={`w-5 h-5 rounded-full ${styles.dot} text-white flex items-center justify-center text-[10px] font-bold shrink-0`}>{i + 1}</span>
-                              <span className="text-sm font-medium text-[#e8e0f4] truncate">{p.player.name}</span>
-                              <span className="text-xs font-semibold text-cyan-400 shrink-0" title={`${statLabel}: ${statValue}`}>{statValue}</span>
+                              <span className="w-5 h-5 rounded-full text-white flex items-center justify-center text-[10px] font-bold shrink-0" style={{ background: styles.dot }}>
+                                {i + 1}
+                              </span>
+                              <span className="text-sm font-medium text-[#1E293B] truncate font-body">{p.player.name}</span>
+                              <span className="text-xs font-semibold shrink-0 font-body" style={{ color: '#B8942E' }} title={`${statLabel}: ${statValue}`}>{statValue}</span>
                             </div>
                             <div className="flex items-center gap-1 shrink-0">
                               {!completed && isMatchDay && !preselectDate && (
                                 <button
                                   onClick={() => setSwapTarget(isSwapping ? null : { gameId: game.id, playerIdx: i })}
-                                  className="text-[10px] px-2 py-0.5 rounded bg-[#150d40] text-[#5a4a8a] hover:bg-cyan-400/15 hover:text-cyan-400 border border-[#1a2a5a] hover:border-cyan-400/30 transition-colors"
+                                  className="text-[10px] px-2 py-0.5 rounded font-body transition-colors"
+                                  style={isSwapping ? { background: 'rgba(212,175,55,0.12)', color: '#B8942E', border: '1px solid rgba(212,175,55,0.25)' } : { background: '#F1F5F9', color: '#94A3B8', border: '1px solid #E2E8F0' }}
                                 >
                                   Swap
                                 </button>
@@ -387,7 +387,6 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
                         );
                       })}
                     </div>
-                    {/* Swap dropdown */}
                     {isMatchDay && !completed && !preselectDate && swapTarget?.gameId === game.id && (
                       <SwapDropdown
                         currentPlayerIds={assignment.players.map(p => p.player.id)}
@@ -405,30 +404,27 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
 
               return (
                 <>
-                  {/* Part 1 */}
                   <div>
-                    <h3 className="text-md font-semibold text-cyan-400 mb-3 flex items-center gap-2">
-                      <span className="w-1.5 h-5 bg-cyan-400 rounded-full inline-block" />
+                    <h3 className="text-md font-semibold mb-3 flex items-center gap-2 font-body" style={{ color: '#B8942E' }}>
+                      <span className="w-1.5 h-5 rounded-full inline-block" style={{ background: 'linear-gradient(180deg, #D4AF37, #E8C872)' }} />
                       Part 1 — No repeats
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                       {g1_3.map(renderCard)}
                     </div>
                   </div>
-                  {/* Part 2 */}
                   <div>
-                    <h3 className="text-md font-semibold text-dart-green mb-3 flex items-center gap-2">
-                      <span className="w-1.5 h-5 bg-dart-green rounded-full inline-block" />
+                    <h3 className="text-md font-semibold mb-3 flex items-center gap-2 font-body" style={{ color: '#059669' }}>
+                      <span className="w-1.5 h-5 rounded-full inline-block" style={{ background: '#059669' }} />
                       Part 2 — Repeat once (max 2 per player)
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                       {g4_7.map(renderCard)}
                     </div>
                   </div>
-                  {/* Part 3 */}
                   <div>
-                    <h3 className="text-md font-semibold text-[#5a4a8a] mb-3 flex items-center gap-2">
-                      <span className="w-1.5 h-5 bg-[#5a4a8a] rounded-full inline-block" />
+                    <h3 className="text-md font-semibold mb-3 flex items-center gap-2 font-body" style={{ color: '#64748B' }}>
+                      <span className="w-1.5 h-5 rounded-full inline-block" style={{ background: '#64748B' }} />
                       Part 3 — Repeat once (max 2 per player)
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -443,14 +439,14 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
           {/* Unavailable Players */}
           {result.unavailablePlayers.length > 0 && (
             <div className="mb-6">
-              <h2 className="text-lg font-semibold text-[#e8e0f4] mb-4">Unavailable Players</h2>
+              <h2 className="text-base font-semibold text-[#1E293B] mb-4 font-display tracking-tight">Unavailable Players</h2>
               <div className="glass-card rounded-xl p-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                   {result.unavailablePlayers.map(up => (
-                    <div key={up.name} className="flex items-center gap-2 p-2 rounded-lg bg-[#0a0520]/60 border border-[#150d40]">
-                      <span className="w-2 h-2 rounded-full bg-dart-red" />
-                      <span className="text-sm text-[#b8aad8]">{up.name}</span>
-                      <span className="text-xs text-[#5a4a8a] ml-auto">{up.reason}</span>
+                    <div key={up.name} className="flex items-center gap-2 p-2 rounded-lg font-body" style={{ background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+                      <span className="w-2 h-2 rounded-full" style={{ background: '#DC2626' }} />
+                      <span className="text-sm text-[#64748B] font-body">{up.name}</span>
+                      <span className="text-xs text-[#94A3B8] ml-auto font-body">{up.reason}</span>
                     </div>
                   ))}
                 </div>
@@ -460,10 +456,10 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
 
           {/* Player Rotation */}
           <div className="mb-8">
-            <h2 className="text-lg font-semibold text-[#e8e0f4] mb-4">Player Rotation</h2>
+            <h2 className="text-base font-semibold text-[#1E293B] mb-4 font-display tracking-tight">Player Rotation</h2>
             <div className="glass-card rounded-xl p-4">
               {result.playerGameCount.length === 0 ? (
-                <p className="text-[#5a4a8a] text-center py-2">No players assigned</p>
+                <p className="text-[#94A3B8] text-center py-2 font-body">No players assigned</p>
               ) : (
                 <div className="space-y-2">
                   {result.playerGameCount.map(({ playerName, count }) => {
@@ -471,15 +467,15 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
                     const widthPct = maxCount > 0 ? (count / maxCount) * 100 : 0;
                     return (
                       <div key={playerName} className="flex items-center gap-3">
-                        <span className="text-sm font-medium text-[#e8e0f4] w-40 truncate">{playerName}</span>
-                        <div className="flex-1 h-4 bg-[#0a0520] rounded-full overflow-hidden border border-[#150d40]">
+                        <span className="text-sm font-medium text-[#1E293B] w-40 truncate font-body">{playerName}</span>
+                        <div className="flex-1 h-4 rounded-full overflow-hidden font-body" style={{ background: '#F1F5F9', border: '1px solid #E2E8F0' }}>
                           <div
-                            className="h-full bg-gradient-to-r from-cyan-400/80 to-cyan-400 rounded-full transition-all"
-                            style={{ width: `${widthPct}%` }}
+                            className="h-full rounded-full transition-all"
+                            style={{ width: `${widthPct}%`, background: 'linear-gradient(90deg, rgba(212, 175, 55, 0.6), #D4AF37)' }}
                           />
                         </div>
-                        <span className="text-sm font-semibold text-cyan-400 w-6 text-right">{count}</span>
-                        <span className="text-[10px] text-[#5a4a8a]">games</span>
+                        <span className="text-sm font-semibold font-body w-6 text-right" style={{ color: '#B8942E' }}>{count}</span>
+                        <span className="text-[10px] text-[#94A3B8] font-body">games</span>
                       </div>
                     );
                   })}
@@ -489,14 +485,13 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
           </div>
 
           {/* Format Reference */}
-          <div className="bg-[#0a0520]/80 rounded-xl border border-[#150d40] p-4">
-            <h3 className="text-xs font-semibold text-[#5a4a8a] mb-2 uppercase tracking-wider">Match Format</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-[#5a4a8a]">
+          <div className="rounded-xl p-4 font-body" style={{ background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+            <h3 className="text-xs font-semibold text-[#94A3B8] mb-2 uppercase tracking-wider font-body">Match Format</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-[#94A3B8] font-body">
               {SUPER_LEAGUE_FORMAT.map(g => {
-                const dot = GAME_TYPE_STYLES[g.type]?.dot || 'bg-gray-400';
                 return (
                   <div key={g.id} className="flex items-center gap-1">
-                    <span className={`w-2 h-2 rounded-full ${dot}`} />
+                    <span className="w-2 h-2 rounded-full" style={{ background: GAME_TYPE_STYLES[g.type]?.dot || '#94A3B8' }} />
                     <span>G{g.id}: {g.playerCount}P {g.label}</span>
                   </div>
                 );
@@ -508,29 +503,24 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
 
       {!result && (
         <div className="text-center py-16">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#150d40] flex items-center justify-center">
-            <svg className="w-8 h-8 text-[#5a4a8a]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-            </svg>
-          </div>
-          <p className="text-lg text-[#5a4a8a] mb-2">Select a match date and generate a Super League lineup</p>
-          <p className="text-sm text-[#5a4a8a]">
+          <p className="text-lg text-[#94A3B8] mb-2 font-body">Select a match date and generate a Super League lineup</p>
+          <p className="text-sm text-[#94A3B8] font-body">
             9 games — singles, doubles, trios &amp; team. Players can play multiple games
             with rotation optimized by rating, form, and punctuality.
           </p>
           <div className="mt-6 inline-block text-left glass-card rounded-xl p-5">
-            <p className="font-medium text-[#8a7aaa] text-sm mb-2">Format breakdown:</p>
-            <ul className="text-sm space-y-1 text-[#5a4a8a]">
-              <li className="text-cyan-400 font-medium">Part 1 — No repeats across G1-G3</li>
+            <p className="font-medium text-[#64748B] text-sm mb-2 font-body">Format breakdown:</p>
+            <ul className="text-sm space-y-1 text-[#94A3B8] font-body">
+              <li className="font-medium" style={{ color: '#B8942E' }}>Part 1 — No repeats across G1-G3</li>
               <li>• G1: Singles 701/701/701 (1P)</li>
               <li>• G2: Singles 701/Cricket/701 (1P)</li>
               <li>• G3: Doubles 701/Cricket/Choice (2P)</li>
-              <li className="text-dart-green font-medium mt-2">Part 2 — Max 2 appearances per player across G4-G7</li>
+              <li className="font-medium mt-2" style={{ color: '#059669' }}>Part 2 — Max 2 appearances per player across G4-G7</li>
               <li>• G4: Doubles 701/Cricket/701 (2P)</li>
               <li>• G5: Doubles Cricket/Cricket/Cricket (2P)</li>
               <li>• G6: Doubles Half-It x3 (2P)</li>
               <li>• G7: Doubles 701/Cricket/Choice (2P)</li>
-              <li className="text-[#5a4a8a] font-medium mt-2">Part 3 — Max 2 appearances per player across G8-G9</li>
+              <li className="font-medium mt-2" style={{ color: '#64748B' }}>Part 3 — Max 2 appearances per player across G8-G9</li>
               <li>• G8: Trios 901/Cricket/Choice (3P)</li>
               <li>• G9: Team 1101 (4P)</li>
             </ul>
@@ -541,7 +531,6 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
   );
 }
 
-/** Inline swap dropdown showing available players to swap in */
 function SwapDropdown({
   currentPlayerIds,
   onSelect,
@@ -566,29 +555,34 @@ function SwapDropdown({
   }, [currentPlayerIds]);
 
   return (
-    <div className="mt-2 pt-2 border-t border-[#150d40]">
-      <p className="text-[10px] text-[#5a4a8a] mb-1.5">Swap with:</p>
+    <div className="mt-2 pt-2 font-body" style={{ borderTop: '1px solid #E2E8F0' }}>
+      <p className="text-[10px] text-[#94A3B8] mb-1.5 font-body">Swap with:</p>
       <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
         {players.length === 0 && (
-          <span className="text-xs text-[#5a4a8a]">No other players available</span>
+          <span className="text-xs text-[#94A3B8] font-body">No other players available</span>
         )}
         {players.map(p => (
           <button
             key={p.id}
             onClick={() => onSelect(p.id)}
-            className="text-xs px-2.5 py-1 rounded-lg bg-[#0a0520]/80 border border-[#1a2a5a] text-[#b8aad8] hover:bg-cyan-400/15 hover:text-cyan-400 hover:border-cyan-400/30 transition-colors"
+            className="text-xs px-2.5 py-1 rounded-lg font-body transition-colors"
+            style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', color: '#64748B' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(212,175,55,0.08)'; e.currentTarget.style.borderColor = 'rgba(212,175,55,0.3)'; e.currentTarget.style.color = '#B8942E'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#F8FAFC'; e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.color = '#64748B'; }}
           >
-            {p.name} <span className="text-[#5a4a8a]">({p.info})</span>
+            {p.name} <span style={{ color: '#94A3B8' }}>({p.info})</span>
           </button>
         ))}
       </div>
       <button
         onClick={onClose}
-        className="text-[10px] text-[#5a4a8a] hover:text-[#b8aad8] mt-1"
+        className="text-[10px] mt-1 font-body"
+        style={{ color: '#94A3B8' }}
+        onMouseEnter={e => e.currentTarget.style.color = '#64748B'}
+        onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}
       >
         Cancel
       </button>
     </div>
   );
 }
-

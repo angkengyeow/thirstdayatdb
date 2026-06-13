@@ -38,10 +38,16 @@ export default function App() {
 
   if (syncing) {
     return (
-      <div className="min-h-screen bg-[#06060f] flex items-center justify-center">
+      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 mx-auto mb-4 rounded-full border-2 border-[#f59e0b] border-t-transparent animate-spin" />
-          <p className="text-[#9e9eb4] text-sm">Loading data...</p>
+          <div
+            className="w-12 h-12 mx-auto mb-4 rounded-full animate-spin"
+            style={{
+              border: '2px solid rgba(212, 175, 55, 0.2)',
+              borderTopColor: '#D4AF37',
+            }}
+          />
+          <p className="text-[#94A3B8] text-sm font-body">Loading data...</p>
         </div>
       </div>
     );

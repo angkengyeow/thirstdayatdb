@@ -23,17 +23,12 @@ export default function AnalysisPage() {
     return (
       <div className="max-w-6xl mx-auto px-4 py-6 animate-fade-in">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-[#e8e0f4]">Analysis</h1>
-          <p className="text-sm text-[#5a4a8a] mt-0.5">Player performance, partnerships, and game history</p>
+          <h1 className="text-xl font-bold font-display tracking-tight text-[#1E293B]">Analysis</h1>
+          <p className="text-sm text-[#94A3B8] mt-0.5 font-body">Player performance, partnerships, and game history</p>
         </div>
-        <div className="glass-card rounded-xl p-12 text-center">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#150d40] flex items-center justify-center">
-            <svg className="w-8 h-8 text-[#5a4a8a]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-          </div>
-          <p className="text-[#5a4a8a] text-lg mb-2">No game data yet</p>
-          <p className="text-[#5a4a8a] text-sm">Game performance data will appear here once matches are played and logged.</p>
+        <div className="glass-card p-12 text-center">
+          <p className="text-[#94A3B8] font-body text-lg mb-2">No game data yet</p>
+          <p className="text-[#94A3B8] text-sm font-body">Game performance data will appear here once matches are played and logged.</p>
         </div>
       </div>
     );
@@ -42,27 +37,30 @@ export default function AnalysisPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 animate-fade-in">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[#e8e0f4]">Analysis</h1>
-        <p className="text-sm text-[#5a4a8a] mt-0.5">Player performance, partnerships, and game history</p>
+        <h1 className="text-xl font-bold font-display tracking-tight text-[#1E293B]">Analysis</h1>
+        <p className="text-sm text-[#94A3B8] mt-0.5 font-body">Player performance, partnerships, and game history</p>
       </div>
 
       {/* Per-Format Game Counts */}
       <GameFormatTotals matchSessions={matchSessions} />
 
       {/* Player Performance Table */}
-      <div className="glass-card rounded-xl p-6 mb-6 overflow-x-auto">
-        <h2 className="text-lg font-semibold text-[#e8e0f4] mb-4">Player Performance</h2>
-        <table className="w-full text-left text-sm">
+      <div className="glass-card p-6 mb-6 overflow-x-auto">
+        <h2 className="text-base font-semibold text-[#1E293B] mb-4 font-display tracking-tight flex items-center gap-2">
+          <span className="w-1 h-5 rounded-full inline-block" style={{ background: 'linear-gradient(180deg, #D4AF37, #E8C872)', boxShadow: '0 0 6px rgba(212, 175, 55, 0.3)' }} />
+          Player Performance
+        </h2>
+        <table className="w-full text-left text-sm font-body">
           <thead>
-            <tr className="border-b border-[#150d40] text-[#5a4a8a]">
-              <th className="pb-3 font-semibold text-[11px] uppercase tracking-wider">Player / Avg</th>
-              <th className="pb-3 font-semibold text-[11px] uppercase tracking-wider text-center">Games</th>
-              <th className="pb-3 font-semibold text-[11px] uppercase tracking-wider text-center">W</th>
-              <th className="pb-3 font-semibold text-[11px] uppercase tracking-wider text-center">L</th>
-              <th className="pb-3 font-semibold text-[11px] uppercase tracking-wider text-center">Win%</th>
-              <th className="pb-3 font-semibold text-[11px] uppercase tracking-wider text-center">01 Win%</th>
-              <th className="pb-3 font-semibold text-[11px] uppercase tracking-wider text-center">Cricket Win%</th>
-                            <th className="pb-3 font-semibold text-[11px] uppercase tracking-wider text-center">Half-It Win%</th>
+            <tr className="text-[10px] text-[#94A3B8] uppercase tracking-[0.08em]" style={{ borderBottom: '1px solid #E2E8F0' }}>
+              <th className="pb-3 font-semibold font-body">Player / Avg</th>
+              <th className="pb-3 font-semibold font-body text-center">Games</th>
+              <th className="pb-3 font-semibold font-body text-center">W</th>
+              <th className="pb-3 font-semibold font-body text-center">L</th>
+              <th className="pb-3 font-semibold font-body text-center">Win%</th>
+              <th className="pb-3 font-semibold font-body text-center">01 Win%</th>
+              <th className="pb-3 font-semibold font-body text-center">Cricket Win%</th>
+                            <th className="pb-3 font-semibold font-body text-center">Half-It Win%</th>
             </tr>
           </thead>
           <tbody>
@@ -70,47 +68,55 @@ export default function AnalysisPage() {
               <tr
                 key={ps.playerId}
                 onClick={() => setSelectedPlayer(selectedPlayer === ps.playerId ? null : ps.playerId)}
-                className={`border-b border-[#150d40] hover:bg-[#100a30] cursor-pointer transition-colors ${selectedPlayer === ps.playerId ? 'bg-cyan-400/[0.06]' : ''} ${i % 2 === 0 ? '' : 'bg-[#0a0520]/40'}`}
+                className="cursor-pointer transition-colors duration-150"
+                style={{
+                  borderBottom: '1px solid #F1F5F9',
+                  background: selectedPlayer === ps.playerId ? 'rgba(212, 175, 55, 0.06)' : i % 2 === 0 ? 'transparent' : '#F8FAFC',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(212, 175, 55, 0.04)'}
+                onMouseLeave={e => e.currentTarget.style.background = selectedPlayer === ps.playerId ? 'rgba(212, 175, 55, 0.06)' : i % 2 === 0 ? 'transparent' : '#F8FAFC'}
               >
                 <td className="py-3">
-                  <div className="font-medium text-[#e8e0f4]">{ps.playerName}</div>
-                  <div className="text-xs text-[#5a4a8a]">
+                  <div className="font-medium text-[#1E293B] font-body">{ps.playerName}</div>
+                  <div className="text-xs text-[#94A3B8] font-body">
                     {ps.stats01Avg > 0 ? `01: ${ps.stats01Avg.toFixed(2)}` : ''}
                     {ps.stats01Avg > 0 && ps.statsCricketAvg > 0 ? ' / ' : ''}
                     {ps.statsCricketAvg > 0 ? `Cr: ${ps.statsCricketAvg.toFixed(2)}` : ''}
                   </div>
                 </td>
-                <td className="py-3 text-center text-[#b8aad8]">{ps.totalGames}</td>
-                <td className="py-3 text-center text-dart-green font-medium">{ps.wins}</td>
-                <td className="py-3 text-center text-dart-red font-medium">{ps.losses}</td>
+                <td className="py-3 text-center text-[#64748B] font-body">{ps.totalGames}</td>
+                <td className="py-3 text-center font-body"><span className="font-semibold text-[#059669]">{ps.wins}</span></td>
+                <td className="py-3 text-center font-body"><span className="font-semibold text-[#DC2626]">{ps.losses}</span></td>
                 <td className="py-3 text-center"><WinBadge pct={ps.winPct} /></td>
-                <td className="py-3 text-center">{ps.format01.games > 0 ? <WinBadge pct={ps.format01.winPct} /> : <span className="text-[#3a2a6a]">-</span>}</td>
-                <td className="py-3 text-center">{ps.cricket.games > 0 ? <WinBadge pct={ps.cricket.winPct} /> : <span className="text-[#3a2a6a]">-</span>}</td>
-                                <td className="py-3 text-center">{ps.halfIt.games > 0 ? <WinBadge pct={ps.halfIt.winPct} /> : <span className="text-[#3a2a6a]">-</span>}</td>
+                <td className="py-3 text-center">{ps.format01.games > 0 ? <WinBadge pct={ps.format01.winPct} /> : <span className="text-[#CBD5E1]">-</span>}</td>
+                <td className="py-3 text-center">{ps.cricket.games > 0 ? <WinBadge pct={ps.cricket.winPct} /> : <span className="text-[#CBD5E1]">-</span>}</td>
+                                <td className="py-3 text-center">{ps.halfIt.games > 0 ? <WinBadge pct={ps.halfIt.winPct} /> : <span className="text-[#CBD5E1]">-</span>}</td>
               </tr>
             ))}
           </tbody>
         </table>
 
         {selectedPlayer && <PlayerDetail playerId={selectedPlayer} playerStats={playerStats} />}
-
         {selectedPlayer && <PlayerChartCard playerId={selectedPlayer} />}
       </div>
 
       {/* 01 Analysis */}
-      <div className="glass-card rounded-xl p-6 mb-6">
-        <h2 className="text-lg font-semibold text-[#e8e0f4] mb-4 flex items-center gap-2"><span className="w-1 h-5 bg-[#00e5ff] rounded-full inline-block shadow-[0_0_6px_rgba(0,229,255,0.4)]" />01</h2>
+      <div className="glass-card p-6 mb-6">
+        <h2 className="text-base font-semibold text-[#1E293B] mb-4 font-display tracking-tight flex items-center gap-2">
+          <span className="w-1 h-5 rounded-full inline-block" style={{ background: 'linear-gradient(180deg, #D4AF37, #E8C872)', boxShadow: '0 0 6px rgba(212, 175, 55, 0.3)' }} />
+          01
+        </h2>
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
+          <table className="w-full text-left text-sm font-body">
             <thead>
-              <tr className="border-b border-[#150d40] text-[#5a4a8a]">
-                <th className="pb-3 font-semibold text-[11px] uppercase tracking-wider">Player</th>
-                <th className="pb-3 font-semibold text-[11px] uppercase tracking-wider text-center">W</th>
-                <th className="pb-3 font-semibold text-[11px] uppercase tracking-wider text-center">L</th>
-                <th className="pb-3 font-semibold text-[11px] uppercase tracking-wider text-center">Win%</th>
-                <th className="pb-3 font-semibold text-[11px] uppercase tracking-wider text-center">LegsW</th>
-                <th className="pb-3 font-semibold text-[11px] uppercase tracking-wider text-center">LegsL</th>
-                <th className="pb-3 font-semibold text-[11px] uppercase tracking-wider text-center">Leg%</th>
+              <tr className="text-[10px] text-[#94A3B8] uppercase tracking-[0.08em]" style={{ borderBottom: '1px solid #E2E8F0' }}>
+                <th className="pb-3 font-semibold font-body">Player</th>
+                <th className="pb-3 font-semibold font-body text-center">W</th>
+                <th className="pb-3 font-semibold font-body text-center">L</th>
+                <th className="pb-3 font-semibold font-body text-center">Win%</th>
+                <th className="pb-3 font-semibold font-body text-center">LegsW</th>
+                <th className="pb-3 font-semibold font-body text-center">LegsL</th>
+                <th className="pb-3 font-semibold font-body text-center">Leg%</th>
               </tr>
             </thead>
             <tbody>
@@ -119,19 +125,20 @@ export default function AnalysisPage() {
                   ? Math.round((ps.format01.legsWon / (ps.format01.legsWon + ps.format01.legsLost)) * 100)
                   : 0;
                 return (
-                  <tr key={ps.playerId} className="border-b border-[#150d40] hover:bg-[#100a30]">
-                    <td className="py-3 font-medium text-[#e8e0f4]">{ps.playerName}</td>
-                    <td className="py-3 text-center text-dart-green font-medium">{ps.format01.wins}</td>
-                    <td className="py-3 text-center text-dart-red font-medium">{ps.format01.games - ps.format01.wins}</td>
+                  <tr key={ps.playerId} className="transition-colors" style={{ borderBottom: '1px solid #F1F5F9' }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                    <td className="py-3 font-medium text-[#1E293B] font-body">{ps.playerName}</td>
+                    <td className="py-3 text-center font-body"><span className="font-semibold text-[#059669]">{ps.format01.wins}</span></td>
+                    <td className="py-3 text-center font-body"><span className="font-semibold text-[#DC2626]">{ps.format01.games - ps.format01.wins}</span></td>
                     <td className="py-3 text-center"><WinBadge pct={ps.format01.winPct} /></td>
-                    <td className="py-3 text-center text-dart-green font-medium">{ps.format01.legsWon}</td>
-                    <td className="py-3 text-center text-dart-red font-medium">{ps.format01.legsLost}</td>
+                    <td className="py-3 text-center font-body"><span className="font-semibold text-[#059669]">{ps.format01.legsWon}</span></td>
+                    <td className="py-3 text-center font-body"><span className="font-semibold text-[#DC2626]">{ps.format01.legsLost}</span></td>
                     <td className="py-3 text-center"><WinBadge pct={legPct} /></td>
                   </tr>
                 );
               })}
               {playerStats.filter(ps => ps.format01.games > 0).length === 0 && (
-                <tr><td colSpan={7} className="py-6 text-center text-[#5a4a8a] text-sm">No 01 data yet</td></tr>
+                <tr><td colSpan={7} className="py-6 text-center text-[#94A3B8] text-sm font-body">No 01 data yet</td></tr>
               )}
             </tbody>
           </table>
@@ -139,19 +146,22 @@ export default function AnalysisPage() {
       </div>
 
       {/* Cricket Analysis */}
-      <div className="glass-card rounded-xl p-6 mb-6">
-        <h2 className="text-lg font-semibold text-[#e8e0f4] mb-4 flex items-center gap-2"><span className="w-1 h-5 bg-[#00e5ff] rounded-full inline-block shadow-[0_0_6px_rgba(0,229,255,0.4)]" />Cricket</h2>
+      <div className="glass-card p-6 mb-6">
+        <h2 className="text-base font-semibold text-[#1E293B] mb-4 font-display tracking-tight flex items-center gap-2">
+          <span className="w-1 h-5 rounded-full inline-block" style={{ background: 'linear-gradient(180deg, #D4AF37, #E8C872)', boxShadow: '0 0 6px rgba(212, 175, 55, 0.3)' }} />
+          Cricket
+        </h2>
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
+          <table className="w-full text-left text-sm font-body">
             <thead>
-              <tr className="border-b border-[#150d40] text-[#5a4a8a]">
-                <th className="pb-3 font-semibold text-[11px] uppercase tracking-wider">Player</th>
-                <th className="pb-3 font-semibold text-[11px] uppercase tracking-wider text-center">W</th>
-                <th className="pb-3 font-semibold text-[11px] uppercase tracking-wider text-center">L</th>
-                <th className="pb-3 font-semibold text-[11px] uppercase tracking-wider text-center">Win%</th>
-                <th className="pb-3 font-semibold text-[11px] uppercase tracking-wider text-center">LegsW</th>
-                <th className="pb-3 font-semibold text-[11px] uppercase tracking-wider text-center">LegsL</th>
-                <th className="pb-3 font-semibold text-[11px] uppercase tracking-wider text-center">Leg%</th>
+              <tr className="text-[10px] text-[#94A3B8] uppercase tracking-[0.08em]" style={{ borderBottom: '1px solid #E2E8F0' }}>
+                <th className="pb-3 font-semibold font-body">Player</th>
+                <th className="pb-3 font-semibold font-body text-center">W</th>
+                <th className="pb-3 font-semibold font-body text-center">L</th>
+                <th className="pb-3 font-semibold font-body text-center">Win%</th>
+                <th className="pb-3 font-semibold font-body text-center">LegsW</th>
+                <th className="pb-3 font-semibold font-body text-center">LegsL</th>
+                <th className="pb-3 font-semibold font-body text-center">Leg%</th>
               </tr>
             </thead>
             <tbody>
@@ -160,19 +170,20 @@ export default function AnalysisPage() {
                   ? Math.round((ps.cricket.legsWon / (ps.cricket.legsWon + ps.cricket.legsLost)) * 100)
                   : 0;
                 return (
-                  <tr key={ps.playerId} className="border-b border-[#150d40] hover:bg-[#100a30]">
-                    <td className="py-3 font-medium text-[#e8e0f4]">{ps.playerName}</td>
-                    <td className="py-3 text-center text-dart-green font-medium">{ps.cricket.wins}</td>
-                    <td className="py-3 text-center text-dart-red font-medium">{ps.cricket.games - ps.cricket.wins}</td>
+                  <tr key={ps.playerId} className="transition-colors" style={{ borderBottom: '1px solid #F1F5F9' }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                    <td className="py-3 font-medium text-[#1E293B] font-body">{ps.playerName}</td>
+                    <td className="py-3 text-center font-body"><span className="font-semibold text-[#059669]">{ps.cricket.wins}</span></td>
+                    <td className="py-3 text-center font-body"><span className="font-semibold text-[#DC2626]">{ps.cricket.games - ps.cricket.wins}</span></td>
                     <td className="py-3 text-center"><WinBadge pct={ps.cricket.winPct} /></td>
-                    <td className="py-3 text-center text-dart-green font-medium">{ps.cricket.legsWon}</td>
-                    <td className="py-3 text-center text-dart-red font-medium">{ps.cricket.legsLost}</td>
+                    <td className="py-3 text-center font-body"><span className="font-semibold text-[#059669]">{ps.cricket.legsWon}</span></td>
+                    <td className="py-3 text-center font-body"><span className="font-semibold text-[#DC2626]">{ps.cricket.legsLost}</span></td>
                     <td className="py-3 text-center"><WinBadge pct={legPct} /></td>
                   </tr>
                 );
               })}
               {playerStats.filter(ps => ps.cricket.games > 0).length === 0 && (
-                <tr><td colSpan={7} className="py-6 text-center text-[#5a4a8a] text-sm">No Cricket data yet</td></tr>
+                <tr><td colSpan={7} className="py-6 text-center text-[#94A3B8] text-sm font-body">No Cricket data yet</td></tr>
               )}
             </tbody>
           </table>
@@ -180,20 +191,23 @@ export default function AnalysisPage() {
       </div>
 
       {/* Half-It Analysis */}
-      <div className="glass-card rounded-xl p-6 mb-6">
-        <h2 className="text-lg font-semibold text-[#e8e0f4] mb-4 flex items-center gap-2"><span className="w-1 h-5 bg-[#00e5ff] rounded-full inline-block shadow-[0_0_6px_rgba(0,229,255,0.4)]" />Half-It</h2>
+      <div className="glass-card p-6 mb-6">
+        <h2 className="text-base font-semibold text-[#1E293B] mb-4 font-display tracking-tight flex items-center gap-2">
+          <span className="w-1 h-5 rounded-full inline-block" style={{ background: 'linear-gradient(180deg, #D4AF37, #E8C872)', boxShadow: '0 0 6px rgba(212, 175, 55, 0.3)' }} />
+          Half-It
+        </h2>
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
+          <table className="w-full text-left text-sm font-body">
             <thead>
-              <tr className="border-b border-[#150d40] text-[#5a4a8a]">
-                <th className="pb-3 font-semibold text-[11px] uppercase tracking-wider">Player</th>
-                <th className="pb-3 font-semibold text-[11px] uppercase tracking-wider text-center">Games</th>
-                <th className="pb-3 font-semibold text-[11px] uppercase tracking-wider text-center">W</th>
-                <th className="pb-3 font-semibold text-[11px] uppercase tracking-wider text-center">L</th>
-                <th className="pb-3 font-semibold text-[11px] uppercase tracking-wider text-center">Win%</th>
-                <th className="pb-3 font-semibold text-[11px] uppercase tracking-wider text-center">LegsW</th>
-                <th className="pb-3 font-semibold text-[11px] uppercase tracking-wider text-center">LegsL</th>
-                <th className="pb-3 font-semibold text-[11px] uppercase tracking-wider text-center">Leg%</th>
+              <tr className="text-[10px] text-[#94A3B8] uppercase tracking-[0.08em]" style={{ borderBottom: '1px solid #E2E8F0' }}>
+                <th className="pb-3 font-semibold font-body">Player</th>
+                <th className="pb-3 font-semibold font-body text-center">Games</th>
+                <th className="pb-3 font-semibold font-body text-center">W</th>
+                <th className="pb-3 font-semibold font-body text-center">L</th>
+                <th className="pb-3 font-semibold font-body text-center">Win%</th>
+                <th className="pb-3 font-semibold font-body text-center">LegsW</th>
+                <th className="pb-3 font-semibold font-body text-center">LegsL</th>
+                <th className="pb-3 font-semibold font-body text-center">Leg%</th>
               </tr>
             </thead>
             <tbody>
@@ -202,20 +216,21 @@ export default function AnalysisPage() {
                   ? Math.round((ps.halfIt.legsWon / (ps.halfIt.legsWon + ps.halfIt.legsLost)) * 100)
                   : 0;
                 return (
-                  <tr key={ps.playerId} className="border-b border-[#150d40] hover:bg-[#100a30]">
-                    <td className="py-3 font-medium text-[#e8e0f4]">{ps.playerName}</td>
-                    <td className="py-3 text-center text-[#b8aad8]">{ps.halfIt.games}</td>
-                    <td className="py-3 text-center text-dart-green font-medium">{ps.halfIt.wins}</td>
-                    <td className="py-3 text-center text-dart-red font-medium">{ps.halfIt.games - ps.halfIt.wins}</td>
+                  <tr key={ps.playerId} className="transition-colors" style={{ borderBottom: '1px solid #F1F5F9' }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                    <td className="py-3 font-medium text-[#1E293B] font-body">{ps.playerName}</td>
+                    <td className="py-3 text-center text-[#64748B] font-body">{ps.halfIt.games}</td>
+                    <td className="py-3 text-center font-body"><span className="font-semibold text-[#059669]">{ps.halfIt.wins}</span></td>
+                    <td className="py-3 text-center font-body"><span className="font-semibold text-[#DC2626]">{ps.halfIt.games - ps.halfIt.wins}</span></td>
                     <td className="py-3 text-center"><WinBadge pct={ps.halfIt.winPct} /></td>
-                    <td className="py-3 text-center text-dart-green font-medium">{ps.halfIt.legsWon}</td>
-                    <td className="py-3 text-center text-dart-red font-medium">{ps.halfIt.legsLost}</td>
+                    <td className="py-3 text-center font-body"><span className="font-semibold text-[#059669]">{ps.halfIt.legsWon}</span></td>
+                    <td className="py-3 text-center font-body"><span className="font-semibold text-[#DC2626]">{ps.halfIt.legsLost}</span></td>
                     <td className="py-3 text-center"><WinBadge pct={legPct} /></td>
                   </tr>
                 );
               })}
               {playerStats.filter(ps => ps.halfIt.games > 0).length === 0 && (
-                <tr><td colSpan={8} className="py-6 text-center text-[#5a4a8a] text-sm">No Half-It data yet</td></tr>
+                <tr><td colSpan={8} className="py-6 text-center text-[#94A3B8] text-sm font-body">No Half-It data yet</td></tr>
               )}
             </tbody>
           </table>
@@ -224,28 +239,32 @@ export default function AnalysisPage() {
 
       {/* Partner Analysis */}
       {partnerStats.length > 0 && (
-        <div className="glass-card rounded-xl p-6 mb-6">
-          <h2 className="text-lg font-semibold text-[#e8e0f4] mb-4 flex items-center gap-2"><span className="w-1 h-5 bg-[#00e5ff] rounded-full inline-block shadow-[0_0_6px_rgba(0,229,255,0.4)]" />Partner Analysis</h2>
+        <div className="glass-card p-6 mb-6">
+          <h2 className="text-base font-semibold text-[#1E293B] mb-4 font-display tracking-tight flex items-center gap-2">
+            <span className="w-1 h-5 rounded-full inline-block" style={{ background: 'linear-gradient(180deg, #D4AF37, #E8C872)', boxShadow: '0 0 6px rgba(212, 175, 55, 0.3)' }} />
+            Partner Analysis
+          </h2>
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+            <table className="w-full text-left text-sm font-body">
               <thead>
-                <tr className="border-b border-[#150d40] text-[#5a4a8a]">
-                  <th className="pb-3 font-semibold text-[11px] uppercase tracking-wider">Players</th>
-                  <th className="pb-3 font-semibold text-[11px] uppercase tracking-wider text-center">Games Together</th>
-                  <th className="pb-3 font-semibold text-[11px] uppercase tracking-wider text-center">Wins</th>
-                  <th className="pb-3 font-semibold text-[11px] uppercase tracking-wider text-center">Win%</th>
+                <tr className="text-[10px] text-[#94A3B8] uppercase tracking-[0.08em]" style={{ borderBottom: '1px solid #E2E8F0' }}>
+                  <th className="pb-3 font-semibold font-body">Players</th>
+                  <th className="pb-3 font-semibold font-body text-center">Games Together</th>
+                  <th className="pb-3 font-semibold font-body text-center">Wins</th>
+                  <th className="pb-3 font-semibold font-body text-center">Win%</th>
                 </tr>
               </thead>
               <tbody>
                 {partnerStats.map(ps => (
-                  <tr key={`${ps.player1Id}::${ps.player2Id}`} className="border-b border-[#150d40] hover:bg-[#100a30]">
+                  <tr key={`${ps.player1Id}::${ps.player2Id}`} className="transition-colors" style={{ borderBottom: '1px solid #F1F5F9' }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                     <td className="py-3">
-                      <span className="font-medium text-[#e8e0f4]">{ps.player1Name}</span>
-                      <span className="text-[#5a4a8a] mx-1">+</span>
-                      <span className="font-medium text-[#e8e0f4]">{ps.player2Name}</span>
+                      <span className="font-medium text-[#1E293B] font-body">{ps.player1Name}</span>
+                      <span className="text-[#94A3B8] mx-1 font-body">+</span>
+                      <span className="font-medium text-[#1E293B] font-body">{ps.player2Name}</span>
                     </td>
-                    <td className="py-3 text-center text-[#b8aad8]">{ps.gamesTogether}</td>
-                    <td className="py-3 text-center text-dart-green font-medium">{ps.wins}</td>
+                    <td className="py-3 text-center text-[#64748B] font-body">{ps.gamesTogether}</td>
+                    <td className="py-3 text-center font-body"><span className="font-semibold text-[#059669]">{ps.wins}</span></td>
                     <td className="py-3 text-center"><WinBadge pct={ps.winPct} /></td>
                   </tr>
                 ))}
@@ -257,12 +276,12 @@ export default function AnalysisPage() {
 
       {/* Game History by Slot */}
       {matchSessions.length > 0 && (
-        <div className="glass-card rounded-xl p-6 mt-6">
-          <h2 className="text-lg font-semibold text-[#e8e0f4] mb-4">Game History by Slot</h2>
+        <div className="glass-card p-6 mt-6">
+          <h2 className="text-base font-semibold text-[#1E293B] mb-4 font-display tracking-tight">Game History by Slot</h2>
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full text-left text-xs font-body">
               <thead>
-                <tr className="border-b border-[#150d40] text-[#5a4a8a]">
+                <tr className="text-[10px] text-[#94A3B8] uppercase tracking-[0.08em]" style={{ borderBottom: '1px solid #E2E8F0' }}>
                   <th className="pb-2 pr-3 font-medium whitespace-nowrap">Game</th>
                   <th className="pb-2 pr-3 font-medium whitespace-nowrap">Type</th>
                   {matchSessions.map(s => (
@@ -303,9 +322,10 @@ export default function AnalysisPage() {
                     const total = data.results.length;
                     const winPct = total > 0 ? Math.round((wins / total) * 100) : 0;
                     return (
-                      <tr key={gameId} className="border-b border-[#150d40] hover:bg-[#100a30]">
-                        <td className="py-2 pr-3 font-semibold text-[#e8e0f4] whitespace-nowrap">G{gameId}</td>
-                        <td className="py-2 pr-3 text-[#5a4a8a] whitespace-nowrap">
+                      <tr key={gameId} className="transition-colors" style={{ borderBottom: '1px solid #F1F5F9' }}
+                        onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                        <td className="py-2 pr-3 font-semibold text-[#1E293B] whitespace-nowrap font-body">G{gameId}</td>
+                        <td className="py-2 pr-3 text-[#94A3B8] whitespace-nowrap font-body">
                           {data.gameType} {formatLabel[data.format] || data.format}
                         </td>
                         {matchSessions.map(s => {
@@ -315,12 +335,14 @@ export default function AnalysisPage() {
                             <td key={s.id} className="py-2 px-2 text-center">
                               {r !== undefined ? (
                                 <span className={`inline-block w-5 h-5 leading-5 rounded text-[10px] font-bold ${
-                                  r ? 'bg-dart-green/20 text-dart-green' : 'bg-dart-red/15 text-dart-red'
-                                }`}>
+                                  r ? 'text-[#059669]' : 'text-[#DC2626]'
+                                }`} style={{
+                                  background: r ? 'rgba(5,150,105,0.10)' : 'rgba(220,38,38,0.10)',
+                                }}>
                                   {r ? 'W' : 'L'}
                                 </span>
                               ) : (
-                                <span className="text-[#3a2a6a]">-</span>
+                                <span className="text-[#CBD5E1]">-</span>
                               )}
                             </td>
                           );
@@ -340,10 +362,10 @@ export default function AnalysisPage() {
 }
 
 function WinBadge({ pct }: { pct: number }) {
-  let color = 'bg-[#ff1744]/15 text-[#ff1744] border border-[#ff1744]/25';
-  if (pct >= 60) color = 'bg-[#00e676]/15 text-[#00e676] border border-[#00e676]/25';
-  else if (pct >= 40) color = 'bg-[#00e5ff]/15 text-[#00e5ff] border border-[#00e5ff]/25';
-  return <span className={`stat-pill ${color}`}>{pct}%</span>;
+  let c = '#DC2626';
+  if (pct >= 60) c = '#059669';
+  else if (pct >= 40) c = '#D4AF37';
+  return <span className="stat-pill" style={{ background: `${c}12`, color: c, border: `1px solid ${c}25` }}>{pct}%</span>;
 }
 
 function GameFormatTotals({ matchSessions }: { matchSessions: { id: string }[] }) {
@@ -374,7 +396,6 @@ function GameFormatTotals({ matchSessions }: { matchSessions: { id: string }[] }
       const pd = playerData.get(pName)!;
       const gameKey = `${s.id}:${g.gameId}`;
 
-      // Count each unique game once per player
       if (!pd.seenGames.has(gameKey)) {
         pd.seenGames.add(gameKey);
         if (g.format === 'half-it') {
@@ -397,29 +418,30 @@ function GameFormatTotals({ matchSessions }: { matchSessions: { id: string }[] }
   if (sortedPlayers.length === 0) return null;
 
   return (
-    <div className="glass-card rounded-xl p-6 mb-6">
+    <div className="glass-card p-6 mb-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-[#e8e0f4]">Game Counts by Format</h2>
+        <h2 className="text-base font-semibold text-[#1E293B] font-display tracking-tight">Game Counts by Format</h2>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs">
+        <table className="w-full text-left text-xs font-body">
           <thead>
-            <tr className="border-b border-[#150d40] text-[#5a4a8a]">
-              <th className="pb-2 font-medium">Player</th>
-              {formatOrder.map(f => (<th key={f} className="pb-2 font-medium text-center" title={f}>{formatLabels[f]}</th>))}
-              <th className="pb-2 font-medium text-center" title="Half-It games">½It G</th>
-              <th className="pb-2 font-medium text-center">Total</th>
+            <tr className="text-[10px] text-[#94A3B8] uppercase tracking-[0.08em]" style={{ borderBottom: '1px solid #E2E8F0' }}>
+              <th className="pb-2 font-medium font-body">Player</th>
+              {formatOrder.map(f => (<th key={f} className="pb-2 font-medium text-center font-body" title={f}>{formatLabels[f]}</th>))}
+              <th className="pb-2 font-medium text-center font-body" title="Half-It games">½It G</th>
+              <th className="pb-2 font-medium text-center font-body">Total</th>
             </tr>
           </thead>
           <tbody>
             {sortedPlayers.map(({ name, formatCounts, halfItGames }) => {
               const total = formatOrder.reduce((s, f) => s + (formatCounts[f] || 0), 0) + halfItGames;
               return (
-                <tr key={name} className="border-b border-[#150d40] hover:bg-[#100a30]">
-                  <td className="py-1.5 font-medium text-[#e8e0f4]">{name}</td>
-                  {formatOrder.map(f => (<td key={f} className="py-1.5 text-center font-mono text-[#b8aad8]">{formatCounts[f] || 0}</td>))}
-                  <td className="py-1.5 text-center font-mono font-semibold text-cyan-400">{halfItGames}</td>
-                  <td className="py-1.5 text-center font-mono font-bold text-[#e8e0f4]">{total}</td>
+                <tr key={name} className="transition-colors" style={{ borderBottom: '1px solid #F1F5F9' }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                  <td className="py-1.5 font-medium text-[#1E293B] font-body">{name}</td>
+                  {formatOrder.map(f => (<td key={f} className="py-1.5 text-center font-mono text-[#64748B] font-body">{formatCounts[f] || 0}</td>))}
+                  <td className="py-1.5 text-center font-mono font-semibold font-body" style={{ color: '#B8942E' }}>{halfItGames}</td>
+                  <td className="py-1.5 text-center font-mono font-bold text-[#1E293B] font-body">{total}</td>
                 </tr>
               );
             })}
@@ -435,18 +457,18 @@ function PlayerDetail({ playerId, playerStats }: { playerId: string; playerStats
   if (!ps) return null;
 
   return (
-    <div className="mt-4 pt-4 border-t border-[#150d40]">
-      <h4 className="text-sm font-semibold text-[#8a7aaa] mb-3">Breakdown for {ps.playerName}</h4>
+    <div className="mt-4 pt-4" style={{ borderTop: '1px solid #E2E8F0' }}>
+      <h4 className="text-sm font-semibold text-[#64748B] mb-3 font-body">Breakdown for {ps.playerName}</h4>
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {(['singles', 'doubles', 'trios', 'team', 'half-it'] as const).map(gt => {
           const s = ps.byGameType[gt];
           return (
-            <div key={gt} className="text-center p-3 rounded-lg bg-[#0a0520]/60 border border-[#150d40]">
-              <p className="text-xs text-[#5a4a8a] capitalize mb-1">{gt}</p>
-              <p className={`text-lg font-bold ${s.winPct >= 60 ? 'text-dart-green' : s.winPct >= 40 ? 'text-cyan-400' : 'text-dart-red'}`}>
+            <div key={gt} className="text-center p-3 rounded-lg" style={{ background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+              <p className="text-xs text-[#94A3B8] capitalize mb-1 font-body">{gt}</p>
+              <p className={`text-lg font-bold font-display tracking-tight ${s.winPct >= 60 ? 'text-[#059669]' : s.winPct >= 40 ? 'text-[#D4AF37]' : 'text-[#DC2626]'}`}>
                 {s.winPct}%
               </p>
-              <p className="text-xs text-[#5a4a8a]">{s.wins}/{s.games}</p>
+              <p className="text-xs text-[#94A3B8] font-body">{s.wins}/{s.games}</p>
             </div>
           );
         })}
@@ -462,9 +484,9 @@ function PlayerChartCard({ playerId }: { playerId: string }) {
 
   if (history.length === 0) {
     return (
-      <div className="mt-4 glass-card rounded-xl p-5">
-        <h3 className="font-semibold text-[#e8e0f4]">{player.player.name} — Match History</h3>
-        <p className="text-sm text-[#5a4a8a] mt-3">No match data loaded yet.</p>
+      <div className="mt-4 glass-card p-5">
+        <h3 className="font-semibold text-[#1E293B] font-body">{player.player.name} — Match History</h3>
+        <p className="text-sm text-[#94A3B8] mt-3 font-body">No match data loaded yet.</p>
       </div>
     );
   }
@@ -474,24 +496,24 @@ function PlayerChartCard({ playerId }: { playerId: string }) {
   const maxCricket = Math.max(...history.map(h => h.statsCricketAvg), 0, 5);
 
   return (
-    <div className="mt-4 glass-card rounded-xl p-5">
-      <h3 className="font-semibold text-[#e8e0f4] mb-4">{player.player.name} — Match History</h3>
+    <div className="mt-4 glass-card p-5">
+      <h3 className="font-semibold text-[#1E293B] mb-4 font-body">{player.player.name} — Match History</h3>
 
       <div className="mb-5">
-        <p className="text-xs text-[#5a4a8a] mb-2 font-medium">Games W/L per Match</p>
+        <p className="text-xs text-[#94A3B8] mb-2 font-medium font-body">Games W/L per Match</p>
         <div className="flex items-end gap-2" style={{ minHeight: '100px' }}>
           {history.map((h, i) => (
             <div key={i} className="flex-1 flex flex-col items-center gap-1">
               <div className="flex flex-col-reverse w-full items-center" style={{ height: '80px' }}>
                 {h.losses > 0 && (
-                  <div className="w-6 bg-dart-red/50 rounded-t" style={{ height: `${(h.losses / maxGames) * 80}px` }} title={`${h.losses} losses`} />
+                  <div className="w-6 rounded-t" style={{ background: 'rgba(220,38,38,0.4)', height: `${(h.losses / maxGames) * 80}px` }} title={`${h.losses} losses`} />
                 )}
                 {h.wins > 0 && (
-                  <div className="w-6 bg-dart-green/60 rounded-t" style={{ height: `${(h.wins / maxGames) * 80}px` }} title={`${h.wins} wins`} />
+                  <div className="w-6 rounded-t" style={{ background: 'rgba(5,150,105,0.5)', height: `${(h.wins / maxGames) * 80}px` }} title={`${h.wins} wins`} />
                 )}
-                {h.totalGames === 0 && <div className="w-6 h-0.5 bg-[#3a2a6a] mt-auto" />}
+                {h.totalGames === 0 && <div className="w-6 h-0.5" style={{ background: '#CBD5E1', marginTop: 'auto' }} />}
               </div>
-              <span className="text-[10px] text-[#5a4a8a] truncate w-full text-center">{h.date.slice(5)}</span>
+              <span className="text-[10px] text-[#94A3B8] truncate w-full text-center font-body">{h.date.slice(5)}</span>
             </div>
           ))}
         </div>
@@ -499,14 +521,14 @@ function PlayerChartCard({ playerId }: { playerId: string }) {
 
       {history.some(h => h.stats01Avg > 0) && (
         <div className="mb-4">
-          <p className="text-xs text-[#5a4a8a] mb-2 font-medium">01 Avg per Match</p>
+          <p className="text-xs text-[#94A3B8] mb-2 font-medium font-body">01 Avg per Match</p>
           <div className="flex items-end gap-2" style={{ minHeight: '60px' }}>
             {history.map((h, i) => (
               <div key={i} className="flex-1 flex flex-col items-center gap-1">
                 <div className="w-full flex justify-center" style={{ height: '50px' }}>
-                  <div className="w-6 bg-cyan-400/60 rounded-t" style={{ height: `${(h.stats01Avg / max01) * 50}px` }} title={`${h.stats01Avg}`} />
+                  <div className="w-6 rounded-t" style={{ background: 'rgba(212,175,55,0.5)', height: `${(h.stats01Avg / max01) * 50}px` }} title={`${h.stats01Avg}`} />
                 </div>
-                <span className="text-[10px] text-[#5a4a8a]">{h.date.slice(5)}</span>
+                <span className="text-[10px] text-[#94A3B8] font-body">{h.date.slice(5)}</span>
               </div>
             ))}
           </div>
@@ -515,14 +537,14 @@ function PlayerChartCard({ playerId }: { playerId: string }) {
 
       {history.some(h => h.statsCricketAvg > 0) && (
         <div>
-          <p className="text-xs text-[#5a4a8a] mb-2 font-medium">Cricket Avg per Match</p>
+          <p className="text-xs text-[#94A3B8] mb-2 font-medium font-body">Cricket Avg per Match</p>
           <div className="flex items-end gap-2" style={{ minHeight: '60px' }}>
             {history.map((h, i) => (
               <div key={i} className="flex-1 flex flex-col items-center gap-1">
                 <div className="w-full flex justify-center" style={{ height: '50px' }}>
-                  <div className="w-6 bg-[#5a4a8a]/60 rounded-t" style={{ height: `${(h.statsCricketAvg / maxCricket) * 50}px` }} title={`${h.statsCricketAvg}`} />
+                  <div className="w-6 rounded-t" style={{ background: 'rgba(212,175,55,0.4)', height: `${(h.statsCricketAvg / maxCricket) * 50}px` }} title={`${h.statsCricketAvg}`} />
                 </div>
-                <span className="text-[10px] text-[#5a4a8a]">{h.date.slice(5)}</span>
+                <span className="text-[10px] text-[#94A3B8] font-body">{h.date.slice(5)}</span>
               </div>
             ))}
           </div>
