@@ -291,12 +291,13 @@ function GameFormatTotals({ matchSessions }: { matchSessions: { id: string }[] }
         });
       }
       const pd = playerData.get(pName)!;
+      // Count every game by its type (singles/doubles/trios/team)
+      pd.formatCounts[g.gameType] = (pd.formatCounts[g.gameType] || 0) + 1;
+      formatTotals[g.gameType] = (formatTotals[g.gameType] || 0) + 1;
+      // Additionally track half-it format games in their own column
       if (g.format === 'half-it') {
         pd.halfItGames++;
         totalHalfItGames++;
-      } else {
-        pd.formatCounts[g.gameType] = (pd.formatCounts[g.gameType] || 0) + 1;
-        formatTotals[g.gameType] = (formatTotals[g.gameType] || 0) + 1;
       }
     }
   }
@@ -304,13 +305,13 @@ function GameFormatTotals({ matchSessions }: { matchSessions: { id: string }[] }
   const sortedPlayers = [...playerData.entries()]
     .map(([name, d]) => ({ name, ...d }))
     .sort((a, b) => {
-      const totalA = formatOrder.reduce((s, f) => s + (a.formatCounts[f] || 0), 0) + a.halfItGames;
-      const totalB = formatOrder.reduce((s, f) => s + (b.formatCounts[f] || 0), 0) + b.halfItGames;
+      const totalA = formatOrder.reduce((s, f) => s + (a.formatCounts[f] || 0), 0);
+      const totalB = formatOrder.reduce((s, f) => s + (b.formatCounts[f] || 0), 0);
       return totalB - totalA;
     });
 
   if (sortedPlayers.length === 0) return null;
-  const allFormatTotal = formatOrder.reduce((s, f) => s + (formatTotals[f] || 0), 0) + totalHalfItGames;
+  const allFormatTotal = formatOrder.reduce((s, f) => s + (formatTotals[f] || 0), 0);
 
   return (
     <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-6 mb-6">
@@ -329,7 +330,7 @@ function GameFormatTotals({ matchSessions }: { matchSessions: { id: string }[] }
           </thead>
           <tbody>
             {sortedPlayers.map(({ name, formatCounts, halfItGames }) => {
-              const total = formatOrder.reduce((s, f) => s + (formatCounts[f] || 0), 0) + halfItGames;
+              const total = formatOrder.reduce((s, f) => s + (formatCounts[f] || 0), 0);
               return (
                 <tr key={name} className="border-b border-[#1c1c34] hover:bg-[#16162a]">
                   <td className="py-1.5 font-medium text-[#eeeef4]">{name}</td>
