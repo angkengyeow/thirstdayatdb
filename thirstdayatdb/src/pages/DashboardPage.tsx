@@ -28,7 +28,11 @@ export default function DashboardPage() {
     setUpcoming(getUpcomingSessions());
   }, []);
 
+  // Auto-load seed data on first visit if no data exists
   useEffect(() => {
+    if (!hasData()) {
+      seedDemoData();
+    }
     refresh();
   }, [refreshKey, refresh]);
 
