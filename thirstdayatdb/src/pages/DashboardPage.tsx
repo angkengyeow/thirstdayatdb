@@ -227,60 +227,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Player Ratings */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-        <h2 className="text-lg font-semibold text-gray-700 mb-4">Player Ratings</h2>
-        {players.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-gray-400 mb-3">No data yet</p>
-            <p className="text-sm text-gray-400">Click <strong>Load Live Data</strong> to fetch from DartsLive — or load static seed data if the API is unavailable.</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-gray-200 text-sm text-gray-500">
-                  <th className="pb-3 font-medium">#</th>
-                  <th className="pb-3 font-medium">Player</th>
-                  <th className="pb-3 font-medium text-center">Rt.</th>
-                  <th className="pb-3 font-medium text-center">Games</th>
-                  <th className="pb-3 font-medium text-center">W</th>
-                  <th className="pb-3 font-medium text-center">L</th>
-                  <th className="pb-3 font-medium text-center">Win%</th>
-                  <th className="pb-3 font-medium text-center">01 Avg</th>
-                  <th className="pb-3 font-medium text-center">Cricket Avg</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[...players]
-                  .sort((a, b) => (b.liveRating || 0) - (a.liveRating || 0) || b.games - a.games)
-                  .map((p, i) => (
-                  <tr key={p.player.id} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="py-3 text-gray-400 font-medium">{i + 1}</td>
-                    <td className="py-3">
-                      <span className="font-medium text-gray-800">{p.player.name}</span>
-                    </td>
-                    <td className="py-3 text-center">
-                      <RtBadge rt={p.liveRating || 0} />
-                    </td>
-                    <td className="py-3 text-center font-medium text-gray-700">{p.games}</td>
-                    <td className="py-3 text-center text-green-600 font-medium">{p.wins}</td>
-                    <td className="py-3 text-center text-red-600 font-medium">{p.losses}</td>
-                    <td className="py-3 text-center"><WinBadge pct={p.winPct} /></td>
-                    <td className="py-3 text-center font-mono text-sm text-gray-700">
-                      {p.stats01Avg > 0 ? <><TrendArrow dir={p.stats01Trend} />{' '}{p.stats01Avg.toFixed(1)}</> : '-'}
-                    </td>
-                    <td className="py-3 text-center font-mono text-sm text-gray-700">
-                      {p.statsCricketAvg > 0 ? <><TrendArrow dir={p.statsCricketTrend} />{' '}{p.statsCricketAvg.toFixed(1)}</> : '-'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
       {/* Upcoming Matches + Attendance */}
       {upcoming.length > 0 && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
@@ -324,6 +270,60 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* Player Ratings */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+        <h2 className="text-lg font-semibold text-gray-700 mb-4">Player Ratings</h2>
+        {players.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-gray-400 mb-3">No data yet</p>
+            <p className="text-sm text-gray-400">Click <strong>Load Live Data</strong> to fetch from DartsLive — or load static seed data if the API is unavailable.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-gray-200 text-sm text-gray-500">
+                  <th className="pb-3 font-medium">#</th>
+                  <th className="pb-3 font-medium">Player</th>
+                  <th className="pb-3 font-medium text-center">Rt.</th>
+                  <th className="pb-3 font-medium text-center">Games</th>
+                  <th className="pb-3 font-medium text-center">W</th>
+                  <th className="pb-3 font-medium text-center">L</th>
+                  <th className="pb-3 font-medium text-center">Win%</th>
+                  <th className="pb-3 font-medium text-center">01 Avg</th>
+                  <th className="pb-3 font-medium text-center">Cricket Avg</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...players]
+                  .sort((a, b) => (b.liveRating || 0) - (a.liveRating || 0) || b.games - a.games)
+                  .map((p, i) => (
+                  <tr key={p.player.id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="py-3 text-gray-400 font-medium">{i + 1}</td>
+                    <td className="py-3">
+                      <span className="font-medium text-gray-800">{p.player.name}</span>
+                    </td>
+                    <td className="py-3 text-center">
+                      <RtBadge rt={p.liveRating || 0} />
+                    </td>
+                    <td className="py-3 text-center font-medium text-gray-700">{p.games}</td>
+                    <td className="py-3 text-center text-green-600 font-medium">{p.wins}</td>
+                    <td className="py-3 text-center text-red-600 font-medium">{p.losses}</td>
+                    <td className="py-3 text-center"><WinBadge pct={p.winPct} /></td>
+                    <td className="py-3 text-center font-mono text-sm text-gray-700">
+                      {p.stats01Avg > 0 ? <><TrendArrow dir={p.stats01Trend} />{' '}{p.stats01Avg.toFixed(2)}</> : '-'}
+                    </td>
+                    <td className="py-3 text-center font-mono text-sm text-gray-700">
+                      {p.statsCricketAvg > 0 ? <><TrendArrow dir={p.statsCricketTrend} />{' '}{p.statsCricketAvg.toFixed(2)}</> : '-'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
       {/* Match Results — 2 columns: first half / second half */}
       {completedMatches.length > 0 && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
@@ -361,7 +361,7 @@ function WinBadge({ pct }: { pct: number }) {
   let color = 'text-red-600 bg-red-50';
   if (pct >= 60) color = 'text-green-600 bg-green-50';
   else if (pct >= 40) color = 'text-amber-600 bg-amber-50';
-  return <span className={`text-xs font-bold px-2 py-1 rounded-full ${color}`}>{pct}%</span>;
+  return <span className={`text-xs font-bold px-2 py-1 rounded-full ${color}`}>{pct.toFixed(2)}%</span>;
 }
 
 function RtBadge({ rt }: { rt: number }) {
