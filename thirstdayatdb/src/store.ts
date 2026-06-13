@@ -184,6 +184,13 @@ export function getAttendanceForSession(sessionId: string): AttendanceRecord[] {
   return getAttendance().filter(a => a.sessionId === sessionId);
 }
 
+export function clearAttendanceForSession(sessionId: string): void {
+  const attendance = getAttendance().filter(a => a.sessionId !== sessionId);
+  save(STORAGE_KEYS.attendance, attendance);
+  const responses = getResponses().filter(r => r.sessionId !== sessionId);
+  save(STORAGE_KEYS.responses, responses);
+}
+
 // --- Player Responses (from broadcast links) ---
 export function getResponses(): PlayerResponse[] {
   return load<PlayerResponse[]>(STORAGE_KEYS.responses, []);

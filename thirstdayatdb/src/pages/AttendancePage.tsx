@@ -8,6 +8,7 @@ import {
   buildResponseLink,
   getPlayers,
   generateId,
+  clearAttendanceForSession,
 } from '../store';
 import type { Session, AttendanceStatus } from '../types';
 
@@ -234,6 +235,22 @@ export default function AttendancePage({ onNavigateToLineup }: AttendancePagePro
                     className="btn-gold w-full"
                   >
                     Plan Lineup for {selectedSession.date}
+                  </button>
+                )}
+
+                {/* Clear Attendance */}
+                {selectedSessionId && (
+                  <button
+                    onClick={() => {
+                      if (window.confirm('Clear all attendance records and responses for this session?')) {
+                        clearAttendanceForSession(selectedSessionId);
+                        setRefreshKey(k => k + 1);
+                      }
+                    }}
+                    className="w-full px-3 py-2 rounded-lg text-sm font-medium transition-colors font-body"
+                    style={{ background: 'rgba(220,38,38,0.06)', color: '#DC2626', border: '1px solid rgba(220,38,38,0.2)' }}
+                  >
+                    Clear Attendance
                   </button>
                 )}
               </div>
