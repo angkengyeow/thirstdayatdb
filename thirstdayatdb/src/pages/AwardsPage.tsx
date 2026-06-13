@@ -108,12 +108,12 @@ export default function AwardsPage() {
         ))}
       </div>
 
-      {/* Player awards summary */}
+      {/* Player award eligibility */}
       {hasData && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8 overflow-x-auto">
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">Awards Clocked by Player</h2>
+          <h2 className="text-lg font-semibold text-gray-700 mb-4">Award Eligibility by Player</h2>
           <p className="text-xs text-gray-500 mb-4">
-            Number of award pins each player can pursue at their current rating bracket.
+            Which award pins each player can pursue at their current rating bracket. The number shown is how many achievements are needed to earn that pin.
           </p>
           <table className="w-full text-sm">
             <thead>
@@ -122,9 +122,9 @@ export default function AwardsPage() {
                 <th className="pb-3 font-medium text-center">DartsLive Rt.</th>
                 <th className="pb-3 font-medium text-center">Bracket</th>
                 {AWARD_PINS.map(pin => (
-                  <th key={pin.name} className="pb-3 font-medium text-center">{pin.icon}</th>
+                  <th key={pin.name} className="pb-3 font-medium text-center" title={`${pin.name}: ${pin.description}`}>{pin.icon}</th>
                 ))}
-                <th className="pb-3 font-medium text-center">Clocked</th>
+                <th className="pb-3 font-medium text-center">Available</th>
               </tr>
             </thead>
             <tbody>
@@ -151,7 +151,7 @@ export default function AwardsPage() {
                                 ? 'text-emerald-600 bg-emerald-50'
                                 : 'text-gray-300'
                             }`}>
-                              {threshold > 0 ? threshold : '—'}
+                              {threshold > 0 ? `Need ${threshold}` : '—'}
                             </span>
                           </td>
                         );
@@ -166,6 +166,9 @@ export default function AwardsPage() {
                 })}
             </tbody>
           </table>
+          <p className="text-xs text-gray-400 mt-3">
+            We don't have actual award-earned data from the API — these are the targets each player needs to hit at their bracket.
+          </p>
         </div>
       )}
 
