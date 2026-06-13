@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getAllPlayersGameStats, getPartnerStats, getTeamGameStats, getSessions, getGamePerformancesForSession, getPlayerMatchHistory, getPlayerDashboardStats } from '../store';
+import { getAllPlayersGameStats, getPartnerStats, getTeamGameStats, getSessions, getGamePerformancesForSession, getPlayerMatchHistory, getPlayerDashboardStats, getTeamStanding } from '../store';
 import type { PlayerGameStats, PartnerStats } from '../types';
 
 export default function AnalysisPage() {
@@ -7,12 +7,15 @@ export default function AnalysisPage() {
   const [playerStats, setPlayerStats] = useState<PlayerGameStats[]>([]);
   const [partnerStats, setPartnerStats] = useState<PartnerStats[]>([]);
   const [teamStats, setTeamStats] = useState({ totalGames: 0, wins: 0, losses: 0, winPct: 0 });
+  const [matchRecord, setMatchRecord] = useState({ wins: 0, losses: 0, winPct: 0 });
   const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null);
 
   const load = useCallback(() => {
     setPlayerStats(getAllPlayersGameStats());
     setPartnerStats(getPartnerStats());
     setTeamStats(getTeamGameStats());
+    const standing = getTeamStanding();
+    setMatchRecord({ wins: standing.wins, losses: standing.losses, winPct: standing.winRate });
   }, []);
 
   useEffect(() => { load(); }, [refresh, load]);
@@ -35,25 +38,46 @@ export default function AnalysisPage() {
     <div className="max-w-6xl mx-auto px-4 py-6">
       <h1 className="text-2xl font-bold text-gray-800 mb-6">Analysis</h1>
 
-      {/* Team Overview */}
+      {/* Team Overview — Match Level */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-        <h2 className="text-lg font-semibold text-gray-700 mb-4">Team Overview</h2>
+        <h2 className="text-lg font-semibold text-gray-700 mb-4">Match Record</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="text-center p-3 bg-indigo-50 rounded-lg">
-            <p className="text-2xl font-bold text-indigo-600">{teamStats.totalGames}</p>
-            <p className="text-xs text-gray-500">Total Games</p>
+            <p className="text-2xl font-bold text-indigo-600">{matchRecord.wins + matchRecord.losses}</p>
+            <p className="text-xs text-gray-500">Matches Played</p>
           </div>
           <div className="text-center p-3 bg-green-50 rounded-lg">
-            <p className="text-2xl font-bold text-green-600">{teamStats.wins}</p>
+            <p className="text-2xl font-bold text-green-600">{matchRecord.wins}</p>
             <p className="text-xs text-gray-500">Wins</p>
           </div>
           <div className="text-center p-3 bg-red-50 rounded-lg">
-            <p className="text-2xl font-bold text-red-600">{teamStats.losses}</p>
+            <p className="text-2xl font-bold text-red-600">{matchRecord.losses}</p>
             <p className="text-xs text-gray-500">Losses</p>
           </div>
           <div className="text-center p-3 bg-amber-50 rounded-lg">
-            <p className="text-2xl font-bold text-amber-600">{teamStats.winPct}%</p>
+            <p className="text-2xl font-bold text-amber-600">{matchRecord.winPct}%</p>
             <p className="text-xs text-gray-500">Win Rate</p>
+          </div>
+        </div>
+        <div className="mt-4 pt-3 border-t border-gray-100">
+          <h3 className="text-sm font-semibold text-gray-600 mb-3">Player Game Slots</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="text-center p-3 bg-indigo-50/50 rounded-lg">
+              <p className="text-2xl font-bold text-indigo-600">{teamStats.totalGames}</p>
+              <p className="text-xs text-gray-500">Total Games</p>
+            </div>
+            <div className="text-center p-3 bg-green-50/50 rounded-lg">
+              <p className="text-2xl font-bold text-green-600">{teamStats.wins}</p>
+              <p className="text-xs text-gray-500">Wins</p>
+            </div>
+            <div className="text-center p-3 bg-red-50/50 rounded-lg">
+              <p className="text-2xl font-bold text-red-600">{teamStats.losses}</p>
+              <p className="text-xs text-gray-500">Losses</p>
+            </div>
+            <div className="text-center p-3 bg-amber-50/50 rounded-lg">
+              <p className="text-2xl font-bold text-amber-600">{teamStats.winPct}%</p>
+              <p className="text-xs text-gray-500">Win Rate</p>
+            </div>
           </div>
         </div>
       </div>
@@ -91,8 +115,8 @@ export default function AnalysisPage() {
                 <td className="py-3 text-center text-green-600 font-medium">{ps.legsWon}</td>
                 <td className="py-3 text-center text-red-600 font-medium">{ps.legsLost}</td>
                 <td className="py-3 text-center"><WinBadge pct={ps.winPct} /></td>
-                <td className="py-3 text-center font-mono text-sm text-gray-700">{ps.stats01Avg > 0 ? ps.stats01Avg.toFixed(1) : '-'}</td>
-                <td className="py-3 text-center font-mono text-sm text-gray-700">{ps.statsCricketAvg > 0 ? ps.statsCricketAvg.toFixed(1) : '-'}</td>
+                <td className="py-3 text-center font-mono text-sm text-gray-700">{ps.stats01Avg > 0 ? ps.stats01Avg.toFixed(2) : '-'}</td>
+                <td className="py-3 text-center font-mono text-sm text-gray-700">{ps.statsCricketAvg > 0 ? ps.statsCricketAvg.toFixed(2) : '-'}</td>
                 <td className="py-3 text-center">{ps.format01.games > 0 ? <WinBadge pct={ps.format01.winPct} /> : <span className="text-gray-300">-</span>}</td>
                 <td className="py-3 text-center">{ps.cricket.games > 0 ? <WinBadge pct={ps.cricket.winPct} /> : <span className="text-gray-300">-</span>}</td>
               </tr>
