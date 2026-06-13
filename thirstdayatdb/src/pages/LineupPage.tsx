@@ -146,7 +146,7 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
             <li><strong className="text-[#eeeef4]">G6</strong> (Half-It) → ranked by <strong className="text-gold-400">Half-It Composite</strong> (50% Cricket Avg + 50% Half-It Leg Win Rate)</li>
           </ul>
           <p className="text-[#6b6b8a] mt-1">
-            <strong className="text-[#eeeef4]">Rules:</strong> Part 1 = free. Part 2 &amp; Part 3 = at most 2 appearances per player per block.
+            <strong className="text-[#eeeef4]">Rules:</strong> Part 1 = no repeats. Part 2 &amp; Part 3 = at most 2 appearances per player per block.
             Game count balancing spreads play across all games.
           </p>
         </div>
@@ -228,7 +228,7 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
                   <div>
                     <h3 className="text-md font-semibold text-gold-400 mb-3 flex items-center gap-2">
                       <span className="w-1.5 h-5 bg-gold-400 rounded-full inline-block" />
-                      Part 1 — Free (players can repeat)
+                      Part 1 — No repeats
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                       {g1_3.map(renderCard)}
@@ -340,7 +340,7 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
           <div className="mt-6 inline-block text-left bg-[#111122] rounded-xl border border-[#1c1c34] p-5 hover:border-[#252544] transition-colors duration-200">
             <p className="font-medium text-[#9e9eb4] text-sm mb-2">Format breakdown:</p>
             <ul className="text-sm space-y-1 text-[#6b6b8a]">
-              <li className="text-gold-400 font-medium">Part 1 — Free (players can repeat across G1-G3)</li>
+              <li className="text-gold-400 font-medium">Part 1 — No repeats across G1-G3</li>
               <li>• G1: Singles 701/701/701 (1P)</li>
               <li>• G2: Singles 701/Cricket/701 (1P)</li>
               <li>• G3: Doubles 701/Cricket/Choice (2P)</li>

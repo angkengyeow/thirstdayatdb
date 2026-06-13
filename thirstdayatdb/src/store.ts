@@ -611,33 +611,17 @@ export function generateFullLineup(
   const part2Games = games.filter(g => g.id >= 4 && g.id <= 7);
   const part3Games = games.filter(g => g.id >= 8 && g.id <= 9);
 
-  // --- Part 1 (G1-G3): no repeat restrictions ---
-  for (const game of part1Games) {
-    const needed = game.playerCount;
+  // --- Part 1 (G1-G3): no repeats (each player at most once across G1-G3) ---
+  const firstThreeResult = optimizeFirstThreeBlock(part1Games, availablePlayers, gameCount);
 
-    if (availablePlayers.length < needed) {
-      skippedGames.push({
-        game,
-        reason: `Need ${needed} players, only ${availablePlayers.length} available`,
-      });
-      continue;
-    }
-
-    const assigned: PlayerWithStats[] = [];
-
-    const ranked = [...availablePlayers].sort((a, b) => {
-      const aScore = formatScore(a, game.legs) - (gameCount.get(a.player.id) || 0) * 10;
-      const bScore = formatScore(b, game.legs) - (gameCount.get(b.player.id) || 0) * 10;
-      return bScore - aScore;
-    });
-
-    for (let i = 0; i < needed; i++) {
-      const p = ranked[i];
-      assigned.push(p);
+  for (const a of firstThreeResult.assignments) {
+    assignments.push(a);
+    for (const p of a.players) {
       gameCount.set(p.player.id, (gameCount.get(p.player.id) || 0) + 1);
     }
-
-    assignments.push({ game, players: assigned });
+  }
+  for (const s of firstThreeResult.skipped) {
+    skippedGames.push(s);
   }
 
   // --- Part 2 (G4-G7): repeat once (max 2 appearances per player in this block) ---
@@ -655,6 +639,78 @@ export function generateFullLineup(
     .sort((a, b) => b.count - a.count);
 
   return { assignments, playerGameCount, skippedGames, unavailablePlayers };
+}
+
+/**
+ * Optimizes the G1-G3 block (no-repeat rule). Evaluates every valid subset of games
+ * and picks the combination with the highest total format score to maximize winning chance.
+ */
+function optimizeFirstThreeBlock(
+  games: MatchGame[],
+  availablePlayers: PlayerWithStats[],
+  gameCount: Map<string, number>
+): { assignments: GameAssignment[]; skipped: SkippedGame[] } {
+  const totalPlayers = availablePlayers.length;
+
+  const subsets: number[][] = [];
+  for (let mask = 1; mask < (1 << 3); mask++) {
+    const subset: number[] = [];
+    for (let i = 0; i < 3; i++) {
+      if (mask & (1 << i)) subset.push(i);
+    }
+    subsets.push(subset);
+  }
+
+  let bestScore = -1;
+  let bestResult: { assignments: GameAssignment[]; skipped: SkippedGame[] } | null = null;
+  const allGames = games;
+
+  for (const subset of subsets) {
+    const used = new Set<string>();
+    const subsetAssignments: GameAssignment[] = [];
+    let valid = true;
+    let totalScore = 0;
+
+    for (const idx of subset) {
+      const game = games[idx];
+      const pool = availablePlayers.filter(p => !used.has(p.player.id));
+      const ranked = [...pool].sort((a, b) => formatScore(b, game.legs) - formatScore(a, game.legs));
+
+      if (ranked.length < game.playerCount) { valid = false; break; }
+
+      const players = ranked.slice(0, game.playerCount);
+      for (const p of players) {
+        used.add(p.player.id);
+        totalScore += formatScore(p, game.legs);
+      }
+      subsetAssignments.push({ game, players });
+    }
+
+    if (!valid) continue;
+
+    if (totalScore > bestScore) {
+      bestScore = totalScore;
+      const skipped = allGames.filter((_, i) => !subset.includes(i)).map(g => {
+        const reason = g.playerCount <= totalPlayers
+          ? `Forfeited — fielding higher-win-probability combination`
+          : `G1-G3 no-repeat rule: need ${g.playerCount} unique player${g.playerCount > 1 ? 's' : ''}, only ${totalPlayers} available`;
+        return { game: g, reason };
+      });
+      bestResult = { assignments: subsetAssignments, skipped };
+    }
+  }
+
+  if (!bestResult) {
+    return {
+      assignments: [],
+      skipped: games.map(g => ({
+        game: g,
+        reason: `Not enough unique players for G1-G3 no-repeat rule`,
+      })),
+    };
+  }
+
+  return bestResult;
 }
 
 /**
