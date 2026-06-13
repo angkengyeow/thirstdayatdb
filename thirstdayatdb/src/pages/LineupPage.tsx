@@ -155,78 +155,89 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
       {/* Results */}
       {result && (
         <>
-          {/* Game Assignments */}
+          {/* Game Assignments — all 9 games in G1-G9 order */}
           <div className="mb-8">
             <h2 className="text-lg font-semibold text-[#eeeef4] mb-4">Game Assignments</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {result.assignments.map(assignment => {
-                const game = assignment.game;
-                const styles = GAME_TYPE_STYLES[game.type];
-                return (
-                  <div
-                    key={game.id}
-                    className={`bg-[#111122] rounded-xl shadow-lg border ${styles.border} p-3 hover:bg-[#16162a] hover:scale-[1.02] hover:shadow-xl transition-all duration-200`}
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${styles.badge}`}>
-                        {game.type.toUpperCase()}
-                      </span>
-                      <span className="text-sm font-semibold text-[#eeeef4]">{game.label}</span>
-                      <span className="text-[10px] text-[#6b6b8a] ml-auto font-mono">G{game.id}</span>
-                    </div>
-                    {game.legs && (
-                      <p className="text-xs text-[#6b6b8a] mb-2">{game.legs}</p>
-                    )}
-                    <div className="space-y-1.5">
-                      {assignment.players.map((p, i) => {
-                        const legs = game.legs;
-                        const isOnly01 = !legs.includes('Cricket') && !legs.includes('Choice') && !legs.includes('Half-It');
-                        const isOnlyCricket = !legs.includes('701') && !legs.includes('901') && !legs.includes('1101') && !legs.includes('Choice') && !legs.includes('Half-It');
-                        const statLabel = isOnly01 ? '01' : isOnlyCricket ? 'Cr' : 'Cmp';
-                        const statValue = isOnly01
-                          ? (p.stats01Avg > 0 ? p.stats01Avg.toFixed(1) : '-')
-                          : isOnlyCricket
-                            ? (p.statsCricketAvg > 0 ? p.statsCricketAvg.toFixed(1) : '-')
-                            : String(p.compositeScore);
-                        return (
-                          <div key={p.player.id} className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <span className={`w-5 h-5 rounded-full ${styles.dot} text-white flex items-center justify-center text-[10px] font-bold`}>
-                                {i + 1}
-                              </span>
-                              <span className="text-sm font-medium text-[#eeeef4]">{p.player.name}</span>
+              {(() => {
+                // Build lookup: gameId → assignment or skipped
+                const assignMap = new Map(result.assignments.map(a => [a.game.id, a]));
+                const skipMap = new Map(result.skippedGames.map(s => [s.game.id, s]));
+                // Render all 9 games in order
+                return SUPER_LEAGUE_FORMAT.map(game => {
+                  const assignment = assignMap.get(game.id);
+                  const skipped = skipMap.get(game.id);
+                  const styles = GAME_TYPE_STYLES[game.type];
+
+                  if (skipped) {
+                    // Forfeited / skipped game card
+                    return (
+                      <div
+                        key={game.id}
+                        className="bg-[#111122] rounded-xl border border-dart-red/20 p-3"
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-[10px] font-medium px-2 py-0.5 rounded-full border bg-dart-red/15 text-dart-red border-dart-red/30">
+                            FORFEITED
+                          </span>
+                          <span className="text-sm font-semibold text-[#6b6b8a] line-through">{game.label}</span>
+                          <span className="text-[10px] text-[#6b6b8a] ml-auto font-mono">G{game.id}</span>
+                        </div>
+                        {game.legs && (
+                          <p className="text-xs text-[#6b6b8a] mb-2">{game.legs}</p>
+                        )}
+                        <p className="text-xs text-dart-red/70">{skipped.reason}</p>
+                      </div>
+                    );
+                  }
+
+                  if (!assignment) return null; // shouldn't happen
+
+                  return (
+                    <div
+                      key={game.id}
+                      className={`bg-[#111122] rounded-xl shadow-lg border ${styles.border} p-3 hover:bg-[#16162a] hover:scale-[1.02] hover:shadow-xl transition-all duration-200`}
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${styles.badge}`}>
+                          {game.type.toUpperCase()}
+                        </span>
+                        <span className="text-sm font-semibold text-[#eeeef4]">{game.label}</span>
+                        <span className="text-[10px] text-[#6b6b8a] ml-auto font-mono">G{game.id}</span>
+                      </div>
+                      {game.legs && (
+                        <p className="text-xs text-[#6b6b8a] mb-2">{game.legs}</p>
+                      )}
+                      <div className="space-y-1.5">
+                        {assignment.players.map((p, i) => {
+                          const legs = game.legs;
+                          const isOnly01 = !legs.includes('Cricket') && !legs.includes('Choice') && !legs.includes('Half-It');
+                          const isOnlyCricket = !legs.includes('701') && !legs.includes('901') && !legs.includes('1101') && !legs.includes('Choice') && !legs.includes('Half-It');
+                          const statLabel = isOnly01 ? '01' : isOnlyCricket ? 'Cr' : 'Cmp';
+                          const statValue = isOnly01
+                            ? (p.stats01Avg > 0 ? p.stats01Avg.toFixed(1) : '-')
+                            : isOnlyCricket
+                              ? (p.statsCricketAvg > 0 ? p.statsCricketAvg.toFixed(1) : '-')
+                              : String(p.compositeScore);
+                          return (
+                            <div key={p.player.id} className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <span className={`w-5 h-5 rounded-full ${styles.dot} text-white flex items-center justify-center text-[10px] font-bold`}>
+                                  {i + 1}
+                                </span>
+                                <span className="text-sm font-medium text-[#eeeef4]">{p.player.name}</span>
+                              </div>
+                              <span className="text-xs font-semibold text-gold-400" title={`${statLabel}: ${statValue}`}>{statValue}</span>
                             </div>
-                            <span className="text-xs font-semibold text-gold-400" title={`${statLabel}: ${statValue}`}>{statValue}</span>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                });
+              })()}
             </div>
           </div>
-
-          {/* Skipped Games */}
-          {result.skippedGames.length > 0 && (
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold text-[#eeeef4] mb-4">Skipped Games</h2>
-              <div className="bg-[#111122] rounded-xl border border-dart-red/30 p-5">
-                <p className="text-sm text-dart-red font-medium mb-3">
-                  Not enough available players — {result.skippedGames.length} game{result.skippedGames.length > 1 ? 's' : ''} skipped
-                </p>
-                <div className="space-y-2">
-                  {result.skippedGames.map(sg => (
-                    <div key={sg.game.id} className="flex items-center gap-3 p-2 rounded-lg bg-dart-red/[0.04] border border-dart-red/10">
-                      <span className="text-xs font-bold text-dart-red bg-dart-red/15 px-2 py-0.5 rounded">G{sg.game.id}</span>
-                      <span className="text-sm text-[#c8c8d8]">{sg.game.label}</span>
-                      <span className="text-xs text-[#6b6b8a] ml-auto">{sg.reason}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Unavailable Players */}
           {result.unavailablePlayers.length > 0 && (
