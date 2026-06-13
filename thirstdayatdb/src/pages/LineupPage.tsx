@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   generateFullLineup, getSessions, updateFromLiveData,
   getMatchSessionForDate, getGameResultsForSession, getMatchScore,
@@ -6,7 +6,7 @@ import {
   getOpponentTeamProfile, matchupBonus, formatScore,
 } from '../store';
 import { fetchLiveData } from '../scraper';
-import type { MatchGame, FullLineup, OpponentTeamProfile } from '../types';
+import type { MatchGame, FullLineup, OpponentTeamProfile, GameAssignment } from '../types';
 
 const SUPER_LEAGUE_FORMAT: MatchGame[] = [
   { id: 1, type: 'singles', label: 'Singles 701 x3', legs: '701·701·701', playerCount: 1 },
@@ -41,7 +41,11 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
   const [matchSessionId, setMatchSessionId] = useState<string | null>(null);
   const [gameResults, setGameResults] = useState<Map<number, { won: boolean; legsWon: number; legsLost: number }>>(new Map());
   const [score, setScore] = useState({ thirstday: 0, opponent: 0, total: 0 });
-  const [swapTarget, setSwapTarget] = useState<{ gameId: number; playerIdx: number } | null>(null);
+
+  // Drag and drop state
+  const [dragState, setDragState] = useState<{ sourceGameId: number; sourcePlayerIdx: number } | null>(null);
+  const [dragOverGameId, setDragOverGameId] = useState<number | null>(null);
+  const [dragOverPlayerIdx, setDragOverPlayerIdx] = useState<number | null>(null);
 
   useEffect(() => {
     if (preselectDate) return;
@@ -127,43 +131,50 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
     setResult(lineup);
   }
 
-  function handleSwapPlayer(gameId: number, playerIdx: number, newPlayerId: string) {
-    if (!result || !matchSessionId) return;
-    const idx = result.assignments.findIndex(a => a.game.id === gameId);
-    if (idx === -1) return;
-    if (playerIdx >= result.assignments[idx].players.length) return;
-
-    const assignment = result.assignments[idx];
-    const players = getAllPlayersWithStats();
-    const replacement = players.find(p => p.player.id === newPlayerId);
-    if (!replacement) return;
-
-    const newPlayers = [...assignment.players];
-    newPlayers[playerIdx] = replacement;
-
+  /** Recalculate playerGameCount from the current assignments. */
+  const recalcCounts = useCallback((assignments: GameAssignment[]) => {
     const countMap = new Map<string, number>();
-    const newAssignments = result.assignments.map((a, i) => {
-      if (i !== idx) {
-        for (const p of a.players) {
-          countMap.set(p.player.id, (countMap.get(p.player.id) || 0) + 1);
-        }
-        return a;
-      }
-      for (const p of newPlayers) {
+    for (const a of assignments) {
+      for (const p of a.players) {
         countMap.set(p.player.id, (countMap.get(p.player.id) || 0) + 1);
       }
-      return { ...a, players: newPlayers };
-    });
-
-    const playerGameCount = Array.from(countMap.entries())
-      .map(([playerId, count]) => {
-        const p = players.find(pp => pp.player.id === playerId);
-        return { playerName: p?.player?.name || playerId, count };
-      })
+    }
+    const allPlayers = getAllPlayersWithStats();
+    return Array.from(countMap.entries())
+      .map(([id, count]) => ({
+        playerName: allPlayers.find(p => p.player.id === id)?.player.name || 'Unknown',
+        count,
+      }))
       .sort((a, b) => b.count - a.count);
+  }, []);
 
-    setResult({ ...result, assignments: newAssignments, playerGameCount });
-    setSwapTarget(null);
+  /** Swap two player slots across game assignments. */
+  function handleMovePlayer(
+    srcGameId: number,
+    srcPlayerIdx: number,
+    tgtGameId: number,
+    tgtPlayerIdx: number,
+  ) {
+    if (!result) return;
+    if (srcGameId === tgtGameId && srcPlayerIdx === tgtPlayerIdx) return;
+
+    const srcIdx = result.assignments.findIndex(a => a.game.id === srcGameId);
+    const tgtIdx = result.assignments.findIndex(a => a.game.id === tgtGameId);
+    if (srcIdx === -1 || tgtIdx === -1) return;
+    if (srcPlayerIdx >= result.assignments[srcIdx].players.length) return;
+    if (tgtPlayerIdx >= result.assignments[tgtIdx].players.length) return;
+
+    const newAssignments = result.assignments.map(a => ({ ...a, players: [...a.players] }));
+    const srcPlayer = newAssignments[srcIdx].players[srcPlayerIdx];
+    const tgtPlayer = newAssignments[tgtIdx].players[tgtPlayerIdx];
+    newAssignments[srcIdx].players[srcPlayerIdx] = tgtPlayer;
+    newAssignments[tgtIdx].players[tgtPlayerIdx] = srcPlayer;
+
+    setResult({
+      ...result,
+      assignments: newAssignments,
+      playerGameCount: recalcCounts(newAssignments),
+    });
   }
 
   const anPill = (c: string) => ({ background: `${c}12`, color: c, border: `1px solid ${c}25` });
@@ -218,7 +229,7 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
             })}
           </div>
           {score.total > 0 && score.total < 9 && (
-            <p className="text-xs mt-2 font-body" style={{ color: 'rgba(212,175,55,0.7)' }}>Results auto-refresh every 15s — swap players on pending games below</p>
+            <p className="text-xs mt-2 font-body" style={{ color: 'rgba(212,175,55,0.7)' }}>Results auto-refresh every 15s — drag players to adjust lineup</p>
           )}
         </div>
       )}
@@ -274,10 +285,10 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
           </div>
         )}
 
-        {isMatchDay && !preselectDate && (
+        {result && (
           <div className="rounded-lg p-3 mt-4 flex items-center gap-2 text-sm font-body" style={{ background: 'rgba(212,175,55,0.06)', border: '1px solid rgba(212,175,55,0.2)', color: '#B8942E' }}>
-            <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#D4AF37' }} />
-            <span>Match day — lineups are auto-saved. Click a player to swap if someone's not in their prime.</span>
+            <span>↕</span>
+            <span>Drag and drop player names between game slots to manually adjust the lineup.</span>
           </div>
         )}
 
@@ -329,12 +340,21 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
 
                 if (!assignment) return null;
 
+                const isDragOverThisCard = dragState && dragOverGameId === game.id;
+
                 return (
-                  <div key={game.id} className="rounded-xl p-3 transition-all duration-200 font-body" style={{
-                    background: '#FFFFFF',
-                    border: `1px solid ${completed ? (completed.won ? 'rgba(5,150,105,0.2)' : 'rgba(220,38,38,0.2)') : styles.border}`,
-                    boxShadow: '0 2px 8px rgba(212,175,55,0.06), 0 1px 2px rgba(0,0,0,0.03)',
-                  }}>
+                  <div
+                    key={game.id}
+                    className={`rounded-xl p-3 transition-all duration-200 font-body ${isDragOverThisCard ? 'ring-2' : ''}`}
+                    style={{
+                      background: '#FFFFFF',
+                      border: `1px solid ${completed ? (completed.won ? 'rgba(5,150,105,0.2)' : 'rgba(220,38,38,0.2)') : styles.border}`,
+                      boxShadow: '0 2px 8px rgba(212,175,55,0.06), 0 1px 2px rgba(0,0,0,0.03)',
+                      ...(isDragOverThisCard ? { boxShadow: '0 0 0 2px rgba(212,175,55,0.4)' } : {}),
+                    }}
+                    onDragOver={e => { e.preventDefault(); setDragOverGameId(game.id); }}
+                    onDragLeave={() => { setDragOverGameId(prev => prev === game.id ? null : prev); setDragOverPlayerIdx(null); }}
+                  >
                     <div className="flex items-center gap-2 mb-2">
                       {completed ? (
                         <span className="text-[10px] font-medium px-2 py-0.5 rounded-full font-body" style={completed.won ? { background: 'rgba(5,150,105,0.10)', color: '#059669', border: '1px solid rgba(5,150,105,0.2)' } : { background: 'rgba(220,38,38,0.10)', color: '#DC2626', border: '1px solid rgba(220,38,38,0.2)' }}>
@@ -352,6 +372,7 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
                       <span className="text-[10px] text-[#94A3B8] ml-auto font-mono font-body">G{game.id}</span>
                     </div>
                     {game.legs && <p className="text-xs text-[#94A3B8] mb-2 font-body">{game.legs}</p>}
+
                     <div className="space-y-1.5">
                       {assignment.players.map((p, i) => {
                         const legs = game.legs;
@@ -363,38 +384,64 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
                           : isOnlyCricket
                             ? (p.statsCricketAvg > 0 ? p.statsCricketAvg.toFixed(1) : '-')
                             : String(p.compositeScore);
-                        const isSwapping = swapTarget?.gameId === game.id && swapTarget?.playerIdx === i;
+                        const isDragging = dragState?.sourceGameId === game.id && dragState?.sourcePlayerIdx === i;
+                        const isOverThis = dragOverGameId === game.id && dragOverPlayerIdx === i;
+
                         return (
-                          <div key={p.player.id} className="flex items-center justify-between gap-2">
+                          <div
+                            key={p.player.id}
+                            draggable
+                            onDragStart={e => {
+                              e.dataTransfer.effectAllowed = 'move';
+                              setDragState({ sourceGameId: game.id, sourcePlayerIdx: i });
+                            }}
+                            onDragOver={e => {
+                              e.preventDefault();
+                              setDragOverGameId(game.id);
+                              setDragOverPlayerIdx(i);
+                            }}
+                            onDragLeave={() => setDragOverPlayerIdx(prev => prev === i && dragOverGameId === game.id ? null : prev)}
+                            onDrop={e => {
+                              e.preventDefault();
+                              if (!dragState) return;
+                              handleMovePlayer(
+                                dragState.sourceGameId,
+                                dragState.sourcePlayerIdx,
+                                game.id,
+                                i,
+                              );
+                              setDragState(null);
+                              setDragOverGameId(null);
+                              setDragOverPlayerIdx(null);
+                            }}
+                            onDragEnd={() => {
+                              setDragState(null);
+                              setDragOverGameId(null);
+                              setDragOverPlayerIdx(null);
+                            }}
+                            className={`flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 cursor-grab active:cursor-grabbing transition-all duration-150 ${
+                              isDragging ? 'opacity-40' : ''
+                            }`}
+                            style={{
+                              background: isOverThis ? 'rgba(212,175,55,0.10)' : 'transparent',
+                              outline: isOverThis ? '2px dashed rgba(212,175,55,0.5)' : 'none',
+                            }}
+                          >
                             <div className="flex items-center gap-2 min-w-0">
-                              <span className="w-5 h-5 rounded-full text-white flex items-center justify-center text-[10px] font-bold shrink-0" style={{ background: styles.dot }}>
-                                {i + 1}
+                              <span className="flex items-center gap-1">
+                                <span className="text-[10px] text-[#CBD5E1] select-none">⠿</span>
+                                <span className="w-5 h-5 rounded-full text-white flex items-center justify-center text-[10px] font-bold shrink-0" style={{ background: styles.dot }}>
+                                  {i + 1}
+                                </span>
                               </span>
                               <span className="text-sm font-medium text-[#1E293B] truncate font-body">{p.player.name}</span>
                               <span className="text-xs font-semibold shrink-0 font-body" style={{ color: '#B8942E' }} title={`${statLabel}: ${statValue}`}>{statValue}</span>
                             </div>
-                            <div className="flex items-center gap-1 shrink-0">
-                              {!completed && isMatchDay && !preselectDate && (
-                                <button
-                                  onClick={() => setSwapTarget(isSwapping ? null : { gameId: game.id, playerIdx: i })}
-                                  className="text-[10px] px-2 py-0.5 rounded font-body transition-colors"
-                                  style={isSwapping ? { background: 'rgba(212,175,55,0.12)', color: '#B8942E', border: '1px solid rgba(212,175,55,0.25)' } : { background: '#F1F5F9', color: '#94A3B8', border: '1px solid #E2E8F0' }}
-                                >
-                                  Swap
-                                </button>
-                              )}
-                            </div>
+                            <span className="text-[10px] text-[#CBD5E1] font-body">drag</span>
                           </div>
                         );
                       })}
                     </div>
-                    {isMatchDay && !completed && !preselectDate && swapTarget?.gameId === game.id && (
-                      <SwapDropdown
-                        currentPlayerIds={assignment.players.map(p => p.player.id)}
-                        onSelect={(pid) => handleSwapPlayer(game.id, swapTarget.playerIdx, pid)}
-                        onClose={() => setSwapTarget(null)}
-                      />
-                    )}
                   </div>
                 );
               };
@@ -620,62 +667,6 @@ function OpponentScouting({ matchDate, result }: { matchDate: string; result: Fu
           Opponent data is collected from past matches. Lineup optimizer uses matchup scores to pair our strongest players against opponent weaknesses per game slot.
         </p>
       </div>
-    </div>
-  );
-}
-
-function SwapDropdown({
-  currentPlayerIds,
-  onSelect,
-  onClose,
-}: {
-  currentPlayerIds: string[];
-  onSelect: (newPlayerId: string) => void;
-  onClose: () => void;
-}) {
-  const [players, setPlayers] = useState<{ id: string; name: string; info: string }[]>([]);
-
-  useEffect(() => {
-    const all = getAllPlayersWithStats();
-    const filtered = all
-      .filter(p => !currentPlayerIds.includes(p.player.id))
-      .map(p => ({
-        id: p.player.id,
-        name: p.player.name,
-        info: `Rt ${p.player.liveRating.toFixed(1)}`,
-      }));
-    setPlayers(filtered);
-  }, [currentPlayerIds]);
-
-  return (
-    <div className="mt-2 pt-2 font-body" style={{ borderTop: '1px solid #E2E8F0' }}>
-      <p className="text-[10px] text-[#94A3B8] mb-1.5 font-body">Swap with:</p>
-      <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
-        {players.length === 0 && (
-          <span className="text-xs text-[#94A3B8] font-body">No other players available</span>
-        )}
-        {players.map(p => (
-          <button
-            key={p.id}
-            onClick={() => onSelect(p.id)}
-            className="text-xs px-2.5 py-1 rounded-lg font-body transition-colors"
-            style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', color: '#64748B' }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(212,175,55,0.08)'; e.currentTarget.style.borderColor = 'rgba(212,175,55,0.3)'; e.currentTarget.style.color = '#B8942E'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = '#F8FAFC'; e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.color = '#64748B'; }}
-          >
-            {p.name} <span style={{ color: '#94A3B8' }}>({p.info})</span>
-          </button>
-        ))}
-      </div>
-      <button
-        onClick={onClose}
-        className="text-[10px] mt-1 font-body"
-        style={{ color: '#94A3B8' }}
-        onMouseEnter={e => e.currentTarget.style.color = '#64748B'}
-        onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}
-      >
-        Cancel
-      </button>
     </div>
   );
 }
