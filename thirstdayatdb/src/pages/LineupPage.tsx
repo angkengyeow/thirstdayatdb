@@ -142,7 +142,7 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
           <ul className="mt-1 space-y-0.5 list-disc list-inside text-[#9e9eb4]">
             <li><strong className="text-[#eeeef4]">G1, G9</strong> (pure 01) → ranked by <strong className="text-gold-400">01 Avg</strong></li>
             <li><strong className="text-[#eeeef4]">G5</strong> (pure Cricket) → ranked by <strong className="text-gold-400">Cricket Avg</strong></li>
-            <li><strong className="text-[#eeeef4]">G2–G4, G7, G8</strong> (mixed) → ranked by <strong className="text-gold-400">Composite</strong> (50% 01 Avg + 50% Win Rate)</li>
+            <li><strong className="text-[#eeeef4]">G2–G4, G7, G8</strong> (mixed) → ranked by <strong className="text-gold-400">Composite</strong> (01 Avg + Cricket Avg + Win Rate + Partner Chemistry — weightage TBD)</li>
             <li><strong className="text-[#eeeef4]">G6</strong> (Half-It) → ranked by <strong className="text-gold-400">Half-It Composite</strong> (50% Cricket Avg + 50% Half-It Leg Win Rate)</li>
           </ul>
           <p className="text-[#6b6b8a] mt-1">
