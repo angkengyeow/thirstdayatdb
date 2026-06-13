@@ -4,7 +4,6 @@ import {
   populateFromLiveData, updateFromLiveData, getTeamStanding,
   getUpcomingSessions, buildResponseLink, getGamePerformancesForSession,
 } from '../store';
-import type { GameFormat } from '../types';
 import { seedDemoData } from '../seed';
 import { fetchLiveData } from '../scraper';
 
