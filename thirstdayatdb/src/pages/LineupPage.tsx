@@ -77,8 +77,11 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6">
-      <h1 className="text-2xl font-bold text-[#eeeef4] mb-6">Lineup Generator</h1>
+    <div className="max-w-6xl mx-auto px-4 py-6 animate-fade-in">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-[#eeeef4]">Lineup Generator</h1>
+        <p className="text-sm text-[#6b6b8a] mt-0.5">Optimize player assignments across all 9 Super League games</p>
+      </div>
 
       {/* Controls */}
       <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-6 mb-8">
@@ -161,7 +164,7 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
                 return (
                   <div
                     key={game.id}
-                    className={`bg-[#111122] rounded-xl shadow-lg border ${styles.border} p-3 hover:bg-[#16162a] transition-colors duration-200`}
+                    className={`bg-[#111122] rounded-xl shadow-lg border ${styles.border} p-3 hover:bg-[#16162a] hover:scale-[1.02] hover:shadow-xl transition-all duration-200`}
                   >
                     <div className="flex items-center gap-2 mb-2">
                       <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${styles.badge}`}>
@@ -206,7 +209,7 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
           {/* Player Rotation */}
           <div className="mb-8">
             <h2 className="text-lg font-semibold text-[#eeeef4] mb-4">Player Rotation</h2>
-            <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-4">
+            <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-4 hover:border-[#252544] transition-colors duration-200">
               {result.playerGameCount.length === 0 ? (
                 <p className="text-[#6b6b8a] text-center py-2">No players assigned</p>
               ) : (
@@ -253,12 +256,17 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
 
       {!result && (
         <div className="text-center py-16">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#1c1c34] flex items-center justify-center">
+            <svg className="w-8 h-8 text-[#6b6b8a]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+            </svg>
+          </div>
           <p className="text-lg text-[#6b6b8a] mb-2">Select a match date and generate a Super League lineup</p>
           <p className="text-sm text-[#6b6b8a]">
             9 games — singles, doubles, trios &amp; team. Players can play multiple games
             with rotation optimized by rating, form, and punctuality.
           </p>
-          <div className="mt-6 inline-block text-left bg-[#111122] rounded-xl border border-[#1c1c34] p-5">
+          <div className="mt-6 inline-block text-left bg-[#111122] rounded-xl border border-[#1c1c34] p-5 hover:border-[#252544] transition-colors duration-200">
             <p className="font-medium text-[#9e9eb4] text-sm mb-2">Format breakdown:</p>
             <ul className="text-sm space-y-1 text-[#6b6b8a]">
               <li className="text-gold-400 font-medium">Part 1</li>

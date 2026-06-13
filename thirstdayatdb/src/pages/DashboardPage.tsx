@@ -106,7 +106,7 @@ export default function DashboardPage() {
   const firstHalf = completedMatches.slice(0, half);
   const secondHalf = completedMatches.slice(half);
 
-  function MatchCard({ s }: { s: typeof matchSessions[0] }) {
+  function MatchCard({ s, index }: { s: typeof matchSessions[0]; index: number }) {
     const isWin = s.notes?.includes('(W ');
     const noteParts = s.notes?.match(/(vs|@)\s+(.+?)\s+\((W|L)\s+(\d+)-(\d+)\)/);
     const opponent = noteParts?.[2] || s.notes || '';
@@ -121,7 +121,14 @@ export default function DashboardPage() {
     const gameIds = Array.from(gameMap.keys()).sort((a, b) => a - b);
 
     return (
-      <div className={`p-3 rounded-lg border ${isWin ? 'border-dart-green/30 bg-dart-green/[0.06]' : 'border-dart-red/30 bg-dart-red/[0.06]'}`}>
+      <div
+        className={`p-3 rounded-lg border transition-all duration-200 hover:scale-[1.01] ${
+          isWin
+            ? 'border-dart-green/30 bg-dart-green/[0.06] hover:bg-dart-green/[0.09] hover:shadow-lg hover:shadow-dart-green/5'
+            : 'border-dart-red/30 bg-dart-red/[0.06] hover:bg-dart-red/[0.09] hover:shadow-lg hover:shadow-dart-red/5'
+        }`}
+        style={{ animationDelay: `${index * 50}ms` }}
+      >
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-3 min-w-0">
             <span className={`text-sm font-bold px-2 py-0.5 rounded shrink-0 ${isWin ? 'text-dart-green bg-dart-green/20' : 'text-dart-red bg-dart-red/20'}`}>
@@ -164,9 +171,13 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6">
+    <div className="max-w-6xl mx-auto px-4 py-6 animate-fade-in">
+      {/* Page Header */}
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-[#eeeef4]">Dashboard</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-[#eeeef4]">Dashboard</h1>
+          <p className="text-sm text-[#6b6b8a] mt-0.5">Team overview and match history</p>
+        </div>
         <div className="flex gap-2">
           <button
             onClick={handleLoadData}
@@ -174,7 +185,7 @@ export default function DashboardPage() {
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               loading
                 ? 'bg-[#1c1c34] text-[#6b6b8a] cursor-not-allowed'
-                : 'bg-gold-400 text-[#0d0d1a] hover:bg-gold-300 shadow-lg shadow-gold-400/20'
+                : 'bg-gold-400 text-[#0d0d1a] hover:bg-gold-300 shadow-lg shadow-gold-400/20 active:scale-95 transition-all duration-150'
             }`}
           >
             {loading ? 'Loading...' : 'Load Live Data'}
@@ -190,81 +201,79 @@ export default function DashboardPage() {
 
       {/* Load Status Banners */}
       {loadStatus === 'loading' && (
-        <div className="bg-[#1e1e3e] border border-[#2e2e5e] rounded-lg p-4 mb-6 flex items-center gap-3">
+        <div className="bg-[#1e1e3e] border border-[#2e2e5e] rounded-lg p-4 mb-6 flex items-center gap-3 animate-fade-in">
           <div className="w-4 h-4 rounded-full border-2 border-gold-400 border-t-transparent animate-spin" />
           <span className="text-sm text-[#c8c8d8]">{statusMessage}</span>
         </div>
       )}
       {loadStatus === 'success' && (
-        <div className="bg-dart-green/[0.06] border border-dart-green/30 rounded-lg p-4 mb-6 flex items-center gap-2">
+        <div className="bg-dart-green/[0.06] border border-dart-green/30 rounded-lg p-4 mb-6 flex items-center gap-2 animate-fade-in">
           <span className="text-dart-green text-lg">✓</span>
           <span className="text-sm text-dart-green">{statusMessage}</span>
         </div>
       )}
       {loadStatus === 'fallback' && (
-        <div className="bg-gold-400/[0.06] border border-gold-400/30 rounded-lg p-4 mb-6 flex items-center gap-2">
+        <div className="bg-gold-400/[0.06] border border-gold-400/30 rounded-lg p-4 mb-6 flex items-center gap-2 animate-fade-in">
           <span className="text-gold-400 text-lg">⚠</span>
           <span className="text-sm text-gold-400">{statusMessage}</span>
         </div>
       )}
       {loadStatus === 'error' && (
-        <div className="bg-dart-red/[0.06] border border-dart-red/30 rounded-lg p-4 mb-6 flex items-center gap-2">
+        <div className="bg-dart-red/[0.06] border border-dart-red/30 rounded-lg p-4 mb-6 flex items-center gap-2 animate-fade-in">
           <span className="text-dart-red text-lg">✗</span>
           <span className="text-sm text-dart-red">{statusMessage}</span>
         </div>
       )}
 
       {/* Team Standing */}
-      <div className="bg-gradient-to-br from-[#0d0d1a] via-[#16162a] to-[#1c1c34] rounded-xl border border-[#2e2e52] shadow-lg shadow-gold-400/5 p-6 mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-lg font-bold text-gold-400 font-display tracking-wider">Thirstday@DB</h2>
-            <p className="text-[#6b6b8a] text-xs">S1 Division · Group 2</p>
+      <Section animate>
+        <div className="bg-gradient-to-br from-[#0d0d1a] via-[#16162a] to-[#1c1c34] rounded-xl border border-[#2e2e52] shadow-lg shadow-gold-400/5 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-lg font-bold text-gold-400 font-display tracking-wider">Thirstday@DB</h2>
+              <p className="text-[#6b6b8a] text-xs">S1 Division · Group 2</p>
+            </div>
+            <div className="text-right">
+              <p className="text-3xl font-bold text-gold-400">{standing.wins}W - {standing.losses}L</p>
+              <p className="text-[#6b6b8a] text-xs">{standing.played} played · {standing.remaining} remaining</p>
+            </div>
           </div>
-          <div className="text-right">
-            <p className="text-3xl font-bold text-gold-400">{standing.wins}W - {standing.losses}L</p>
-            <p className="text-[#6b6b8a] text-xs">{standing.played} played · {standing.remaining} remaining</p>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            <div className="bg-[#111122]/80 rounded-lg px-4 py-3 text-center border border-[#1c1c34]">
+              <p className="text-[#6b6b8a] text-xs">Players</p>
+              <p className="text-xl font-bold text-[#eeeef4]">{players.length}</p>
+            </div>
+            <div className="bg-[#111122]/80 rounded-lg px-4 py-3 text-center border border-[#1c1c34]">
+              <p className="text-[#6b6b8a] text-xs">Win Rate</p>
+              <p className="text-xl font-bold text-dart-green">{standing.winRate}%</p>
+            </div>
+            <div className="bg-[#111122]/80 rounded-lg px-4 py-3 text-center border border-[#1c1c34]">
+              <p className="text-[#6b6b8a] text-xs">Points For</p>
+              <p className="text-xl font-bold text-[#eeeef4]">{standing.pointsFor}</p>
+            </div>
+            <div className="bg-[#111122]/80 rounded-lg px-4 py-3 text-center border border-[#1c1c34]">
+              <p className="text-[#6b6b8a] text-xs">Points Against</p>
+              <p className="text-xl font-bold text-[#eeeef4]">{standing.pointsAgainst}</p>
+            </div>
+            <div className="bg-[#111122]/80 rounded-lg px-4 py-3 text-center border border-[#1c1c34]">
+              <p className="text-[#6b6b8a] text-xs">Point Diff</p>
+              <p className={`text-xl font-bold ${standing.pointDiff >= 0 ? 'text-dart-green' : 'text-dart-red'}`}>
+                {standing.pointDiff >= 0 ? '+' : ''}{standing.pointDiff}
+              </p>
+            </div>
+          </div>
+          <div className="mt-4 pt-3 border-t border-[#1c1c34] flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-[#6b6b8a]">
+            <span>64 Credits · No Handicap · OI/MO</span>
           </div>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          <div className="bg-[#111122]/80 rounded-lg px-4 py-3 text-center border border-[#1c1c34]">
-            <p className="text-[#6b6b8a] text-xs">Players</p>
-            <p className="text-xl font-bold text-[#eeeef4]">{players.length}</p>
-          </div>
-          <div className="bg-[#111122]/80 rounded-lg px-4 py-3 text-center border border-[#1c1c34]">
-            <p className="text-[#6b6b8a] text-xs">Win Rate</p>
-            <p className="text-xl font-bold text-dart-green">{standing.winRate}%</p>
-          </div>
-          <div className="bg-[#111122]/80 rounded-lg px-4 py-3 text-center border border-[#1c1c34]">
-            <p className="text-[#6b6b8a] text-xs">Points For</p>
-            <p className="text-xl font-bold text-[#eeeef4]">{standing.pointsFor}</p>
-          </div>
-          <div className="bg-[#111122]/80 rounded-lg px-4 py-3 text-center border border-[#1c1c34]">
-            <p className="text-[#6b6b8a] text-xs">Points Against</p>
-            <p className="text-xl font-bold text-[#eeeef4]">{standing.pointsAgainst}</p>
-          </div>
-          <div className="bg-[#111122]/80 rounded-lg px-4 py-3 text-center border border-[#1c1c34]">
-            <p className="text-[#6b6b8a] text-xs">Point Diff</p>
-            <p className={`text-xl font-bold ${standing.pointDiff >= 0 ? 'text-dart-green' : 'text-dart-red'}`}>
-              {standing.pointDiff >= 0 ? '+' : ''}{standing.pointDiff}
-            </p>
-          </div>
-        </div>
-        <div className="mt-4 pt-3 border-t border-[#1c1c34] flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-[#6b6b8a]">
-          <span>64 Credits · No Handicap · OI/MO</span>
-        </div>
-      </div>
+      </Section>
 
       {/* Upcoming Matches */}
       {upcoming.length > 0 && (
-        <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-6 mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-[#eeeef4]">Upcoming Matches</h2>
-            <span className="text-xs text-[#6b6b8a]">{upcoming.length} upcoming</span>
-          </div>
+        <Section title="Upcoming Matches" badge={`${upcoming.length} upcoming`}>
           <div className="space-y-3">
             {upcoming.map(s => (
-              <div key={s.id} className="flex items-center justify-between p-4 rounded-lg border border-[#1c1c34] bg-[#0d0d1a]/80">
+              <div key={s.id} className="flex items-center justify-between p-4 rounded-lg border border-[#1c1c34] bg-[#0d0d1a]/80 hover:border-gold-400/30 transition-all duration-200 hover:shadow-lg hover:shadow-gold-400/5">
                 <div className="flex items-center gap-3">
                   <span className="text-lg text-gold-400">🏆</span>
                   <div>
@@ -275,10 +284,10 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => handleCopyLink(s.id)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 ${
                       copiedId === s.id
                         ? 'bg-dart-green/20 text-dart-green border border-dart-green/30'
-                        : 'bg-[#111122] text-gold-400 border border-[#2e2e52] hover:bg-[#1c1c34]'
+                        : 'bg-[#111122] text-gold-400 border border-[#2e2e52] hover:bg-[#1c1c34] hover:border-gold-400/50'
                     }`}
                   >
                     {copiedId === s.id ? '✓ Copied' : 'Copy Link'}
@@ -293,15 +302,19 @@ export default function DashboardPage() {
               </div>
             ))}
           </div>
-        </div>
+        </Section>
       )}
 
       {/* Player Ratings */}
-      <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-6 mb-8">
-        <h2 className="text-lg font-semibold text-[#eeeef4] mb-4">Player Ratings</h2>
+      <Section title="Player Ratings">
         {players.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-[#6b6b8a] mb-3">No data yet</p>
+          <div className="text-center py-10">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#1c1c34] flex items-center justify-center">
+              <svg className="w-8 h-8 text-[#6b6b8a]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </div>
+            <p className="text-[#6b6b8a] mb-2">No data yet</p>
             <p className="text-xs text-[#6b6b8a]">Click <strong className="text-gold-400">Load Live Data</strong> to fetch from DartsLive.</p>
           </div>
         ) : (
@@ -324,8 +337,10 @@ export default function DashboardPage() {
                 {[...players]
                   .sort((a, b) => (b.liveRating || 0) - (a.liveRating || 0) || b.games - a.games)
                   .map((p, i) => (
-                  <tr key={p.player.id} className="border-b border-[#1c1c34] hover:bg-[#16162a]">
-                    <td className="py-3 text-[#6b6b8a] font-medium">{i + 1}</td>
+                  <tr key={p.player.id} className={`border-b border-[#1c1c34] hover:bg-[#16162a] transition-colors ${i % 2 === 0 ? 'bg-transparent' : 'bg-[#0d0d1a]/50'}`}>
+                    <td className={`py-3 font-medium ${i < 3 ? 'text-gold-400' : 'text-[#6b6b8a]'}`}>
+                      {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}
+                    </td>
                     <td className="py-3">
                       <span className="font-medium text-[#eeeef4]">{p.player.name}</span>
                     </td>
@@ -348,53 +363,80 @@ export default function DashboardPage() {
             </table>
           </div>
         )}
-      </div>
+      </Section>
 
       {/* Game-Type Breakdown */}
-      <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-6 mb-8">
-        <h2 className="text-lg font-semibold text-[#eeeef4] mb-4">By Game Type</h2>
+      <Section title="By Game Type">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           {(['singles', 'doubles', 'trios', 'team', 'half-it'] as const).map(gt => {
             const gs = playerStats.reduce((sum, ps) => sum + ps.byGameType[gt].games, 0);
             const ws = playerStats.reduce((sum, ps) => sum + ps.byGameType[gt].wins, 0);
             const pct = gs > 0 ? Math.round((ws / gs) * 100) : 0;
             return (
-              <div key={gt} className="text-center p-4 rounded-lg border border-[#1c1c34] bg-[#0d0d1a]/60">
-                <p className="text-sm font-bold text-[#6b6b8a] capitalize">{gt}</p>
-                <p className="text-2xl font-bold text-gold-400 mt-1">{pct}%</p>
-                <p className="text-xs text-[#6b6b8a]">{ws}/{gs} won</p>
+              <div
+                key={gt}
+                className="text-center p-4 rounded-lg border border-[#1c1c34] bg-[#0d0d1a]/60 hover:bg-[#16162a] hover:border-gold-400/30 hover:shadow-lg hover:shadow-gold-400/5 transition-all duration-200"
+              >
+                <p className="text-xs font-semibold text-[#6b6b8a] uppercase tracking-wider mb-2">{gt}</p>
+                <p className="text-3xl font-bold text-gold-400">{pct}%</p>
+                <p className="text-xs text-[#6b6b8a] mt-1">{ws}/{gs} won</p>
               </div>
             );
           })}
         </div>
-      </div>
+      </Section>
 
       {/* Match Results */}
       {completedMatches.length > 0 && (
-        <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-6 mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-[#eeeef4]">Match Results</h2>
-            <div className="flex items-center gap-3 text-sm">
-              <span className="text-dart-green font-medium">{completedMatches.filter(s => s.notes?.includes('(W ')).length}W</span>
-              <span className="text-dart-red font-medium">{completedMatches.filter(s => s.notes?.includes('(L ')).length}L</span>
-            </div>
+        <Section title="Match Results">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-sm font-medium text-dart-green bg-dart-green/15 px-3 py-1 rounded-full">{completedMatches.filter(s => s.notes?.includes('(W ')).length}W</span>
+            <span className="text-sm font-medium text-dart-red bg-dart-red/15 px-3 py-1 rounded-full">{completedMatches.filter(s => s.notes?.includes('(L ')).length}L</span>
+            <span className="text-xs text-[#6b6b8a] ml-auto">{completedMatches.length} total</span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <p className="text-xs font-semibold text-[#6b6b8a] uppercase tracking-wider mb-2">First Half</p>
               <div className="space-y-2">
-                {firstHalf.map(s => <MatchCard key={s.id} s={s} />)}
+                {firstHalf.map((s, i) => <MatchCard key={s.id} s={s} index={i} />)}
               </div>
             </div>
             <div>
               <p className="text-xs font-semibold text-[#6b6b8a] uppercase tracking-wider mb-2">Second Half</p>
               <div className="space-y-2">
-                {secondHalf.map(s => <MatchCard key={s.id} s={s} />)}
+                {secondHalf.map((s, i) => <MatchCard key={s.id} s={s} index={i} />)}
               </div>
             </div>
           </div>
+        </Section>
+      )}
+
+      {completedMatches.length === 0 && players.length > 0 && (
+        <Section title="Match Results">
+          <div className="text-center py-10">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#1c1c34] flex items-center justify-center">
+              <svg className="w-8 h-8 text-[#6b6b8a]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </div>
+            <p className="text-[#6b6b8a]">No completed matches yet</p>
+          </div>
+        </Section>
+      )}
+    </div>
+  );
+}
+
+function Section({ title, badge, children, animate }: { title?: string; badge?: string; children: React.ReactNode; animate?: boolean }) {
+  return (
+    <div className={`bg-[#111122] rounded-xl border border-[#1c1c34] p-6 mb-8 hover:border-[#252544] transition-colors duration-200 ${animate ? '' : ''}`}>
+      {title && (
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-[#eeeef4]">{title}</h2>
+          {badge && <span className="text-xs text-[#6b6b8a]">{badge}</span>}
         </div>
       )}
+      {children}
     </div>
   );
 }

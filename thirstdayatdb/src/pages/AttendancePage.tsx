@@ -98,7 +98,7 @@ export default function AttendancePage({ onNavigateToLineup }: AttendancePagePro
   const hasEnoughPlayers = availableCount >= 4;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6">
+    <div className="max-w-6xl mx-auto px-4 py-6 animate-fade-in">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-[#eeeef4]">Attendance</h1>
@@ -107,7 +107,12 @@ export default function AttendancePage({ onNavigateToLineup }: AttendancePagePro
       </div>
 
       {sessions.length === 0 ? (
-        <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-8 text-center">
+        <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-12 text-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#1c1c34] flex items-center justify-center">
+            <svg className="w-8 h-8 text-[#6b6b8a]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
           <p className="text-[#6b6b8a] text-lg mb-2">No upcoming sessions</p>
           <p className="text-[#6b6b8a] text-sm">Create a match or practice session first, then come back here to manage attendance.</p>
         </div>
@@ -136,7 +141,7 @@ export default function AttendancePage({ onNavigateToLineup }: AttendancePagePro
               {/* Left column */}
               <div className="lg:col-span-1 space-y-4">
                 {/* Session Card */}
-                <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-5">
+                <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-5 hover:border-[#252544] transition-colors duration-200">
                   <div className="flex items-center gap-2 mb-3">
                     <span className="text-2xl">{selectedSession.type === 'match' ? '🏆' : '🎯'}</span>
                     <div>
@@ -150,7 +155,7 @@ export default function AttendancePage({ onNavigateToLineup }: AttendancePagePro
                 </div>
 
                 {/* Broadcast Card */}
-                <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-5">
+                <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-5 hover:border-[#252544] transition-colors duration-200">
                   <h3 className="font-semibold text-[#eeeef4] mb-3">Broadcast</h3>
                   <div className="space-y-3">
                     <div className="bg-[#0d0d1a] rounded-lg p-3 border border-[#1c1c34]">
@@ -183,7 +188,7 @@ export default function AttendancePage({ onNavigateToLineup }: AttendancePagePro
 
                 {/* Response Summary */}
                 {counts && (
-                  <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-5">
+                  <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-5 hover:border-[#252544] transition-colors duration-200">
                     <h3 className="font-semibold text-[#eeeef4] mb-3">Response Summary</h3>
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
@@ -239,7 +244,7 @@ export default function AttendancePage({ onNavigateToLineup }: AttendancePagePro
 
               {/* Right column */}
               <div className="lg:col-span-2">
-                <div className="bg-[#111122] rounded-xl border border-[#1c1c34] overflow-hidden">
+                <div className="bg-[#111122] rounded-xl border border-[#1c1c34] overflow-hidden hover:border-[#252544] transition-colors duration-200">
                   <div className="p-5 border-b border-[#1c1c34]">
                     <h3 className="font-semibold text-[#eeeef4]">Player Responses</h3>
                     <p className="text-xs text-[#6b6b8a] mt-1">
@@ -315,7 +320,7 @@ export default function AttendancePage({ onNavigateToLineup }: AttendancePagePro
                 </div>
 
                 {/* Attendance Summary Bar */}
-                <div className="mt-4 bg-[#111122] rounded-xl border border-[#1c1c34] p-4">
+                <div className="mt-4 bg-[#111122] rounded-xl border border-[#1c1c34] p-4 hover:border-[#252544] transition-colors duration-200">
                   <div className="flex flex-wrap items-center gap-4 text-sm">
                     <span className="text-[#9e9eb4] font-medium">Lineup availability:</span>
                     {hasEnoughPlayers ? (

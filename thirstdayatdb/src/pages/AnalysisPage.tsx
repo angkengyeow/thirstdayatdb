@@ -21,9 +21,17 @@ export default function AnalysisPage() {
 
   if (playerStats.length === 0) {
     return (
-      <div className="max-w-6xl mx-auto px-4 py-6">
-        <h1 className="text-2xl font-bold text-[#eeeef4] mb-6">Analysis</h1>
-        <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-8 text-center">
+      <div className="max-w-6xl mx-auto px-4 py-6 animate-fade-in">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-[#eeeef4]">Analysis</h1>
+          <p className="text-sm text-[#6b6b8a] mt-0.5">Player performance, partnerships, and game history</p>
+        </div>
+        <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-12 text-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#1c1c34] flex items-center justify-center">
+            <svg className="w-8 h-8 text-[#6b6b8a]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
           <p className="text-[#6b6b8a] text-lg mb-2">No game data yet</p>
           <p className="text-[#6b6b8a] text-sm">Game performance data will appear here once matches are played and logged.</p>
         </div>
@@ -32,14 +40,17 @@ export default function AnalysisPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6">
-      <h1 className="text-2xl font-bold text-[#eeeef4] mb-6">Analysis</h1>
+    <div className="max-w-6xl mx-auto px-4 py-6 animate-fade-in">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-[#eeeef4]">Analysis</h1>
+        <p className="text-sm text-[#6b6b8a] mt-0.5">Player performance, partnerships, and game history</p>
+      </div>
 
       {/* Per-Format Game Counts */}
       <GameFormatTotals matchSessions={matchSessions} />
 
       {/* Player Performance Table */}
-      <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-6 mb-6 overflow-x-auto">
+      <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-6 mb-6 overflow-x-auto hover:border-[#252544] transition-colors duration-200">
         <h2 className="text-lg font-semibold text-[#eeeef4] mb-4">Player Performance</h2>
         <table className="w-full text-left text-sm">
           <thead>
@@ -55,11 +66,11 @@ export default function AnalysisPage() {
             </tr>
           </thead>
           <tbody>
-            {playerStats.map(ps => (
+            {playerStats.map((ps, i) => (
               <tr
                 key={ps.playerId}
                 onClick={() => setSelectedPlayer(selectedPlayer === ps.playerId ? null : ps.playerId)}
-                className={`border-b border-[#1c1c34] hover:bg-[#16162a] cursor-pointer ${selectedPlayer === ps.playerId ? 'bg-gold-400/[0.04]' : ''}`}
+                className={`border-b border-[#1c1c34] hover:bg-[#16162a] cursor-pointer transition-colors ${selectedPlayer === ps.playerId ? 'bg-gold-400/[0.06]' : ''} ${i % 2 === 0 ? '' : 'bg-[#0d0d1a]/40'}`}
               >
                 <td className="py-3">
                   <div className="font-medium text-[#eeeef4]">{ps.playerName}</div>
@@ -87,7 +98,7 @@ export default function AnalysisPage() {
       </div>
 
       {/* Half-It Analysis */}
-      <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-6 mb-6">
+      <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-6 mb-6 hover:border-[#252544] transition-colors duration-200">
         <h2 className="text-lg font-semibold text-[#eeeef4] mb-4">Half-It</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
@@ -131,7 +142,7 @@ export default function AnalysisPage() {
 
       {/* Partner Analysis */}
       {partnerStats.length > 0 && (
-        <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-6 mb-6">
+        <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-6 mb-6 hover:border-[#252544] transition-colors duration-200">
           <h2 className="text-lg font-semibold text-[#eeeef4] mb-4">Partner Analysis</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
@@ -164,7 +175,7 @@ export default function AnalysisPage() {
 
       {/* Game History by Slot */}
       {matchSessions.length > 0 && (
-        <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-6 mt-6">
+        <div className="bg-[#111122] rounded-xl border border-[#1c1c34] p-6 mt-6 hover:border-[#252544] transition-colors duration-200">
           <h2 className="text-lg font-semibold text-[#eeeef4] mb-4">Game History by Slot</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">

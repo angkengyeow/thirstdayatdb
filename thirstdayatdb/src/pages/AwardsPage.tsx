@@ -85,8 +85,11 @@ export default function AwardsPage() {
   }, []);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6">
-      <h1 className="text-2xl font-bold text-[#eeeef4] mb-6">Award Pins</h1>
+    <div className="max-w-6xl mx-auto px-4 py-6 animate-fade-in">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-[#eeeef4]">Award Pins</h1>
+        <p className="text-sm text-[#6b6b8a] mt-0.5">Track achievements and bracket milestones</p>
+      </div>
 
       {/* Info banner */}
       <div className="bg-gold-400/[0.06] border border-gold-400/30 rounded-xl p-4 mb-8 text-sm">
@@ -101,7 +104,7 @@ export default function AwardsPage() {
       {/* Pin cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         {AWARD_PINS.map(pin => (
-          <div key={pin.name} className="bg-[#111122] rounded-xl border border-[#1c1c34] p-5 hover:border-gold-400/30 transition-colors duration-200">
+          <div key={pin.name} className="bg-[#111122] rounded-xl border border-[#1c1c34] p-5 hover:border-gold-400/30 hover:shadow-lg hover:shadow-gold-400/5 hover:scale-[1.02] transition-all duration-200">
             <div className="flex items-center gap-3 mb-3">
               <span className="text-2xl">{pin.icon}</span>
               <div>
@@ -192,6 +195,11 @@ export default function AwardsPage() {
 
       {!hasData && (
         <div className="text-center py-12">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#1c1c34] flex items-center justify-center">
+            <svg className="w-8 h-8 text-[#6b6b8a]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+            </svg>
+          </div>
           <p className="text-lg text-[#6b6b8a]">Load data from DartsLive to see player awards</p>
         </div>
       )}
