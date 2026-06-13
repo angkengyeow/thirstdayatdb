@@ -4,6 +4,7 @@ import {
   populateFromLiveData, updateFromLiveData, getTeamStanding,
   getUpcomingSessions, buildResponseLink, getGamePerformancesForSession,
   getAllPlayersGameStats, shouldSkipAutoUpdate, saveLastUpdated,
+  getResponseCounts,
 } from '../store';
 import { seedDemoData } from '../seed';
 import { fetchLiveData } from '../scraper';
@@ -117,6 +118,135 @@ function SectionHeader({ title, badge }: { title: string; badge?: string }) {
 }
 
 /* ─── Main Page ──────────────────────────────────────────────────────── */
+
+/** Returns the number of days between today and a target date string. */
+function daysUntil(dateStr: string): number {
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const target = new Date(dateStr + 'T00:00:00');
+  return Math.round((target.getTime() - now.getTime()) / 86400000);
+}
+
+/** Auto-attendance reminder — shows a prominent banner for matches that are 3 days out. */
+function AttendanceReminder({ upcoming }: { upcoming: import('../types').Session[] }) {
+  const [dismissed, setDismissed] = useState<Set<string>>(() => {
+    try {
+      const raw = localStorage.getItem('darts_attendance_dismissed');
+      return new Set(raw ? JSON.parse(raw) : []);
+    } catch { return new Set<string>(); }
+  });
+
+  // Find matches exactly 3 days away or within 3 days with <50% response rate
+  const matchesNeedingAttention = upcoming.filter(s => {
+    const d = daysUntil(s.date);
+    if (d < 0 || d > 3) return false;
+    if (dismissed.has(s.id)) return false;
+    const counts = getResponseCounts(s.id);
+    // Show if less than half have responded
+    return counts.total > 0 && counts.responded < Math.ceil(counts.total * 0.5);
+  });
+
+  if (matchesNeedingAttention.length === 0) return null;
+
+  function handleDismiss(sessionId: string) {
+    const next = new Set(dismissed);
+    next.add(sessionId);
+    setDismissed(next);
+    localStorage.setItem('darts_attendance_dismissed', JSON.stringify([...next]));
+  }
+
+  function handleCopyLink(sessionId: string) {
+    const link = buildResponseLink(sessionId);
+    navigator.clipboard.writeText(link);
+  }
+
+  function handleWhatsApp(session: { date: string; notes?: string; id: string }) {
+    const link = buildResponseLink(session.id);
+    const msg = encodeURIComponent(
+      `[Captain Liting (Virtual)] 🏆 Match on ${session.date}${session.notes ? ` — ${session.notes}` : ''}\n\nPlease respond with your attendance:\n${link}`
+    );
+    window.open(`https://wa.me/?text=${msg}`, '_blank');
+    handleDismiss(session.id);
+  }
+
+  return (
+    <div className="space-y-3">
+      {matchesNeedingAttention.map(s => {
+        const counts = getResponseCounts(s.id);
+        const d = daysUntil(s.date);
+        const noteMatch = s.notes?.match(/(?:vs|@)\s+(.+?)$/);
+        const opponent = noteMatch?.[1] || 'Unknown';
+
+        return (
+          <div
+            key={s.id}
+            className="rounded-xl p-5 animate-fade-in"
+            style={{
+              background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.08), rgba(232, 200, 114, 0.04))',
+              border: '1px solid rgba(212, 175, 55, 0.25)',
+              boxShadow: '0 2px 16px rgba(212, 175, 55, 0.10)',
+            }}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs font-semibold font-body tracking-wider uppercase" style={{ color: '#B8942E' }}>
+                    {d === 0 ? 'Match Day!' : d === 1 ? 'Tomorrow!' : `In ${d} Days`}
+                  </span>
+                  <span className="text-[10px] text-[#94A3B8] font-body">vs {opponent}</span>
+                  <span className="text-[10px] text-[#94A3B8] font-body">· {s.date}</span>
+                </div>
+                <p className="text-sm text-[#64748B] font-body mb-3">
+                  {d === 3 ? 'Send attendance requests now — 3 days to go.' :
+                   d === 0 ? 'Match is today! Collect final attendance.' :
+                   `${counts.responded}/${counts.total} players have responded`}
+                </p>
+                {/* Progress bar */}
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: '#F1F5F9' }}>
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{
+                        width: `${counts.total > 0 ? (counts.responded / counts.total) * 100 : 0}%`,
+                        background: 'linear-gradient(90deg, rgba(212, 175, 55, 0.4), #D4AF37)',
+                      }}
+                    />
+                  </div>
+                  <span className="text-xs font-semibold font-body" style={{ color: counts.responded >= counts.confirmedPresent ? '#059669' : '#B8942E' }}>
+                    {counts.confirmedOnTime} on-time · {counts.confirmedLate} late · {counts.confirmedAbsent} absent
+                  </span>
+                </div>
+                {/* Action buttons */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => { handleCopyLink(s.id); }}
+                    className="btn-gold text-xs px-3 py-1.5 rounded-lg"
+                  >
+                    Copy Link
+                  </button>
+                  <button
+                    onClick={() => handleWhatsApp(s)}
+                    className="btn-gold-outline text-xs px-3 py-1.5 rounded-lg"
+                  >
+                    Share via WhatsApp
+                  </button>
+                  <button
+                    onClick={() => handleDismiss(s.id)}
+                    className="text-xs px-3 py-1.5 rounded-lg font-body transition-colors"
+                    style={{ color: '#94A3B8', border: '1px solid #E2E8F0', background: '#FFF' }}
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [players, setPlayers] = useState(getPlayerDashboardStats);
@@ -304,6 +434,9 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
+
+      {/* ═══ Attendance Reminder (auto-detects matches 3 days out) ═══ */}
+      <AttendanceReminder upcoming={upcoming} />
 
       {/* ═══ Hero Standing Card ═══ */}
       <div className="glass-card-deep">
