@@ -353,11 +353,15 @@ export function getPlayerGameStats(playerId: string): PlayerGameStats {
     byGameType[gt] = { games: gs.length, wins: w, winPct: gs.length > 0 ? Math.round((w / gs.length) * 100) : 0 };
   }
 
-  // Average DartsLive stats
+  // Average DartsLive stats — prefer stored values, fall back to game performances
   const stats01Values = games.filter(g => g.stats01 !== undefined).map(g => g.stats01!);
   const statsCricketValues = games.filter(g => g.statsCricket !== undefined).map(g => g.statsCricket!);
-  const stats01Avg = stats01Values.length > 0 ? Math.round((stats01Values.reduce((a, b) => a + b, 0) / stats01Values.length) * 100) / 100 : 0;
-  const statsCricketAvg = statsCricketValues.length > 0 ? Math.round((statsCricketValues.reduce((a, b) => a + b, 0) / statsCricketValues.length) * 100) / 100 : 0;
+  const stats01Avg = player && player.stats01Avg > 0
+    ? player.stats01Avg
+    : (stats01Values.length > 0 ? Math.round((stats01Values.reduce((a, b) => a + b, 0) / stats01Values.length) * 100) / 100 : 0);
+  const statsCricketAvg = player && player.statsCricketAvg > 0
+    ? player.statsCricketAvg
+    : (statsCricketValues.length > 0 ? Math.round((statsCricketValues.reduce((a, b) => a + b, 0) / statsCricketValues.length) * 100) / 100 : 0);
 
   // Legs won/lost
   const legsWon = games.reduce((sum, g) => sum + g.legsWon, 0);
