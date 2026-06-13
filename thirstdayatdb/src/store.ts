@@ -8,7 +8,6 @@ const STORAGE_KEYS = {
   performances: 'darts_performances',
   gamePerformances: 'darts_game_performances',
   responses: 'darts_responses',
-  awards: 'darts_awards',
 } as const;
 
 // Debounced server sync — batches writes and syncs every 2 seconds
@@ -40,7 +39,6 @@ export async function syncFromServer(): Promise<boolean> {
     localStorage.setItem(STORAGE_KEYS.performances, JSON.stringify(data.performances));
     localStorage.setItem(STORAGE_KEYS.gamePerformances, JSON.stringify(data.gamePerformances));
     localStorage.setItem(STORAGE_KEYS.responses, JSON.stringify(data.responses));
-    if (data.awards) localStorage.setItem(STORAGE_KEYS.awards, JSON.stringify(data.awards));
     return true;
   } catch {
     return false;
@@ -812,17 +810,6 @@ export interface LiveMatchGameResultData {
   thirstdayWon: boolean;
 }
 
-export interface LiveMatchAwardCount {
-  playerName: string;
-  count: number;
-}
-
-export interface LiveMatchAwardData {
-  awardType: string;
-  displayName: string;
-  counts: LiveMatchAwardCount[];
-}
-
 export interface LiveMatchResultData {
   matchNo: string;
   matchDate: string;
@@ -836,73 +823,12 @@ export interface LiveMatchResultData {
   completed: boolean;
   players: LiveMatchPlayer[];
   games: LiveMatchGameResultData[];
-  awards: LiveMatchAwardData[];
 }
 
 export interface LiveDataInput {
   matches: LiveMatchResultData[];
   players: LivePlayerData[];
   fetchedAt: string;
-}
-
-// Map DartsLive API award types to our display names
-const AWARD_TYPE_MAP: Record<string, string> = {
-  HAT_TRICK: 'Hat Trick',
-  HIGH_TON: 'High Ton',
-  TON_80: 'Ton 80',
-  THREE_IN_A_BED: '3 in a Bed',
-  WHITE_HORSE: 'White Horse',
-  THREE_IN_BLACK: '3 in the Black',
-};
-
-/** Computes per-player award totals from all match data and stores them */
-function computeAwardTotals(matches: LiveMatchResultData[]) {
-  const awardMap = new Map<string, Record<string, number>>();
-  const allAwardTypes = new Set<string>();
-
-  for (const m of matches) {
-    for (const a of m.awards) {
-      allAwardTypes.add(a.awardType);
-      for (const c of a.counts) {
-        if (!awardMap.has(c.playerName)) {
-          awardMap.set(c.playerName, {});
-        }
-        const pa = awardMap.get(c.playerName)!;
-        pa[a.awardType] = (pa[a.awardType] || 0) + c.count;
-      }
-    }
-  }
-
-  const result: { playerName: string; awards: Record<string, number> }[] = [];
-  for (const [name, awards] of awardMap) {
-    result.push({ playerName: name, awards });
-  }
-  save(STORAGE_KEYS.awards, { awardMap: Object.fromEntries(awardMap), awardTypes: Array.from(allAwardTypes) });
-}
-
-/** Returns per-player award counts: map of awardType -> count */
-export function getPlayerAwardCounts(): Map<string, Record<string, number>> {
-  const stored = load<any>(STORAGE_KEYS.awards, null);
-  if (!stored || !stored.awardMap) return new Map();
-  return new Map(Object.entries(stored.awardMap));
-}
-
-/** Returns the set of all award types seen across matches */
-export function getAwardTypes(): string[] {
-  const stored = load<any>(STORAGE_KEYS.awards, null);
-  if (!stored || !stored.awardTypes) return [];
-  return stored.awardTypes;
-}
-
-/** Returns per-player award counts mapped through the AWARD_TYPE_MAP */
-export function getPlayerAwardDisplayCounts(): { playerName: string; awards: Record<string, number> }[] {
-  const awardMap = getPlayerAwardCounts();
-  return Array.from(awardMap.entries()).map(([name, awards]) => ({
-    playerName: name,
-    awards: Object.fromEntries(
-      Object.entries(awards).map(([type, count]) => [AWARD_TYPE_MAP[type] || type, count])
-    ),
-  }));
 }
 
 // Super League format: 9 games with specific types/formats.
@@ -1061,8 +987,6 @@ export function populateFromLiveData(liveData: LiveDataInput) {
   });
 
   localStorage.setItem('darts_game_performances', JSON.stringify(gamePerformances));
-
-  computeAwardTotals(liveData.matches);
 }
 
 /**
@@ -1213,6 +1137,5 @@ export function updateFromLiveData(liveData: LiveDataInput): number {
   localStorage.setItem('darts_sessions', JSON.stringify(allSessions));
   localStorage.setItem('darts_game_performances', JSON.stringify([...existingGamePerformances, ...newGamePerformances]));
 
-  computeAwardTotals(liveData.matches);
   return addedCount;
 }

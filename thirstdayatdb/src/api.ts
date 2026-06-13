@@ -16,7 +16,6 @@ export async function loadAllFromServer(): Promise<{
   performances: any[];
   gamePerformances: any[];
   responses: any[];
-  awards?: any;
 }> {
   try {
     const data = await api('/load');
