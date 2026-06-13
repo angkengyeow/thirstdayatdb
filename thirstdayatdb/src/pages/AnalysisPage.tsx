@@ -175,17 +175,8 @@ export default function AnalysisPage() {
       {/* Game History by Slot */}
       {matchSessions.length > 0 && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-6">
-          <button
-            onClick={() => {
-              const el = document.getElementById('game-history');
-              if (el) el.classList.toggle('hidden');
-            }}
-            className="text-sm text-indigo-600 hover:text-indigo-800 font-medium mb-3"
-          >
-            View Game History by Slot ▼
-          </button>
-          <div id="game-history" className="hidden">
-            <div className="overflow-x-auto">
+          <h2 className="text-lg font-semibold text-gray-700 mb-4">Game History by Slot</h2>
+          <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
                   <tr className="border-b border-gray-200 text-gray-500">
@@ -261,7 +252,6 @@ export default function AnalysisPage() {
                 </tbody>
               </table>
             </div>
-          </div>
         </div>
       )}
 
