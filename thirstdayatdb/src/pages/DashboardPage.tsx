@@ -7,6 +7,7 @@ import {
 } from '../store';
 import { seedDemoData } from '../seed';
 import { fetchLiveData } from '../scraper';
+import RotatingBorderCard from '../components/RotatingBorderCard';
 
 /* ─── Mini Sparkline SVG ─────────────────────────────────────────── */
 function Sparkline({ data, height = 32, width = 100 }: { data: number[]; height?: number; width?: number }) {
@@ -350,8 +351,9 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* ═══ Hero Standing Card ═══ */}
-      <GlassCard>
+      {/* ═══ Hero Standing Card (Rotating Neon Border) ═══ */}
+      <RotatingBorderCard colors={['#00e5ff', '#2a5aff', '#00e676', '#00e5ff']} speed={6} glowIntensity={10}>
+      <GlassCard hover={false}>
         <div className="p-6 md:p-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             {/* Left: Identity */}
@@ -437,6 +439,7 @@ export default function DashboardPage() {
           </div>
         </div>
       </GlassCard>
+      </RotatingBorderCard>
 
       {/* ═══ Performance Trend + Upcoming ═══ */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
