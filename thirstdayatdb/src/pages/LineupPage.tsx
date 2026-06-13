@@ -151,12 +151,17 @@ export default function LineupPage({ preselectDate }: LineupPageProps) {
 
         <div className="mt-4 p-4 bg-indigo-50 rounded-lg text-sm text-indigo-800">
           <p className="font-medium mb-1">S1 Division — 64 Credits (No Handicap, OI/MO)</p>
-          <p>Composite = 01 Avg Performance (50%) + Win Rate (50%)</p>
           <p className="mt-1">
-            <span className="font-medium">Format-aware ranking:</span> Pure 01 games (G1, G9) rank by 01 Avg. Pure Cricket (G5) ranks by Cricket Avg. Mixed games use the overall Composite.
+            <span className="font-medium">Ranking by game type:</span>
           </p>
+          <ul className="mt-1 space-y-0.5 list-disc list-inside text-indigo-700">
+            <li><strong>G1, G9</strong> (pure 01) → ranked by <strong>01 Avg</strong></li>
+            <li><strong>G5</strong> (pure Cricket) → ranked by <strong>Cricket Avg</strong></li>
+            <li><strong>G2–G4, G7, G8</strong> (mixed) → ranked by <strong>Composite</strong> (50% 01 Avg + 50% Win Rate)</li>
+            <li><strong>G6</strong> (Half-It) → ranked by <strong>Composite</strong></li>
+          </ul>
           <p className="text-indigo-600 mt-1">
-            Game count is balanced across the roster. With fewer players, the same players will repeat across games naturally.
+            Game count is balanced by giving priority to players with fewer games. With fewer players, the same players will repeat across games naturally.
           </p>
         </div>
       </div>
