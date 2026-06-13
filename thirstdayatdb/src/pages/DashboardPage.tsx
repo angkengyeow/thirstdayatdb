@@ -124,7 +124,9 @@ export default function DashboardPage() {
   const [upcoming, setUpcoming] = useState(getUpcomingSessions);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingStage, setLoadingStage] = useState(0);
   const [statusMessage, setStatusMessage] = useState('');
+  const loadingStages = ['Connecting to DartsLive...', 'Fetching match data...', 'Processing results...', 'Building stats...'];
   const [playerStats, setPlayerStats] = useState(getAllPlayersGameStats());
   const matchSessions = sessions.filter(s => s.type === 'match');
 
@@ -139,6 +141,7 @@ export default function DashboardPage() {
   // Auto-fetch live data on page mount; skip if already up-to-date
   useEffect(() => {
     let cancelled = false;
+    let stageTimer: ReturnType<typeof setInterval>;
     async function autoLoad() {
       if (shouldSkipAutoUpdate()) {
         seedDemoData();
@@ -146,23 +149,39 @@ export default function DashboardPage() {
         return;
       }
       setLoading(true);
-      setStatusMessage('Loading data...');
+      setLoadingStage(0);
+      setStatusMessage(loadingStages[0]);
+
+      // Animate through stages while loading
+      stageTimer = setInterval(() => {
+        setLoadingStage(prev => Math.min(prev + 1, loadingStages.length - 1));
+        setStatusMessage(loadingStages[Math.min(loadingStages.length - 1, 0)]);
+      }, 2500);
+
       try {
         const liveData = await fetchLiveData();
         if (cancelled) return;
+        setLoadingStage(loadingStages.length - 1);
+        setStatusMessage('Building stats...');
+        await new Promise(r => setTimeout(r, 300));
         populateFromLiveData(liveData);
         const added = updateFromLiveData(liveData);
         saveLastUpdated();
+        clearInterval(stageTimer);
         setStatusMessage(added > 0 ? `Updated — ${added} new match${added > 1 ? 'es' : ''}` : 'Up to date');
+        await new Promise(r => setTimeout(r, 400));
+        if (!cancelled) { setLoading(false); setRefreshKey(k => k + 1); }
       } catch {
         if (cancelled) return;
+        clearInterval(stageTimer);
         seedDemoData();
         setStatusMessage('Seed data loaded');
+        await new Promise(r => setTimeout(r, 400));
+        if (!cancelled) { setLoading(false); setRefreshKey(k => k + 1); }
       }
-      if (!cancelled) { setLoading(false); setRefreshKey(k => k + 1); }
     }
     autoLoad();
-    return () => { cancelled = true; };
+    return () => { cancelled = true; clearInterval(stageTimer); };
   }, []);
 
   useEffect(() => { refresh(); }, [refreshKey, refresh]);
@@ -284,25 +303,134 @@ export default function DashboardPage() {
           <p className="text-sm text-[#94A3B8] mt-0.5 font-body">Team overview &amp; match history</p>
         </div>
         {(loading || statusMessage) && (
-          <div
-            className="flex items-center gap-2 text-xs font-body tracking-wide"
-            style={{
-              background: '#FFFFFF',
-              border: '1px solid rgba(212, 175, 55, 0.15)',
-              borderRadius: '999px',
-              padding: '4px 14px',
-            }}
-          >
-            {loading && (
-              <span
-                className="w-2 h-2 rounded-full animate-pulse"
-                style={{ background: '#D4AF37' }}
-              />
-            )}
-            <span className="text-[#94A3B8]">{statusMessage || 'Loading...'}</span>
+          <div className="flex items-center gap-3">
+            {/* Animated progress steps */}
+            <div className="flex items-center gap-2">
+              {loadingStages.map((stage, i) => (
+                <div
+                  key={stage}
+                  className="flex items-center gap-1.5 transition-all duration-500"
+                  style={{
+                    opacity: loadingStage >= i ? 1 : 0.25,
+                  }}
+                >
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full transition-all duration-500 ${
+                      loadingStage > i ? '' : loadingStage === i && loading ? 'animate-pulse' : ''
+                    }`}
+                    style={{
+                      background: loadingStage > i ? '#059669' : loadingStage === i ? '#D4AF37' : '#CBD5E1',
+                    }}
+                  />
+                  <span
+                    className="text-[10px] font-body hidden sm:inline transition-colors duration-500"
+                    style={{ color: loadingStage >= i ? '#64748B' : '#CBD5E1' }}
+                  >
+                    {loadingStage > i ? stage.replace('...', '') : stage}
+                  </span>
+                </div>
+              ))}
+            </div>
+            {/* Live status pill */}
+            <div
+              className="flex items-center gap-2 text-xs font-body tracking-wide whitespace-nowrap"
+              style={{
+                background: '#FFFFFF',
+                border: '1px solid rgba(212, 175, 55, 0.15)',
+                borderRadius: '999px',
+                padding: '4px 14px',
+              }}
+            >
+              {loading && (
+                <span
+                  className="w-2 h-2 rounded-full animate-pulse"
+                  style={{ background: '#D4AF37' }}
+                />
+              )}
+              <span className="text-[#94A3B8]">{statusMessage || 'Loading...'}</span>
+            </div>
           </div>
         )}
       </div>
+
+      {/* ═══ Skeleton Loading ═══ */}
+      {loading && matchSessions.length === 0 && (
+        <div className="space-y-6 animate-fade-in">
+          {/* Hero card skeleton */}
+          <div className="rounded-xl p-6 md:p-8 skeleton-shimmer" style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '20px' }}>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="flex items-center gap-4">
+                <div className="w-24 h-14 skeleton-shimmer" />
+                <div className="space-y-2">
+                  <div className="w-40 h-5 skeleton-shimmer" />
+                  <div className="w-52 h-3 skeleton-shimmer" />
+                </div>
+              </div>
+              <div className="flex items-center gap-8">
+                <div className="space-y-2">
+                  <div className="w-12 h-3 skeleton-shimmer" />
+                  <div className="w-20 h-10 skeleton-shimmer" />
+                </div>
+                <div className="space-y-2">
+                  <div className="w-12 h-3 skeleton-shimmer" />
+                  <div className="w-20 h-10 skeleton-shimmer" />
+                </div>
+              </div>
+            </div>
+            {/* Stats grid skeleton */}
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-6">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="rounded-xl px-4 py-3" style={{ background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+                  <div className="w-16 h-3 skeleton-shimmer mx-auto mb-2" />
+                  <div className="w-10 h-6 skeleton-shimmer mx-auto" />
+                </div>
+              ))}
+            </div>
+            <hr className="mt-4 mb-3" style={{ borderColor: '#F1F5F9' }} />
+          </div>
+
+          {/* Two-column skeleton */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 rounded-xl p-6 skeleton-gold" style={{ background: '#FFFFFF', border: '1px solid rgba(212,175,55,0.12)', borderRadius: '16px' }}>
+              <div className="w-36 h-4 skeleton-shimmer mb-4" />
+              <div className="w-full h-24 skeleton-shimmer" />
+            </div>
+            <div className="rounded-xl p-6 skeleton-gold" style={{ background: '#FFFFFF', border: '1px solid rgba(212,175,55,0.12)', borderRadius: '16px' }}>
+              <div className="w-28 h-4 skeleton-shimmer mb-4" />
+              <div className="w-full h-20 skeleton-shimmer mb-2" />
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="w-3/4 h-3 skeleton-shimmer mb-2" />
+              ))}
+            </div>
+          </div>
+
+          {/* Match history skeletons */}
+          <div className="space-y-2">
+            <div className="w-32 h-4 skeleton-shimmer mb-3" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="rounded-xl p-4 skeleton-shimmer" style={{ background: '#FFFFFF', border: '1px solid #E2E8F0' }}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-5 skeleton-shimmer" />
+                      <div className="space-y-1">
+                        <div className="w-36 h-3 skeleton-shimmer" />
+                        <div className="w-20 h-2 skeleton-shimmer" />
+                      </div>
+                    </div>
+                    <div className="w-12 h-6 skeleton-shimmer" />
+                  </div>
+                  <div className="flex gap-1 mt-2 pt-2" style={{ borderTop: '1px solid #F1F5F9' }}>
+                    {[...Array(5)].map((_, j) => (
+                      <div key={j} className="w-10 h-4 skeleton-shimmer" />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ═══ Hero Standing Card ═══ */}
       <div className="glass-card-deep">

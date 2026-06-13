@@ -56,6 +56,25 @@
   100% { transform: rotate(360deg); }
 }
 
+/* ─── Skeleton shimmer ─── */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(90deg, #F1F5F9 25%, #F8FAFC 50%, #F1F5F9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+.skeleton-gold {
+  background: linear-gradient(90deg, rgba(212, 175, 55, 0.08) 25%, rgba(212, 175, 55, 0.15) 50%, rgba(212, 175, 55, 0.08) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
 body {
   margin: 0;
   font-family: var(--font-body);
