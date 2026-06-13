@@ -1,5 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getPlayerDashboardStats, getSessions, hasData, clearAllData, populateFromLiveData, updateFromLiveData, getTeamStanding } from '../store';
+import {
+  getPlayerDashboardStats, getSessions, hasData, clearAllData,
+  populateFromLiveData, updateFromLiveData, getTeamStanding,
+  getUpcomingSessions, buildResponseLink,
+} from '../store';
 import { seedDemoData } from '../seed';
 import { fetchLiveData } from '../scraper';
 
@@ -10,6 +14,8 @@ export default function DashboardPage() {
   const [players, setPlayers] = useState(getPlayerDashboardStats);
   const [sessions, setSessions] = useState(getSessions);
   const [standing, setStanding] = useState(getTeamStanding);
+  const [upcoming, setUpcoming] = useState(getUpcomingSessions);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadStatus, setLoadStatus] = useState<LoadStatus>('idle');
   const [statusMessage, setStatusMessage] = useState('');
@@ -19,6 +25,7 @@ export default function DashboardPage() {
     setPlayers(getPlayerDashboardStats());
     setSessions(getSessions());
     setStanding(getTeamStanding());
+    setUpcoming(getUpcomingSessions());
   }, []);
 
   useEffect(() => {
@@ -71,6 +78,54 @@ export default function DashboardPage() {
     setLoadStatus('idle');
     setStatusMessage('');
     setRefreshKey(k => k + 1);
+  }
+
+  function handleCopyLink(sessionId: string) {
+    const link = buildResponseLink(sessionId);
+    navigator.clipboard.writeText(link).then(() => {
+      setCopiedId(sessionId);
+      setTimeout(() => setCopiedId(null), 2000);
+    });
+  }
+
+  function handleWhatsAppShare(session: { date: string; notes?: string }) {
+    const msg = encodeURIComponent(
+      `[Darts S1 Manager] 🏆 Match on ${session.date}${session.notes ? ` — ${session.notes}` : ''}\n\nPlease respond with your attendance:`
+    );
+    window.open(`https://wa.me/?text=${msg}`, '_blank');
+  }
+
+  // Split completed matches into first and second half
+  const completedMatches = [...matchSessions]
+    .filter(s => s.notes?.match(/\((W|L)\s+/))
+    .sort((a, b) => a.date.localeCompare(b.date));
+  const half = Math.ceil(completedMatches.length / 2);
+  const firstHalf = completedMatches.slice(0, half);
+  const secondHalf = completedMatches.slice(half);
+
+  function MatchCard({ s }: { s: typeof matchSessions[0] }) {
+    const isWin = s.notes?.includes('(W ');
+    const noteParts = s.notes?.match(/(vs|@)\s+(.+?)\s+\((W|L)\s+(\d+)-(\d+)\)/);
+    const opponent = noteParts?.[2] || s.notes || '';
+    const score = noteParts ? `${noteParts[4]}-${noteParts[5]}` : '';
+    return (
+      <div className={`flex items-center justify-between p-3 rounded-lg border ${isWin ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
+        <div className="flex items-center gap-3 min-w-0">
+          <span className={`text-sm font-bold px-2 py-0.5 rounded shrink-0 ${isWin ? 'text-green-700 bg-green-100' : 'text-red-700 bg-red-100'}`}>
+            {isWin ? 'W' : 'L'}
+          </span>
+          <div className="min-w-0">
+            <span className="text-sm font-medium text-gray-800 truncate block">{opponent}</span>
+            <p className="text-xs text-gray-500">{s.date}</p>
+          </div>
+        </div>
+        {score && (
+          <span className={`text-sm font-bold font-mono shrink-0 ${isWin ? 'text-green-700' : 'text-red-700'}`}>
+            {score}
+          </span>
+        )}
+      </div>
+    );
   }
 
   return (
@@ -222,47 +277,74 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Match Results Timeline */}
-      {matchSessions.length > 0 && (
+      {/* Upcoming Matches + Attendance */}
+      {upcoming.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-700">Upcoming Matches</h2>
+            <span className="text-xs text-gray-400">{upcoming.length} upcoming</span>
+          </div>
+          <div className="space-y-3">
+            {upcoming.map(s => {
+              return (
+                <div key={s.id} className="flex items-center justify-between p-4 rounded-lg border border-indigo-100 bg-indigo-50/50">
+                  <div className="flex items-center gap-3">
+                    <span className="text-lg">🏆</span>
+                    <div>
+                      <span className="text-sm font-semibold text-gray-800">{s.date}</span>
+                      {s.notes && <p className="text-xs text-gray-500">{s.notes}</p>}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleCopyLink(s.id)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                        copiedId === s.id
+                          ? 'bg-green-100 text-green-700 border border-green-300'
+                          : 'bg-white text-indigo-600 border border-indigo-200 hover:bg-indigo-50'
+                      }`}
+                    >
+                      {copiedId === s.id ? '✓ Copied' : 'Copy Link'}
+                    </button>
+                    <button
+                      onClick={() => { handleWhatsAppShare(s); handleCopyLink(s.id); }}
+                      className="px-3 py-1.5 rounded-lg text-xs font-medium bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors"
+                    >
+                      Share
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Match Results — 2 columns: first half / second half */}
+      {completedMatches.length > 0 && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-700">Match Results</h2>
             <div className="flex items-center gap-3 text-sm">
-              <span className="text-green-700 font-medium">
-                {matchSessions.filter(s => s.notes?.includes('(W ')).length}W
-              </span>
-              <span className="text-red-700 font-medium">
-                {matchSessions.filter(s => s.notes?.includes('(L ')).length}L
-              </span>
+              <span className="text-green-700 font-medium">{completedMatches.filter(s => s.notes?.includes('(W ')).length}W</span>
+              <span className="text-red-700 font-medium">{completedMatches.filter(s => s.notes?.includes('(L ')).length}L</span>
             </div>
           </div>
-          <div className="space-y-2 max-h-80 overflow-y-auto">
-            {[...matchSessions]
-              .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-              .map(s => {
-                const isWin = s.notes?.includes('(W ');
-                const noteParts = s.notes?.match(/(vs|@)\s+(.+?)\s+\((W|L)\s+(\d+)-(\d+)\)/);
-                const opponent = noteParts?.[2] || s.notes || '';
-                const score = noteParts ? `${noteParts[4]}-${noteParts[5]}` : '';
-                return (
-                  <div key={s.id} className={`flex items-center justify-between p-3 rounded-lg border ${isWin ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
-                    <div className="flex items-center gap-3">
-                      <span className={`text-sm font-bold px-2 py-0.5 rounded ${isWin ? 'text-green-700 bg-green-100' : 'text-red-700 bg-red-100'}`}>
-                        {isWin ? 'W' : 'L'}
-                      </span>
-                      <div>
-                        <span className="text-sm font-medium text-gray-800">{opponent}</span>
-                        <p className="text-xs text-gray-500">{s.date}</p>
-                      </div>
-                    </div>
-                    {score && (
-                      <span className={`text-sm font-bold font-mono ${isWin ? 'text-green-700' : 'text-red-700'}`}>
-                        {score}
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* First Half */}
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">First Half</p>
+              <div className="space-y-2">
+                {firstHalf.map(s => <MatchCard key={s.id} s={s} />)}
+              </div>
+            </div>
+            {/* Second Half */}
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Second Half</p>
+              <div className="space-y-2">
+                {secondHalf.map(s => <MatchCard key={s.id} s={s} />)}
+              </div>
+            </div>
           </div>
         </div>
       )}
