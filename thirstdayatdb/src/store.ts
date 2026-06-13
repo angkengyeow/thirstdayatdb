@@ -328,14 +328,18 @@ export function getPlayerGameStats(playerId: string): PlayerGameStats {
   const player = getPlayers().find(p => p.id === playerId);
   const games = getGamePerformancesForPlayer(playerId);
 
-  const totalGames = games.length;
-  const wins = games.filter(g => g.won).length;
+  // Use DartsLive aggregate totals (matching dashboard) when available,
+  // fall back to game performances count
+  const hasStoredRecords = player ? player.wins > 0 || player.losses > 0 : false;
+  const totalGames = hasStoredRecords ? (player!.wins + player!.losses) : games.length;
+  const wins = hasStoredRecords ? player!.wins : games.filter(g => g.won).length;
   const losses = totalGames - wins;
   const winPct = totalGames > 0 ? Math.round((wins / totalGames) * 100) : 0;
 
-  // By format — count games where player has 01/cricket stats (includes mixed format)
-  const format01 = games.filter(g => g.stats01 !== undefined);
-  const cricket = games.filter(g => g.statsCricket !== undefined);
+  // By format — use the game's format field (not stats existence) to avoid
+  // counting mixed-format games in both 01 and cricket buckets
+  const format01 = games.filter(g => g.format === '01');
+  const cricket = games.filter(g => g.format === 'cricket');
   const halfIt = games.filter(g => g.format === 'half-it');
 
   const fmtStats = (gs: GamePerformance[]) => {
