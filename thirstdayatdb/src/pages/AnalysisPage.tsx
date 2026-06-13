@@ -129,13 +129,6 @@ export default function AnalysisPage() {
               <th className="pb-3 font-medium text-center">H-It Legs W</th>
               <th className="pb-3 font-medium text-center">H-It Legs L</th>
               <th className="pb-3 font-medium text-center">Half-It Win%</th>
-              <th className="pb-3 font-medium text-center text-indigo-600" title="Hat Trick">🎯HT</th>
-              <th className="pb-3 font-medium text-center text-indigo-600" title="High Ton">💯Ton</th>
-              <th className="pb-3 font-medium text-center text-indigo-600" title="Ton 80">T80</th>
-              <th className="pb-3 font-medium text-center text-indigo-600" title="3 in a Bed">3Bd</th>
-              <th className="pb-3 font-medium text-center text-indigo-600" title="White Horse">WH</th>
-              <th className="pb-3 font-medium text-center text-indigo-600" title="3 in the Black">3Blk</th>
-              <th className="pb-3 font-medium text-center text-indigo-600">Clocked</th>
             </tr>
           </thead>
           <tbody>
@@ -165,35 +158,6 @@ export default function AnalysisPage() {
                 <td className="py-3 text-center text-green-600 font-medium">{ps.halfIt.games > 0 ? ps.halfIt.legsWon : <span className="text-gray-300">-</span>}</td>
                 <td className="py-3 text-center text-red-600 font-medium">{ps.halfIt.games > 0 ? ps.halfIt.legsLost : <span className="text-gray-300">-</span>}</td>
                 <td className="py-3 text-center">{ps.halfIt.games > 0 ? <WinBadge pct={ps.halfIt.winPct} /> : <span className="text-gray-300">-</span>}</td>
-                {(() => {
-                  const playerAward = awardData.find(a => a.playerName === ps.playerName);
-                  const awards = playerAward?.awards || {};
-                  const ds = dashboardStats.find(d => d.player.id === ps.playerId);
-                  const bIdx = ds ? bracketIndex(ds.liveRating) : -1;
-                  const clocked = AWARD_PINS.filter(pin => (awards[pin.name] || 0) >= pin.thresholds[bIdx]).length;
-                  return AWARD_PINS.map(pin => {
-                    const count = awards[pin.name] || 0;
-                    return (
-                      <td key={pin.name} className="py-3 text-center">
-                        <span className={`text-xs font-mono font-bold ${
-                          count > 0 ? 'text-indigo-600' : 'text-gray-300'
-                        }`}>
-                          {count || '0'}
-                        </span>
-                      </td>
-                    );
-                  }).concat(
-                    <td key="clocked" className="py-3 text-center">
-                      <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${
-                        clocked >= 4 ? 'text-emerald-600 bg-emerald-50' :
-                        clocked >= 2 ? 'text-amber-600 bg-amber-50' :
-                        'text-gray-400'
-                      }`}>
-                        {clocked}/6
-                      </span>
-                    </td>
-                  );
-                })()}
               </tr>
             ))}
           </tbody>
